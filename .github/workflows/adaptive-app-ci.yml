@@ -3,12 +3,10 @@ on:
   push:
     branches: [master]
     paths:
-      - "adaptive-app/**"
       - ".github/workflows/adaptive-app-ci.yml"
   pull_request:
     branches: [master]
     paths:
-      - "adaptive-app/**"
       - ".github/workflows/adaptive-app-ci.yml"
   workflow_dispatch:
 
