@@ -5,10 +5,10 @@ Next.js web application with AI chat interface and API management platform.
 ## Quick Start
 
 ```bash
-bun install
+pnpm install
 cp .env.example .env  # Configure database, auth, and API URLs
-bun run db:generate
-bun run dev
+pnpm run db:generate
+pnpm run dev
 ```
 
 ## Features
@@ -27,15 +27,15 @@ bun run dev
 - **tRPC** for type-safe APIs
 - **Clerk** for authentication
 - **Tailwind CSS** for styling
-- **Bun** as package manager
+- **pnpm** as package manager
 
 ## Commands
 
 ```bash
-bun dev              # Development server
-bun build            # Production build
-bun check            # Lint and format (Biome)
-bun typecheck        # TypeScript checking
-bun db:studio        # Database GUI
-bun db:generate      # Run migrations
+pnpm dev              # Development server
+pnpm build            # Production build
+pnpm check            # Lint and format (Biome)
+pnpm typecheck        # TypeScript checking
+pnpm db:studio        # Database GUI
+pnpm db:generate      # Run migrations
 ```
