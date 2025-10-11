@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Toaster } from "sonner";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/context/theme-provider";
@@ -21,6 +22,11 @@ export default function RootLayout({
 		<ClerkProvider>
 			<html lang="en" suppressHydrationWarning>
 				<body>
+					<Script
+						defer
+						src="https://analytics.llmadaptive.uk/script.js"
+						data-website-id="f746c473-ac95-49e7-a215-d20c223951ce"
+					/>
 					<ThemeProvider
 						attribute="class"
 						defaultTheme="system"
