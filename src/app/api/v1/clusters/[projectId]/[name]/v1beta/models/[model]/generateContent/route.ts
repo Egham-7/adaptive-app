@@ -1,19 +1,10 @@
-import { GoogleGenAI } from "@google/genai";
 import type { NextRequest } from "next/server";
 import { env } from "@/env";
 import { extractModelFromGeminiParam } from "@/lib/gemini-utils";
-import { safeParseJson } from "@/lib/server/json-utils";
 import { api } from "@/trpc/server";
-import type {
-	AdaptiveGeminiRequest,
-	AdaptiveGeminiResponse,
-	AdaptiveGeminiUsage,
-} from "@/types/gemini-generate";
-import type { ProviderType } from "@/types/providers";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/v1/clusters/{projectId}/{name}/v1beta/models/{model}:generateContent - Gemini-compatible generation with cluster routing
 export async function POST(
 	req: NextRequest,
 	{
@@ -22,14 +13,9 @@ export async function POST(
 ) {
 	const { projectId, name, model: modelParam } = await params;
 
-	// Parse JSON with proper typing - let Gemini SDK handle validation
-	const body = await safeParseJson<AdaptiveGeminiRequest>(req);
-
 	try {
-		// Handle Gemini colon syntax: "model:generateContent" -> "model"
 		const model = extractModelFromGeminiParam(modelParam);
 
-		// Extract API key from headers (Google uses x-goog-api-key primarily)
 		const apiKey =
 			req.headers.get("x-goog-api-key") ||
 			req.headers.get("authorization")?.replace("Bearer ", "") ||
@@ -53,7 +39,6 @@ export async function POST(
 			);
 		}
 
-		// Verify API key and check project access
 		const verificationResult = await api.api_keys.verify({ apiKey });
 		if (!verificationResult.valid) {
 			return new Response(
@@ -71,7 +56,6 @@ export async function POST(
 			);
 		}
 
-		// Check that API key's project matches the requested projectId
 		if (verificationResult.projectId !== projectId) {
 			return new Response(
 				JSON.stringify({
@@ -88,64 +72,31 @@ export async function POST(
 			);
 		}
 
-		// Use Google Gen AI SDK to call our backend with standard baseUrl
-		const ai = new GoogleGenAI({
-			apiKey: "internal", // Internal communication - will be handled by backend
-			httpOptions: {
-				baseUrl: env.ADAPTIVE_API_BASE_URL,
+		const body = await req.text();
+
+		const response = await fetch(
+			`${env.ADAPTIVE_API_BASE_URL}/v1/clusters/${projectId}/${name}/v1beta/models/${model}:generateContent`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"x-goog-api-key": "internal",
+				},
+				body,
 			},
-		});
+		);
 
-		const startTime = Date.now();
-
-		// Build request parameters following the SDK pattern
-		const generateParams = {
-			model, // The model name from the URL parameter
-			contents: body.contents,
-			...(body.config && { config: body.config }),
-			// Add Adaptive-specific extensions
-			...(body.provider_configs && { provider_configs: body.provider_configs }),
-			...(body.model_router && { model_router: body.model_router }),
-			...(body.semantic_cache && { semantic_cache: body.semantic_cache }),
-			...(body.prompt_cache && { prompt_cache: body.prompt_cache }),
-			...(body.fallback && { fallback: body.fallback }),
-		};
-
-		// Use the models.generateContent method as shown in SDK docs
-		const response = (await ai.models.generateContent(
-			generateParams,
-		)) as AdaptiveGeminiResponse;
-
-		// Record usage if available
-		if (response.usageMetadata) {
-			const usage = response.usageMetadata as AdaptiveGeminiUsage;
-			queueMicrotask(async () => {
-				try {
-					await api.usage.recordApiUsage({
-						apiKey,
-						provider: response.provider as ProviderType,
-						model: response.modelVersion ?? model,
-						usage: {
-							promptTokens: usage.promptTokenCount ?? 0,
-							completionTokens: usage.candidatesTokenCount ?? 0,
-							totalTokens: usage.totalTokenCount ?? 0,
-						},
-						duration: Date.now() - startTime,
-						timestamp: new Date(),
-						cacheTier: usage.cache_tier,
-					});
-				} catch (error) {
-					console.error("Failed to record usage:", error);
-				}
+		if (!response.ok) {
+			return new Response(await response.text(), {
+				status: response.status,
+				headers: { "Content-Type": "application/json" },
 			});
 		}
 
-		return Response.json(response);
+		return new Response(await response.text(), {
+			headers: { "Content-Type": "application/json" },
+		});
 	} catch (error) {
-		if (error instanceof Response) {
-			// Propagate structured 4xx from safeParseJson/validators
-			return error;
-		}
 		console.error("Gemini cluster generateContent API error:", error);
 		return new Response(
 			JSON.stringify({

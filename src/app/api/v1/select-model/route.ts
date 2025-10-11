@@ -87,61 +87,10 @@ export async function POST(req: NextRequest) {
 			},
 		);
 	}
+	// Call the tRPC selectModel procedure
+	const result = await api.selectModel.selectModel({
+		request: body,
+	});
 
-	const startTime = Date.now();
-
-	try {
-		// Call the tRPC selectModel procedure
-		const result = await api.selectModel.selectModel({
-			request: body,
-		});
-
-		// Record usage in background - charge for the select-model request
-		queueMicrotask(async () => {
-			try {
-				await api.usage.recordApiUsage({
-					apiKey,
-					provider: "adaptive", // Internal service
-					model: "model-selector",
-					usage: {
-						promptTokens: selectModelCostInTokens, // Charge equivalent of $0.001
-						completionTokens: 0,
-						totalTokens: selectModelCostInTokens,
-					},
-					duration: Date.now() - startTime,
-					timestamp: new Date(),
-					requestCount: 1,
-				});
-			} catch (error) {
-				console.error("Failed to record select-model usage:", error);
-				// Silent failure - never affect client response
-			}
-		});
-
-		return Response.json(result);
-	} catch (error) {
-		// Record error usage
-		queueMicrotask(async () => {
-			try {
-				await api.usage.recordApiUsage({
-					apiKey,
-					provider: "adaptive",
-					model: "model-selector",
-					usage: {
-						promptTokens: 0,
-						completionTokens: 0,
-						totalTokens: 0,
-					},
-					duration: Date.now() - startTime,
-					timestamp: new Date(),
-					requestCount: 1,
-					error: error instanceof Error ? error.message : String(error),
-				});
-			} catch (err) {
-				console.error("Failed to record select-model error:", err);
-			}
-		});
-
-		throw error; // Re-throw to be handled by outer catch
-	}
+	return Response.json(result);
 }

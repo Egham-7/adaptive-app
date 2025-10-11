@@ -1,21 +1,11 @@
 import type { NextRequest } from "next/server";
-import OpenAI from "openai";
+import { env } from "@/env";
 import { decryptProviderApiKey } from "@/lib/auth";
-import {
-	filterUsageFromChunk,
-	userRequestedUsage,
-	withUsageTracking,
-} from "@/lib/server/usage-utils";
 import { withCache } from "@/lib/shared/cache";
 import { api } from "@/trpc/server";
-import type {
-	ChatCompletion,
-	ChatCompletionChunk,
-	ChatCompletionRequest,
-} from "@/types/chat-completion";
+import type { ChatCompletionRequest } from "@/types/chat-completion";
 import { chatCompletionRequestSchema } from "@/types/chat-completion";
 
-// POST /api/v1/clusters/{projectId}/{name}/chat/completions - OpenAI-compatible chat completions with cluster routing
 export async function POST(
 	request: NextRequest,
 	{ params }: { params: Promise<{ projectId: string; name: string }> },
@@ -23,7 +13,6 @@ export async function POST(
 	try {
 		const { projectId, name } = await params;
 
-		// Validate request body with Zod schema
 		const requestBody = await request.json();
 		const validationResult = chatCompletionRequestSchema.safeParse(requestBody);
 
@@ -42,7 +31,6 @@ export async function POST(
 
 		const body = validationResult.data as ChatCompletionRequest;
 
-		// Extract API key from OpenAI-compatible headers
 		const authHeader = request.headers.get("authorization");
 		const bearerToken = authHeader?.startsWith("Bearer ")
 			? authHeader.slice(7).replace(/\s+/g, "") || null
@@ -78,7 +66,6 @@ export async function POST(
 			});
 		}
 
-		// Verify API key has access to this project
 		if (verificationResult.projectId !== projectId) {
 			return new Response(
 				JSON.stringify({
@@ -88,11 +75,10 @@ export async function POST(
 			);
 		}
 
-		// Get cluster configuration with caching
 		const cluster = await withCache(
 			`cluster:${projectId}:${name}`,
 			() => api.llmClusters.getByName({ projectId, name, apiKey }),
-			300, // 5 minutes cache
+			300,
 		);
 
 		if (!cluster) {
@@ -102,7 +88,6 @@ export async function POST(
 			});
 		}
 
-		// Fetch provider configurations from database
 		const providerConfigs: Record<
 			string,
 			{
@@ -122,7 +107,7 @@ export async function POST(
 			const configs = await withCache(
 				`provider-configs:${projectId}`,
 				() => api.providerConfigs.getAll({ projectId, apiKey }),
-				60, // 1 minute cache (shorter for user configs)
+				60,
 			);
 
 			configs.forEach((config) => {
@@ -131,7 +116,7 @@ export async function POST(
 					base_url: provider.baseUrl ?? undefined,
 					auth_type: provider.authType ?? undefined,
 					auth_header_name: provider.authHeaderName ?? undefined,
-					api_key: decryptProviderApiKey(config.providerApiKey), // Decrypt user's API key from config
+					api_key: decryptProviderApiKey(config.providerApiKey),
 					health_endpoint: provider.healthEndpoint ?? undefined,
 					rate_limit_rpm: provider.rateLimitRpm ?? undefined,
 					timeout_ms: provider.timeoutMs ?? undefined,
@@ -147,11 +132,9 @@ export async function POST(
 			console.warn("Failed to fetch provider configs:", error);
 		}
 
-		// Get full model details from provider models with caching
 		const modelDetails = await withCache(
 			`model-details:${cluster.id}`,
 			async () => {
-				// Process each cluster provider and get their model details
 				const modelDetailsArray: Array<{
 					provider: string;
 					model_name: string;
@@ -167,11 +150,9 @@ export async function POST(
 					complexity?: string;
 				}> = [];
 
-				// Fetch all provider models in parallel using Promise.allSettled
 				const providerModelPromises = cluster.providers.map(
 					async (clusterProvider) => {
 						try {
-							// Get models for this provider config
 							const models = await api.providerModels.getForConfig({
 								projectId,
 								providerId: clusterProvider.providerId,
@@ -190,10 +171,8 @@ export async function POST(
 					},
 				);
 
-				// Wait for all provider model fetches to complete
 				const providerResults = await Promise.allSettled(providerModelPromises);
 
-				// Process results and build model details array
 				for (const result of providerResults) {
 					if (result.status === "fulfilled") {
 						const { clusterProvider, models } = result.value;
@@ -235,28 +214,11 @@ export async function POST(
 
 				return modelDetailsArray;
 			},
-			300, // 5 minutes cache for model details
+			300,
 		);
 
-		const shouldStream = body.stream === true;
-
-		// Check if user requested usage data
-		const userWantsUsage = userRequestedUsage(body);
-
-		const baseURL = `${process.env.ADAPTIVE_API_BASE_URL}/v1`;
-
-		const openai = new OpenAI({
-			apiKey: "internal", // Internal communication - no real API key needed
-			baseURL,
-		});
-
-		// Only add include_usage: true for streaming requests
-		// Non-streaming requests will get usage info by default from most providers
-		const internalBody = shouldStream ? withUsageTracking(body) : body;
-
-		// Build enhanced request with cluster config and real model data
 		const enhancedRequest = {
-			...internalBody,
+			...body,
 			user: name,
 			model_router: {
 				models: modelDetails,
@@ -276,114 +238,30 @@ export async function POST(
 				enabled: cluster.fallbackEnabled,
 				mode: cluster.fallbackMode,
 			},
+			provider_configs: providerConfigs,
 		};
 
-		if (shouldStream) {
-			const streamStartTime = Date.now();
-			const encoder = new TextEncoder();
-			const abortController = new AbortController();
-			const timeoutMs = 300000; // 5 minutes timeout
-
-			const timeoutId = setTimeout(() => {
-				abortController.abort();
-			}, timeoutMs);
-
-			// Create custom ReadableStream that intercepts OpenAI SDK chunks
-			const customReadable = new ReadableStream({
-				async start(controller) {
-					try {
-						const stream = await openai.chat.completions.create(
-							{
-								...enhancedRequest,
-								stream: true,
-							},
-							{
-								signal: abortController.signal,
-								body: {
-									...enhancedRequest,
-									stream: true,
-									provider_configs: providerConfigs,
-								},
-							},
-						);
-
-						for await (const chunk of stream) {
-							const typedChunk = chunk as ChatCompletionChunk;
-
-							// Record usage in background when we get it
-							if (typedChunk.usage) {
-								console.log("Usage Chunk: ", typedChunk.usage);
-								queueMicrotask(async () => {
-									try {
-										await api.usage.recordApiUsage({
-											apiKey,
-											provider: typedChunk.provider ?? null,
-											model: typedChunk.model ?? null,
-											usage: {
-												promptTokens: typedChunk.usage?.prompt_tokens ?? 0,
-												completionTokens:
-													typedChunk.usage?.completion_tokens ?? 0,
-												totalTokens: typedChunk.usage?.total_tokens ?? 0,
-											},
-											duration: Date.now() - streamStartTime,
-											timestamp: new Date(),
-											clusterId: cluster.id,
-										});
-									} catch (error) {
-										console.error("Failed to record streaming usage:", error);
-									}
-								});
-							}
-
-							// Filter out usage data if user didn't request it
-							const responseChunk = filterUsageFromChunk(
-								typedChunk,
-								userWantsUsage,
-							);
-
-							// Convert chunk to SSE format and enqueue
-							const sseData = `data: ${JSON.stringify(responseChunk)}\n\n`;
-							controller.enqueue(encoder.encode(sseData));
-						}
-
-						// Send [DONE] message
-						controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-						controller.close();
-						clearTimeout(timeoutId);
-					} catch (error) {
-						console.error("Streaming error:", error);
-						const errorData = `data: ${JSON.stringify({ error: "Stream failed" })}\n\n`;
-						controller.enqueue(encoder.encode(errorData));
-						controller.close();
-						clearTimeout(timeoutId);
-
-						// Record error usage
-						queueMicrotask(async () => {
-							try {
-								await api.usage.recordApiUsage({
-									apiKey,
-									provider: null,
-									model: null,
-									usage: {
-										promptTokens: 0,
-										completionTokens: 0,
-										totalTokens: 0,
-									},
-									duration: Date.now() - streamStartTime,
-									timestamp: new Date(),
-									requestCount: 1,
-									error: error instanceof Error ? error.message : String(error),
-									clusterId: cluster.id,
-								});
-							} catch (err) {
-								console.error("Failed to record error:", err);
-							}
-						});
-					}
+		const response = await fetch(
+			`${env.ADAPTIVE_API_BASE_URL}/v1/chat/completions`,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: "Bearer internal",
 				},
-			});
+				body: JSON.stringify(enhancedRequest),
+			},
+		);
 
-			return new Response(customReadable, {
+		if (!response.ok) {
+			return new Response(await response.text(), {
+				status: response.status,
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+
+		if (response.headers.get("content-type")?.includes("text/event-stream")) {
+			return new Response(response.body, {
 				headers: {
 					"Content-Type": "text/event-stream; charset=utf-8",
 					"Cache-Control": "no-cache",
@@ -393,68 +271,9 @@ export async function POST(
 			});
 		}
 
-		// Non-streaming request
-		const nonStreamStartTime = Date.now();
-
-		try {
-			const completion = (await openai.chat.completions.create(
-				enhancedRequest,
-				{
-					body: {
-						...enhancedRequest,
-						provider_configs: providerConfigs,
-					},
-				},
-			)) as ChatCompletion;
-
-			if (completion.usage) {
-				queueMicrotask(async () => {
-					try {
-						await api.usage.recordApiUsage({
-							apiKey,
-							provider: completion.provider ?? null,
-							model: completion.model,
-							usage: {
-								promptTokens: completion.usage?.prompt_tokens ?? 0,
-								completionTokens: completion.usage?.completion_tokens ?? 0,
-								totalTokens: completion.usage?.total_tokens ?? 0,
-							},
-							duration: Date.now() - nonStreamStartTime,
-							timestamp: new Date(),
-							clusterId: cluster.id,
-						});
-					} catch (error) {
-						console.error("Failed to record usage:", error);
-					}
-				});
-			}
-
-			return Response.json(completion);
-		} catch (error) {
-			queueMicrotask(async () => {
-				try {
-					await api.usage.recordApiUsage({
-						apiKey,
-						provider: null,
-						model: null,
-						usage: {
-							promptTokens: 0,
-							completionTokens: 0,
-							totalTokens: 0,
-						},
-						duration: Date.now() - nonStreamStartTime,
-						timestamp: new Date(),
-						requestCount: 1,
-						error: error instanceof Error ? error.message : String(error),
-						clusterId: cluster.id,
-					});
-				} catch (err) {
-					console.error("Failed to record error:", err);
-				}
-			});
-
-			throw error;
-		}
+		return new Response(await response.text(), {
+			headers: { "Content-Type": "application/json" },
+		});
 	} catch (_error) {
 		return new Response(JSON.stringify({ error: "Internal server error" }), {
 			status: 500,
