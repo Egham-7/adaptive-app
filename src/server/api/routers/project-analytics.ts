@@ -146,72 +146,105 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						}),
 					);
 
-					// Get daily usage trends - group by UTC day; make provider filter optional
-					type DailyUsageRow = {
-						date: Date;
-						total_tokens: bigint | null;
-						input_tokens: bigint | null;
-						output_tokens: bigint | null;
-						cost: string | null; // Decimal from Prisma is returned as string from raw queries
-						credit_cost: string | null;
-						request_count: bigint | null;
-					};
-					// Get daily usage trends - use simpler DATE function for broader compatibility
-					let dailyUsageRaw: DailyUsageRow[];
-					if (input.provider) {
-						dailyUsageRaw = await ctx.db.$queryRaw<DailyUsageRow[]>`
-							SELECT
-								DATE("timestamp") as date,
-								SUM("totalTokens") as total_tokens,
-								SUM("inputTokens") as input_tokens,
-								SUM("outputTokens") as output_tokens,
-								SUM(cost) as cost,
-								SUM("creditCost") as credit_cost,
-								SUM("requestCount") as request_count
-							FROM "ApiUsage"
-							WHERE
-								"projectId" = ${input.projectId}
-								AND "timestamp" >= ${startUtc}
-								AND "timestamp" < ${endUtcExclusive}
-								AND provider = ${input.provider}
-							GROUP BY DATE("timestamp")
-							ORDER BY DATE("timestamp")
-						`;
-					} else {
-						dailyUsageRaw = await ctx.db.$queryRaw<DailyUsageRow[]>`
-							SELECT
-								DATE("timestamp") as date,
-								SUM("totalTokens") as total_tokens,
-								SUM("inputTokens") as input_tokens,
-								SUM("outputTokens") as output_tokens,
-								SUM(cost) as cost,
-								SUM("creditCost") as credit_cost,
-								SUM("requestCount") as request_count
-							FROM "ApiUsage"
-							WHERE
-								"projectId" = ${input.projectId}
-								AND "timestamp" >= ${startUtc}
-								AND "timestamp" < ${endUtcExclusive}
-							GROUP BY DATE("timestamp")
-							ORDER BY DATE("timestamp")
-						`;
+					// Get daily usage trends using Prisma ORM - fetch all usage records
+					const allUsageRecords = await ctx.db.apiUsage.findMany({
+						where: whereClause,
+						select: {
+							timestamp: true,
+							totalTokens: true,
+							inputTokens: true,
+							outputTokens: true,
+							cost: true,
+							creditCost: true,
+							requestCount: true,
+						},
+						orderBy: {
+							timestamp: "asc",
+						},
+					});
+
+					// Group by date in application code
+					const dailyUsageMap = new Map<
+						string,
+						{
+							totalTokens: number;
+							inputTokens: number;
+							outputTokens: number;
+							cost: number;
+							creditCost: number;
+							requestCount: number;
+						}
+					>();
+
+					for (const record of allUsageRecords) {
+						// Extract date in UTC (YYYY-MM-DD)
+						const dateKey = record.timestamp.toISOString().split("T")[0];
+						if (!dateKey) continue;
+
+						const existing = dailyUsageMap.get(dateKey) || {
+							totalTokens: 0,
+							inputTokens: 0,
+							outputTokens: 0,
+							cost: 0,
+							creditCost: 0,
+							requestCount: 0,
+						};
+
+						dailyUsageMap.set(dateKey, {
+							totalTokens: existing.totalTokens + (record.totalTokens || 0),
+							inputTokens: existing.inputTokens + (record.inputTokens || 0),
+							outputTokens: existing.outputTokens + (record.outputTokens || 0),
+							cost: existing.cost + (record.cost ? Number(record.cost) : 0),
+							creditCost:
+								existing.creditCost +
+								(record.creditCost ? Number(record.creditCost) : 0),
+							requestCount: existing.requestCount + (record.requestCount || 0),
+						});
 					}
 
-					const dailyUsage = dailyUsageRaw.map((row) => ({
-						timestamp: row.date,
-						_sum: {
-							totalTokens: row.total_tokens ? Number(row.total_tokens) : null,
-							inputTokens: row.input_tokens ? Number(row.input_tokens) : null,
-							outputTokens: row.output_tokens
-								? Number(row.output_tokens)
-								: null,
-							cost: row.cost ? Number(row.cost) : 0,
-							creditCost: row.credit_cost ? Number(row.credit_cost) : 0,
-							requestCount: row.request_count
-								? Number(row.request_count)
-								: null,
-						},
-					}));
+					// Fill in missing dates with zero values
+					const fillDateRange = (start: Date, end: Date) => {
+						const result: Array<{
+							timestamp: Date;
+							_sum: {
+								totalTokens: number;
+								inputTokens: number;
+								outputTokens: number;
+								cost: number;
+								creditCost: number;
+								requestCount: number;
+							};
+						}> = [];
+
+						const currentDate = new Date(start);
+						while (currentDate < end) {
+							const dateKey = currentDate.toISOString().split("T")[0];
+							if (!dateKey) {
+								currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+								continue;
+							}
+
+							const dayData = dailyUsageMap.get(dateKey) || {
+								totalTokens: 0,
+								inputTokens: 0,
+								outputTokens: 0,
+								cost: 0,
+								creditCost: 0,
+								requestCount: 0,
+							};
+
+							result.push({
+								timestamp: new Date(currentDate),
+								_sum: dayData,
+							});
+
+							currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+						}
+
+						return result;
+					};
+
+					const dailyUsage = fillDateRange(startUtc, endUtcExclusive);
 
 					// Calculate comparison costs using database provider pricing
 					const totalSpend = totalMetrics._sum.creditCost ?? 0; // Use creditCost for customer spending
