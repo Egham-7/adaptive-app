@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { apiKeyClient, parseMetadata } from "@/lib/api-keys";
+import { apiKeysClient, parseMetadata } from "@/lib/api-keys";
 import {
 	calculateCreditCost,
 	deductCredits,
@@ -24,7 +24,7 @@ export const usageRouter = createTRPCRouter({
 		.mutation(async ({ ctx, input }) => {
 			try {
 				// Validate API key with Go backend
-				const verifyResult = await apiKeyClient.apiKeys.verify({
+				const verifyResult = await apiKeysClient.verify({
 					key: input.apiKey,
 				});
 
@@ -171,7 +171,7 @@ export const usageRouter = createTRPCRouter({
 		.mutation(async ({ ctx, input }) => {
 			try {
 				// Validate API key with Go backend
-				const verifyResult = await apiKeyClient.apiKeys.verify({
+				const verifyResult = await apiKeysClient.verify({
 					key: input.apiKey,
 				});
 

@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import type { CreditTransactionType } from "prisma/generated";
 import { z } from "zod";
-import { apiKeyClient, parseMetadata } from "@/lib/api-keys";
+import { apiKeysClient, parseMetadata } from "@/lib/api-keys";
 import {
 	awardPromotionalCredits,
 	calculateCreditCost,
@@ -35,7 +35,7 @@ export const creditsRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			// Verify API key with Go backend
-			const result = await apiKeyClient.apiKeys.verify({ key: input.apiKey });
+			const result = await apiKeysClient.verify({ key: input.apiKey });
 
 			if (!result.valid || !result.api_key_id) {
 				throw new TRPCError({
