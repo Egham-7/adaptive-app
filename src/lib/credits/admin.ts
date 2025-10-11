@@ -2,7 +2,7 @@
  * Admin utilities for promotional credit management
  */
 
-import { PROMOTIONAL_CONFIG } from "@/lib/config/promotional";
+import { PROMOTIONAL_CONFIG } from "@/lib/credits/config";
 import { db } from "@/server/db";
 
 /**

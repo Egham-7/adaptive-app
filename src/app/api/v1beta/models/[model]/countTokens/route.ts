@@ -2,8 +2,8 @@ import type { CountTokensParameters } from "@google/genai";
 import { GoogleGenAI } from "@google/genai";
 import type { NextRequest } from "next/server";
 import { env } from "@/env";
-import { extractModelFromGeminiParam } from "@/lib/gemini-utils";
-import { safeParseJson } from "@/lib/server/json-utils";
+import { extractModelFromGeminiParam } from "@/lib/providers/gemini";
+import { safeParseJson } from "@/lib/server/utils";
 import { api } from "@/trpc/server";
 
 export const dynamic = "force-dynamic";

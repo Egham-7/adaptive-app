@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { TOKEN_PRICING } from "@/lib/config/pricing";
-import { safeParseJson } from "@/lib/server/json-utils";
+import { TOKEN_PRICING } from "@/lib/pricing/config";
+import { safeParseJson } from "@/lib/server/utils";
 import { api } from "@/trpc/server";
 import { selectModelRequestSchema } from "@/types/select-model";
 

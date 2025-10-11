@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createMetadata, apiKeyClient } from "@/lib/api-keys";
+import { apiKeyClient, createMetadata } from "@/lib/api-keys";
 import {
 	createTRPCRouter,
 	protectedProcedure,
@@ -186,7 +186,11 @@ export const apiKeysRouter = createTRPCRouter({
 			}
 
 			if (existing.project_id) {
-				const hasAccess = await verifyProjectAccess(ctx, existing.project_id, true);
+				const hasAccess = await verifyProjectAccess(
+					ctx,
+					existing.project_id,
+					true,
+				);
 				if (!hasAccess) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
@@ -272,7 +276,9 @@ export const apiKeysRouter = createTRPCRouter({
 
 			const response = await apiKeyClient.apiKeys.list();
 
-			return response.data.filter((key: ApiKeyResponse) => key.project_id === input.projectId);
+			return response.data.filter(
+				(key: ApiKeyResponse) => key.project_id === input.projectId,
+			);
 		}),
 
 	getUsage: protectedProcedure

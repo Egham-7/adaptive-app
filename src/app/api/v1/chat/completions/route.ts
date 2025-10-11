@@ -1,8 +1,7 @@
 import type { NextRequest } from "next/server";
 import { env } from "@/env";
-import { decryptProviderApiKey } from "@/lib/auth";
 import { api } from "@/trpc/server";
-import type { AuthType, ProviderConfig } from "@/types";
+import type { ProviderConfig } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -46,37 +45,8 @@ export async function POST(req: NextRequest) {
 
 		const { projectId } = verificationResult;
 
+		// Provider configs removed during refactor - will be handled by proxy
 		const providerConfigs: Record<string, ProviderConfig> = {};
-
-		if (projectId) {
-			try {
-				const configs = await api.providerConfigs.getAll({
-					projectId,
-					apiKey,
-				});
-
-				configs.forEach((config) => {
-					const provider = config.provider;
-					providerConfigs[provider.name] = {
-						base_url: provider.baseUrl ?? undefined,
-						auth_type: (provider.authType as AuthType | undefined) ?? undefined,
-						auth_header_name: provider.authHeaderName ?? undefined,
-						api_key: decryptProviderApiKey(config.providerApiKey),
-						health_endpoint: provider.healthEndpoint ?? undefined,
-						rate_limit_rpm: provider.rateLimitRpm ?? undefined,
-						timeout_ms: provider.timeoutMs ?? undefined,
-						retry_config:
-							(provider.retryConfig as Record<string, unknown>) ?? undefined,
-						headers: {
-							...(provider.headers as Record<string, string>),
-							...(config.customHeaders as Record<string, string>),
-						},
-					};
-				});
-			} catch (error) {
-				console.warn("Failed to fetch provider configs:", error);
-			}
-		}
 
 		const bodyText = await req.text();
 		const bodyJson = JSON.parse(bodyText);

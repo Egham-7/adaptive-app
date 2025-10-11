@@ -23,8 +23,13 @@ export type DailyTrendDataPoint = ProjectAnalytics["dailyTrends"][number];
 /**
  * Model-provider breakdown data point
  */
-export type ModelProviderBreakdown =
-	ProjectAnalytics["modelProviderBreakdown"][number];
+export type ModelProviderBreakdown = {
+	model: string;
+	provider: string;
+	spend: number;
+	tokens: number;
+	requests: number;
+};
 
 /**
  * Request type breakdown data point

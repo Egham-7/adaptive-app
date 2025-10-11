@@ -249,62 +249,8 @@ export const projectAnalyticsRouter = createTRPCRouter({
 					// Calculate comparison costs using database provider pricing
 					const totalSpend = totalMetrics._sum.creditCost ?? 0; // Use creditCost for customer spending
 
-					// Get all providers with their pricing data
-					const providers = await ctx.db.provider.findMany({
-						where: {},
-						include: {
-							models: {
-								where: {},
-							},
-						},
-					});
-
-					// Create a map of provider models for quick lookup
-					const providerModelMap = new Map<
-						string,
-						Map<string, { inputTokenCost: number; outputTokenCost: number }>
-					>();
-					providers.forEach((provider) => {
-						const modelMap = new Map<
-							string,
-							{ inputTokenCost: number; outputTokenCost: number }
-						>();
-						provider.models.forEach((model) => {
-							modelMap.set(model.name, {
-								inputTokenCost: model.inputTokenCost.toNumber(),
-								outputTokenCost: model.outputTokenCost.toNumber(),
-							});
-						});
-						providerModelMap.set(provider.name, modelMap);
-					});
-
-					// Pre-compute maximum cost per model across all providers
-					const maxCostPerModel = new Map<
-						string,
-						{ inputCost: number; outputCost: number }
-					>();
-
-					for (const [_providerName, models] of providerModelMap.entries()) {
-						for (const [modelName, modelPricing] of models.entries()) {
-							const existing = maxCostPerModel.get(modelName);
-							const inputCost = Number(modelPricing.inputTokenCost);
-							const outputCost = Number(modelPricing.outputTokenCost);
-
-							if (
-								!existing ||
-								inputCost > existing.inputCost ||
-								outputCost > existing.outputCost
-							) {
-								maxCostPerModel.set(modelName, {
-									inputCost: Math.max(inputCost, existing?.inputCost || 0),
-									outputCost: Math.max(outputCost, existing?.outputCost || 0),
-								});
-							}
-						}
-					}
-
 					// Get detailed usage data with model information for cost calculations
-					const detailedUsage = await ctx.db.apiUsage.findMany({
+					const _detailedUsage = await ctx.db.apiUsage.findMany({
 						where: whereClause,
 						select: {
 							provider: true,
@@ -314,85 +260,6 @@ export const projectAnalyticsRouter = createTRPCRouter({
 							cost: true,
 						},
 					});
-
-					// Calculate what it would have cost if all usage went through a specific provider/model
-					// This compares Adaptive's cost to direct provider costs
-					const calculateModelCostFromProvider = (
-						targetModelName: string,
-						targetProvider: string,
-					) => {
-						const targetProviderModels = providerModelMap.get(targetProvider);
-						if (!targetProviderModels) return 0;
-
-						const modelPricing = targetProviderModels.get(targetModelName);
-						if (!modelPricing) return 0;
-
-						// Apply target provider's pricing to ALL actual usage tokens
-						return detailedUsage.reduce((sum, usage) => {
-							// Apply target pricing to all token usage regardless of source model
-							return (
-								sum +
-								((usage.inputTokens * modelPricing.inputTokenCost) / 1000000 +
-									(usage.outputTokens * modelPricing.outputTokenCost) / 1000000)
-							);
-						}, 0);
-					};
-
-					// Get all unique model-provider combinations
-					const modelProviderCombinations: Array<{
-						model: string;
-						provider: string;
-						pricing: { inputTokenCost: number; outputTokenCost: number };
-					}> = [];
-
-					for (const [providerName, models] of providerModelMap.entries()) {
-						for (const [modelName, pricing] of models.entries()) {
-							modelProviderCombinations.push({
-								model: modelName,
-								provider: providerName,
-								pricing,
-							});
-						}
-					}
-
-					const modelProviderBreakdown = modelProviderCombinations.map(
-						({ model, provider, pricing }) => {
-							const estimatedCost = calculateModelCostFromProvider(
-								model,
-								provider,
-							);
-							const savings = Math.max(0, estimatedCost - totalSpend);
-							const savingsPercentage =
-								estimatedCost > 0 ? (savings / estimatedCost) * 100 : 0;
-
-							return {
-								model,
-								provider,
-								estimatedCost,
-								savings,
-								savingsPercentage,
-								pricing: {
-									inputCost: pricing.inputTokenCost,
-									outputCost: pricing.outputTokenCost,
-								},
-							};
-						},
-					);
-
-					// Calculate total comparison cost (use average of all combinations)
-					const totalEstimatedCost =
-						modelProviderBreakdown.length > 0
-							? modelProviderBreakdown.reduce(
-									(sum, combo) => sum + combo.estimatedCost,
-									0,
-								) / modelProviderBreakdown.length
-							: 0;
-
-					const totalSavings = Math.max(0, totalEstimatedCost - totalSpend);
-					const totalSavingsPercentage =
-						totalEstimatedCost > 0
-							? (totalSavings / totalEstimatedCost) * 100
-							: 0;
 
 					// Calculate error rate data - find all entries where metadata.error exists
 					const errorUsage = await ctx.db.apiUsage.findMany({
@@ -430,12 +297,8 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						totalTokens: totalMetrics._sum.totalTokens ?? 0,
 						totalRequests: totalMetrics._sum.requestCount ?? 0,
 						totalApiCalls: totalCalls,
-						totalEstimatedCost,
-						totalSavings,
-						totalSavingsPercentage,
 						errorRate,
 						errorCount,
-						modelProviderBreakdown,
 						requestTypeBreakdown: requestTypeUsage.map((usage) => ({
 							type: usage.requestType,
 							spend: usage._sum.cost ?? 0,

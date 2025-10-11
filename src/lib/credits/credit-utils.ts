@@ -1,12 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import type { CreditTransactionType } from "prisma/generated";
 import type { InputJsonValue } from "prisma/generated/runtime/library";
-import { CREDIT_LIMITS, TOKEN_PRICING } from "@/lib/config/pricing";
 import {
 	getPromotionalCreditStats,
 	hasUserReceivedPromotionalCredits,
 	PROMOTIONAL_CONFIG,
-} from "@/lib/config/promotional";
+} from "@/lib/credits/config";
+import { CREDIT_LIMITS, TOKEN_PRICING } from "@/lib/pricing/config";
 import { db } from "@/server/db";
 
 // ---- Core Credit Operations ----
@@ -258,7 +258,7 @@ export async function deductCredits(params: {
 	amount: number;
 	description?: string;
 	metadata?: InputJsonValue;
-	apiKeyId?: string;
+	apiKeyId?: number;
 	apiUsageId?: string;
 }) {
 	const {

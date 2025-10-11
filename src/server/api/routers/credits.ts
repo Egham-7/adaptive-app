@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import type { CreditTransactionType } from "prisma/generated";
 import { z } from "zod";
-import { TOKEN_PRICING } from "@/lib/config/pricing";
+import { apiKeyClient, parseMetadata } from "@/lib/api-keys";
 import {
 	awardPromotionalCredits,
 	calculateCreditCost,
@@ -10,7 +10,7 @@ import {
 	getOrganizationTransactionHistory,
 	hasSufficientCredits,
 } from "@/lib/credits";
-import { apiKeyClient, parseMetadata } from "@/lib/api-keys";
+import { TOKEN_PRICING } from "@/lib/pricing/config";
 import { formatCurrency } from "@/lib/shared/currency";
 import { stripe } from "@/lib/stripe/stripe";
 import {

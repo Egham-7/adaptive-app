@@ -1,13 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { calculateCreditCost, deductCredits } from "@/lib/credits";
+import { apiKeyClient, parseMetadata } from "@/lib/api-keys";
 import {
-	applyCacheTierDiscount,
-	calculateProviderCost,
-	checkSufficientCredits,
-	getOrganizationId,
-	getProviderModel,
-	validateApiKey,
-} from "@/lib/server/api-key-utils";
+	calculateCreditCost,
+	deductCredits,
+	getOrganizationBalance,
+	hasSufficientCredits,
+} from "@/lib/credits";
 import { invalidateAnalyticsCache } from "@/lib/shared/cache";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import {
@@ -25,43 +23,71 @@ export const usageRouter = createTRPCRouter({
 		.input(recordApiUsageInputSchema)
 		.mutation(async ({ ctx, input }) => {
 			try {
-				// Validate API key and get organization info
-				const apiKey = await validateApiKey(ctx.db, input.apiKey);
-				const organizationId = getOrganizationId(apiKey);
+				// Validate API key with Go backend
+				const verifyResult = await apiKeyClient.apiKeys.verify({
+					key: input.apiKey,
+				});
 
-				// Find provider model for cost calculation
-				const providerModel = await getProviderModel(
-					ctx.db,
-					input.provider,
-					input.model,
-				);
+				if (!verifyResult.valid || !verifyResult.api_key_id) {
+					throw new TRPCError({
+						code: "UNAUTHORIZED",
+						message: verifyResult.reason ?? "Invalid API key",
+					});
+				}
+
+				const meta = parseMetadata(verifyResult.metadata);
+
+				// Get project info for organizationId
+				const project = await ctx.db.project.findUnique({
+					where: { id: meta.projectId },
+					select: { organizationId: true },
+				});
+
+				if (!project) {
+					throw new TRPCError({
+						code: "UNAUTHORIZED",
+						message: "Project not found",
+					});
+				}
+
+				const apiKey = {
+					id: verifyResult.api_key_id,
+					userId: meta.userId || "",
+					projectId: meta.projectId || "",
+				};
+				const organizationId = project.organizationId;
 
 				// Calculate costs
-				const providerCost = calculateProviderCost(
-					providerModel,
+				const providerCost = 0; // Will be calculated by Go backend
+
+				const creditCost = calculateCreditCost(
 					input.usage.promptTokens,
 					input.usage.completionTokens,
 				);
 
-				const baseCreditCost = calculateCreditCost(
-					input.usage.promptTokens,
-					input.usage.completionTokens,
-				);
-				const creditCost = applyCacheTierDiscount(
-					baseCreditCost,
-					input.cacheTier,
-				);
+				// Apply cache discount if needed
+				const finalCreditCost =
+					input.cacheTier === "prompt_response" ? 0 : creditCost;
 
 				// Check credit balance before processing
 				console.log("🔍 Checking credit balance before API usage.");
-				await checkSufficientCredits(organizationId, creditCost);
+				const hasEnough = await hasSufficientCredits(
+					organizationId,
+					finalCreditCost,
+				);
+				if (!hasEnough) {
+					const balance = await getOrganizationBalance(organizationId);
+					throw new TRPCError({
+						code: "PAYMENT_REQUIRED",
+						message: `Insufficient credits. Required: $${finalCreditCost.toFixed(4)}, Available: $${balance.toFixed(4)}`,
+					});
+				}
 
 				// Record the usage
 				const usage = await ctx.db.apiUsage.create({
 					data: {
 						apiKeyId: apiKey.id,
 						projectId: apiKey.projectId,
-						clusterId: input.clusterId,
 						provider: input.provider,
 						model: input.model,
 						requestType: "chat",
@@ -69,20 +95,20 @@ export const usageRouter = createTRPCRouter({
 						outputTokens: input.usage.completionTokens,
 						totalTokens: input.usage.totalTokens,
 						cost: providerCost,
-						creditCost,
+						creditCost: finalCreditCost,
 						requestCount: input.requestCount,
 						metadata: createUsageMetadata(input, apiKey),
 					},
 				});
 
 				// Handle credit deduction (only if cost > 0)
-				const shouldDeductCredits = creditCost > 0;
+				const shouldDeductCredits = finalCreditCost > 0;
 				if (shouldDeductCredits) {
 					console.log("💸 Deducting credits for API usage.");
 					await deductCredits({
 						organizationId,
 						userId: apiKey.userId,
-						amount: creditCost,
+						amount: finalCreditCost,
 						description: `API usage: ${input.usage.promptTokens} input + ${input.usage.completionTokens} output tokens`,
 						metadata: {
 							provider: input.provider,
@@ -114,7 +140,7 @@ export const usageRouter = createTRPCRouter({
 					usage,
 					creditTransaction: shouldDeductCredits
 						? {
-								amount: creditCost,
+								amount: finalCreditCost,
 								processed: true,
 							}
 						: {
@@ -144,8 +170,25 @@ export const usageRouter = createTRPCRouter({
 		.input(recordErrorInputSchema)
 		.mutation(async ({ ctx, input }) => {
 			try {
-				// Validate API key using Go backend
-				const apiKey = await validateApiKey(ctx.db, input.apiKey);
+				// Validate API key with Go backend
+				const verifyResult = await apiKeyClient.apiKeys.verify({
+					key: input.apiKey,
+				});
+
+				if (!verifyResult.valid || !verifyResult.api_key_id) {
+					throw new TRPCError({
+						code: "UNAUTHORIZED",
+						message: verifyResult.reason ?? "Invalid API key",
+					});
+				}
+
+				const meta = parseMetadata(verifyResult.metadata);
+
+				const apiKey = {
+					id: verifyResult.api_key_id,
+					userId: meta.userId || "",
+					projectId: meta.projectId || "",
+				};
 
 				// Record the error as usage with 0 tokens
 				const usage = await ctx.db.apiUsage.create({

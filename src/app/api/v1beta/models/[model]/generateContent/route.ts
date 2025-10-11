@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { env } from "@/env";
-import { extractModelFromGeminiParam } from "@/lib/gemini-utils";
+import { extractModelFromGeminiParam } from "@/lib/providers/gemini";
 import { api } from "@/trpc/server";
 
 export const dynamic = "force-dynamic";
