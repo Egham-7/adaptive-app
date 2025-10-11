@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { auth as getClerkAuth } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
-import { goApiClient, parseMetadata } from "@/lib/go-api";
+import { apiKeyClient, parseMetadata } from "@/lib/api-keys";
 import type { Context } from "@/server/api/trpc";
 import type { AuthResult } from "@/types/auth";
 
@@ -22,7 +22,7 @@ export const normalizeAndValidateApiKey = (apiKey: string) => {
 export const validateAndAuthenticateApiKey = async (apiKey: string) => {
 	const normalizedKey = normalizeAndValidateApiKey(apiKey);
 
-	const result = await goApiClient.apiKeys.verify({ key: normalizedKey });
+	const result = await apiKeyClient.apiKeys.verify({ key: normalizedKey });
 
 	if (!result.valid || !result.api_key_id) {
 		throw new TRPCError({
@@ -51,7 +51,7 @@ export const authenticateAndGetProject = async (
 	if (input.apiKey) {
 		const normalizedKey = normalizeAndValidateApiKey(input.apiKey);
 
-		const result = await goApiClient.apiKeys.verify({ key: normalizedKey });
+		const result = await apiKeyClient.apiKeys.verify({ key: normalizedKey });
 
 		if (!result.valid || !result.api_key_id) {
 			throw new TRPCError({
@@ -146,7 +146,7 @@ export const authenticateApiKey = async (
 		}
 	})();
 
-	const result = await goApiClient.apiKeys.verify({ key: normalizedKey });
+	const result = await apiKeyClient.apiKeys.verify({ key: normalizedKey });
 
 	if (!result.valid || !result.api_key_id) {
 		throw new Error(result.reason ?? "Invalid or expired API key");

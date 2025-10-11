@@ -10,7 +10,7 @@ import {
 	getOrganizationTransactionHistory,
 	hasSufficientCredits,
 } from "@/lib/credits";
-import { goApiClient, parseMetadata } from "@/lib/go-api";
+import { apiKeyClient, parseMetadata } from "@/lib/api-keys";
 import { formatCurrency } from "@/lib/shared/currency";
 import { stripe } from "@/lib/stripe/stripe";
 import {
@@ -35,7 +35,7 @@ export const creditsRouter = createTRPCRouter({
 		)
 		.mutation(async ({ ctx, input }) => {
 			// Verify API key with Go backend
-			const result = await goApiClient.apiKeys.verify({ key: input.apiKey });
+			const result = await apiKeyClient.apiKeys.verify({ key: input.apiKey });
 
 			if (!result.valid || !result.api_key_id) {
 				throw new TRPCError({

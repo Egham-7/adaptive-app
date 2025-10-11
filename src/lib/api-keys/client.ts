@@ -9,11 +9,11 @@ import type {
 	UpdateApiKeyRequest,
 	VerifyApiKeyRequest,
 	VerifyApiKeyResponse,
-} from "@/types/go-api-keys";
+} from "@/types/api-keys";
 
 const baseURL = env.ADAPTIVE_API_BASE_URL;
 
-export const goApiClient = {
+export const apiKeyClient = {
 	apiKeys: {
 		async create(data: CreateApiKeyRequest): Promise<ApiKeyResponse> {
 			const response = await betterFetch<ApiKeyResponse>("/admin/api-keys", {

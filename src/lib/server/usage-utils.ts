@@ -1,14 +1,4 @@
-import crypto from "node:crypto";
 import type { PrismaClient } from "prisma/generated";
-import type {
-	ChatCompletionChunk,
-	ChatCompletionRequest,
-} from "@/types/chat-completion";
-
-// Helper function to hash API keys consistently
-export const hashApiKey = (apiKey: string): string => {
-	return crypto.createHash("sha256").update(apiKey).digest("hex");
-};
 
 // Helper function to get common prefix between two strings
 export const getCommonPrefix = (str1: string, str2: string): string => {
@@ -86,32 +76,3 @@ export const findModelBySimilarity = async (
 
 	return bestScore > 0 ? bestMatch : null;
 };
-
-/**
- * Checks if the user requested usage data in the stream_options
- */
-export const userRequestedUsage = (body: ChatCompletionRequest): boolean => {
-	return body.stream_options?.include_usage === true;
-};
-
-/**
- * Adds usage tracking to the request body for internal processing
- */
-export const withUsageTracking = (
-	requestBody: ChatCompletionRequest,
-): ChatCompletionRequest => ({
-	...requestBody,
-	stream_options: {
-		...requestBody.stream_options,
-		include_usage: true,
-	},
-});
-
-/**
- * Filters usage information from chat completion chunk based on whether it should be included
- */
-export const filterUsageFromChunk = (
-	chunk: ChatCompletionChunk,
-	includeUsage: boolean,
-): ChatCompletionChunk =>
-	includeUsage ? chunk : { ...chunk, usage: undefined };

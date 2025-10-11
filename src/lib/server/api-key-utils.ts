@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { getOrganizationBalance, hasSufficientCredits } from "@/lib/credits";
-import { goApiClient, parseMetadata } from "@/lib/go-api";
+import { apiKeyClient, parseMetadata } from "@/lib/api-keys";
 import { findModelBySimilarity } from "@/lib/server/usage-utils";
 import type { CacheTier } from "@/types/cache";
 
@@ -67,7 +67,7 @@ export async function validateApiKey(
 	apiKey: string,
 ): Promise<ApiKeyWithProject> {
 	// Validate API key with Go backend
-	const result = await goApiClient.apiKeys.verify({ key: apiKey });
+	const result = await apiKeyClient.apiKeys.verify({ key: apiKey });
 
 	if (!result.valid || !result.api_key_id) {
 		throw new TRPCError({

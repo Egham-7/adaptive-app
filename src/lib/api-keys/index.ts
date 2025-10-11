@@ -1,2 +1,2 @@
-export { goApiClient } from "./client";
+export { apiKeyClient } from "./client";
 export { createMetadata, parseMetadata } from "./metadata";
