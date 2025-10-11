@@ -73,16 +73,16 @@ export type APIKeyVerifyInput = RouterInputs["api_keys"]["verify"];
 // ---- Utility Types ----
 
 /**
- * The status values that an API key can have.
+ * The active status of an API key.
  */
-export type APIKeyStatus = APIKeyListItem["status"];
+export type APIKeyStatus = APIKeyListItem["is_active"];
 
 /**
  * The core API key data without metadata like created_at, updated_at.
  */
 export type APIKeyCore = Pick<
 	APIKeyListItem,
-	"id" | "name" | "status" | "key_preview"
+	"id" | "name" | "is_active" | "key_prefix"
 >;
 
 /**
@@ -90,7 +90,7 @@ export type APIKeyCore = Pick<
  */
 export type APIKeyFormData = Pick<
 	APIKeyCreateInput,
-	"name" | "status" | "expires_at"
+	"name" | "expires_at"
 >;
 
 /**

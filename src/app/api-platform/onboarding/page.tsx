@@ -40,7 +40,6 @@ export default function OnboardingPage() {
 	const createOrganization = useCreateOrganization();
 	const createProject = useCreateProject();
 	const createApiKey = useCreateProjectApiKey();
-	const revealApiKey = api.api_keys.revealApiKey.useMutation();
 
 	const onOrganizationSubmit = (values: {
 		name: string;
@@ -86,24 +85,15 @@ export default function OnboardingPage() {
 			{
 				name: "Default API Key",
 				projectId: createdProject.id,
-				status: "active",
 			},
 			{
 				onSuccess: (data) => {
-					// Use the reveal token to get the full API key
-					revealApiKey.mutate(
-						{ token: data.reveal_token },
-						{
-							onSuccess: (revealData) => {
-								setCreatedApiKey(revealData.full_api_key);
-								setCurrentStep("quickstart");
-							},
-							onError: (error) => {
-								console.error("Failed to reveal API key:", error);
-								toast.error("Failed to reveal API key");
-							},
-						},
-					);
+					if (data.key) {
+						setCreatedApiKey(data.key);
+						setCurrentStep("quickstart");
+					} else {
+						toast.error("API key created but key was not returned");
+					}
 				},
 				onError: (error) => {
 					console.error("Failed to create API key:", error);
