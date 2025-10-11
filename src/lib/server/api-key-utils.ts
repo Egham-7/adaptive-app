@@ -1,21 +1,24 @@
 import { TRPCError } from "@trpc/server";
-import type { Prisma } from "prisma/generated";
 import { getOrganizationBalance, hasSufficientCredits } from "@/lib/credits";
-import { findModelBySimilarity, hashApiKey } from "@/lib/server/usage-utils";
+import { goApiClient, parseMetadata } from "@/lib/go-api";
+import { findModelBySimilarity } from "@/lib/server/usage-utils";
 import type { CacheTier } from "@/types/cache";
 
 /**
  * Type for API key with project and organization included
+ * NOTE: This type is for backward compatibility. API keys now come from Go backend.
  */
-export type ApiKeyWithProject = Prisma.ApiKeyGetPayload<{
-	include: {
-		project: {
-			include: {
-				organization: true;
-			};
+export type ApiKeyWithProject = {
+	id: string;
+	userId: string;
+	projectId: string;
+	project?: {
+		organizationId: string;
+		organization?: {
+			id: string;
 		};
 	};
-}>;
+};
 
 /**
  * Apply cache tier discount to base cost
@@ -57,35 +60,58 @@ export function calculateProviderCost(
 
 /**
  * Validate API key and return with project and organization data
+ * NOTE: Now uses Go backend API for validation
  */
 export async function validateApiKey(
 	db: any,
 	apiKey: string,
 ): Promise<ApiKeyWithProject> {
-	const keyHash = hashApiKey(apiKey);
+	// Validate API key with Go backend
+	const result = await goApiClient.apiKeys.verify({ key: apiKey });
 
-	const apiKeyRecord = await db.apiKey.findFirst({
-		where: {
-			keyHash,
-			status: "active",
-		},
-		include: {
-			project: {
-				include: {
-					organization: true,
-				},
-			},
-		},
-	});
-
-	if (!apiKeyRecord) {
+	if (!result.valid || !result.api_key_id) {
 		throw new TRPCError({
 			code: "FORBIDDEN",
-			message: "Invalid API key",
+			message: result.reason ?? "Invalid API key",
 		});
 	}
 
-	return apiKeyRecord;
+	// Parse metadata to get project and user info
+	const meta = parseMetadata(result.metadata);
+
+	if (!meta.projectId) {
+		throw new TRPCError({
+			code: "FORBIDDEN",
+			message: "API key is not associated with a project",
+		});
+	}
+
+	// Get project and organization info from database
+	const project = await db.project.findUnique({
+		where: { id: meta.projectId },
+		include: {
+			organization: true,
+		},
+	});
+
+	if (!project) {
+		throw new TRPCError({
+			code: "FORBIDDEN",
+			message: "Project not found for API key",
+		});
+	}
+
+	return {
+		id: result.api_key_id.toString(),
+		userId: meta.userId || "",
+		projectId: meta.projectId,
+		project: {
+			organizationId: project.organizationId,
+			organization: {
+				id: project.organizationId,
+			},
+		},
+	};
 }
 
 /**

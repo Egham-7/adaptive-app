@@ -628,7 +628,7 @@ export const llmClustersRouter = createTRPCRouter({
 			try {
 				// Basic auth check (no specific project required)
 				if (input.apiKey) {
-					await validateAndAuthenticateApiKey(input.apiKey, ctx.db);
+					await validateAndAuthenticateApiKey(input.apiKey);
 				} else {
 					const clerkAuthResult = await getClerkAuth();
 					if (!clerkAuthResult.userId) {

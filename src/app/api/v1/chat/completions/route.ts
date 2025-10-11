@@ -17,6 +17,9 @@ import type {
 } from "@/types";
 import { chatCompletionRequestSchema } from "@/types/chat-completion";
 
+// Note: Usage tracking is now handled automatically by adaptive-proxy backend
+// The proxy records all usage to the database including metadata (projectId, organizationId, clusterId, etc.)
+
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
@@ -163,29 +166,9 @@ export async function POST(req: NextRequest) {
 						for await (const chunk of stream) {
 							const typedChunk = chunk as ChatCompletionChunk;
 
-							// Record usage in background when we get it
+							// Usage is now tracked automatically by adaptive-proxy
 							if (typedChunk.usage) {
 								console.log("Usage: ", typedChunk.usage);
-								queueMicrotask(async () => {
-									try {
-										await api.usage.recordApiUsage({
-											apiKey,
-											provider: typedChunk.provider ?? null,
-											model: typedChunk.model ?? null,
-											usage: {
-												promptTokens: typedChunk.usage?.prompt_tokens ?? 0,
-												completionTokens:
-													typedChunk.usage?.completion_tokens ?? 0,
-												totalTokens: typedChunk.usage?.total_tokens ?? 0,
-											},
-											duration: Date.now() - streamStartTime,
-											timestamp: new Date(),
-											cacheTier: typedChunk.usage?.cache_tier,
-										});
-									} catch (error) {
-										console.error("Failed to record streaming usage:", error);
-									}
-								});
 							}
 
 							// Filter out usage data if user didn't request it
@@ -213,27 +196,7 @@ export async function POST(req: NextRequest) {
 						controller.enqueue(encoder.encode(errorData));
 						controller.close();
 
-						// Record error usage
-						queueMicrotask(async () => {
-							try {
-								await api.usage.recordApiUsage({
-									apiKey,
-									provider: null,
-									model: null,
-									usage: {
-										promptTokens: 0,
-										completionTokens: 0,
-										totalTokens: 0,
-									},
-									duration: Date.now() - streamStartTime,
-									timestamp: new Date(),
-									requestCount: 1,
-									error: error instanceof Error ? error.message : String(error),
-								});
-							} catch (usageError) {
-								console.error("Failed to record streaming error:", usageError);
-							}
-						});
+						// Error usage is now tracked automatically by adaptive-proxy
 					}
 				},
 			});
@@ -259,53 +222,11 @@ export async function POST(req: NextRequest) {
 				body: bodyWithProviders,
 			})) as ChatCompletion;
 
-			// Record usage in background
-			if (completion.usage) {
-				queueMicrotask(async () => {
-					try {
-						await api.usage.recordApiUsage({
-							apiKey,
-							provider: completion.provider ?? null,
-							model: completion.model,
-							usage: {
-								promptTokens: completion.usage?.prompt_tokens ?? 0,
-								completionTokens: completion.usage?.completion_tokens ?? 0,
-								totalTokens: completion.usage?.total_tokens ?? 0,
-							},
-							duration: Date.now() - nonStreamStartTime,
-							timestamp: new Date(),
-							cacheTier: completion.cache_tier,
-						});
-					} catch (error) {
-						console.error("Failed to record usage:", error);
-					}
-				});
-			}
+			// Usage is now tracked automatically by adaptive-proxy
 
 			return Response.json(completion);
 		} catch (error) {
-			// Record error for non-streaming requests
-			queueMicrotask(async () => {
-				try {
-					await api.usage.recordApiUsage({
-						apiKey,
-						provider: null,
-						model: null,
-						usage: {
-							promptTokens: 0,
-							completionTokens: 0,
-							totalTokens: 0,
-						},
-						duration: Date.now() - nonStreamStartTime,
-						timestamp: new Date(),
-						requestCount: 1,
-						error: error instanceof Error ? error.message : String(error),
-					});
-				} catch (err) {
-					console.error("Failed to record error:", err);
-				}
-			});
-
+			// Error usage is now tracked automatically by adaptive-proxy
 			throw error; // Re-throw to be handled by outer catch
 		}
 	} catch (error) {

@@ -73,7 +73,7 @@ export default function QuickstartPage() {
 	} = api.api_keys.getByProject.useQuery({ projectId });
 
 	const firstApiKey = apiKeys?.[0];
-	const exampleKey = firstApiKey?.key_preview
+	const exampleKey = firstApiKey?.key_prefix
 		? "your_api_key_here"
 		: EXAMPLE_API_KEY;
 
@@ -202,7 +202,7 @@ print(completion.choices[0].message.content)`;
 								<div className="flex items-center gap-2 text-green-700 dark:text-green-400">
 									<Check className="h-4 w-4" />
 									<span className="font-medium text-sm">
-										API Key Found: {firstApiKey.key_preview}
+										API Key Found: {firstApiKey.key_prefix}
 									</span>
 								</div>
 								<p className="mt-2 text-green-600 text-sm dark:text-green-300">

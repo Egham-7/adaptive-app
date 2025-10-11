@@ -1,209 +1,170 @@
-import crypto from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { createMetadata, goApiClient, parseMetadata } from "@/lib/go-api";
 import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
-
-const API_KEY_BYTE_LENGTH = 36;
-const API_KEY_PREFIX_LENGTH = 11;
-
-// Helper to generate API key, prefix, and hash
-function generateApiKey() {
-	const randomBytes = crypto.randomBytes(API_KEY_BYTE_LENGTH);
-	const fullKey = `sk-${randomBytes.toString("base64url")}`;
-	const prefix = fullKey.slice(0, API_KEY_PREFIX_LENGTH);
-	const hash = crypto.createHash("sha256").update(fullKey).digest("hex");
-	return { fullKey, prefix, hash };
-}
-
-// Simple encryption helper for storing full keys temporarily
-function encryptKey(key: string, secret: string): string {
-	const algorithm = "aes-256-cbc";
-	const keyHash = crypto.createHash("sha256").update(secret).digest();
-	const iv = crypto.randomBytes(16);
-	const cipher = crypto.createCipheriv(algorithm, keyHash, iv);
-	let encrypted = cipher.update(key, "utf8", "hex");
-	encrypted += cipher.final("hex");
-	return `${iv.toString("hex")}:${encrypted}`;
-}
-
-function decryptKey(encryptedKey: string, secret: string): string {
-	const algorithm = "aes-256-cbc";
-	const keyHash = crypto.createHash("sha256").update(secret).digest();
-	const [ivHex, encrypted] = encryptedKey.split(":");
-	if (!ivHex || !encrypted) {
-		throw new Error("Invalid encrypted key format");
-	}
-	const iv = Buffer.from(ivHex, "hex");
-	const decipher = crypto.createDecipheriv(algorithm, keyHash, iv);
-	let decrypted = decipher.update(encrypted, "hex", "utf8");
-	decrypted += decipher.final("utf8");
-	return decrypted;
-}
+import type { ApiKeyResponse } from "@/types/go-api-keys";
 
 const createAPIKeySchema = z.object({
-	name: z.string().min(1),
-	status: z.enum(["active", "revoked", "inactive"]),
-	expires_at: z.string().optional(),
-	projectId: z.string().optional(),
+	name: z.string().min(1).max(255),
+	projectId: z.string(),
+	scopes: z.array(z.string()).optional(),
+	rate_limit_rpm: z.number().nullable().optional(),
+	budget_limit: z.number().nullable().optional(),
+	budget_currency: z.string().optional(),
+	budget_reset_type: z.enum(["", "daily", "weekly", "monthly"]).optional(),
+	expires_at: z.string().nullable().optional(),
 });
 
 const updateAPIKeySchema = z.object({
-	id: z.string().uuid(),
-	name: z.string().min(1),
-	status: z.enum(["active", "revoked", "inactive"]),
+	id: z.number(),
+	name: z.string().min(1).max(255).optional(),
+	scopes: z.string().optional(),
+	rate_limit_rpm: z.number().nullable().optional(),
+	budget_limit: z.number().nullable().optional(),
+	budget_currency: z.string().optional(),
+	budget_reset_type: z.string().optional(),
+	is_active: z.boolean().optional(),
+	expires_at: z.string().nullable().optional(),
 });
 
-const apiKeySchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	status: z.enum(["active", "revoked", "inactive"]),
-	created_at: z.string(),
-	updated_at: z.string(),
-	expires_at: z.string().nullable(),
-	user_id: z.string(),
-	key_preview: z.string(),
-});
+async function verifyProjectAccess(
+	ctx: { clerkAuth: { userId: string | null }; db: any },
+	projectId: string,
+	requireAdmin = false,
+): Promise<boolean> {
+	const userId = ctx.clerkAuth.userId;
+	if (!userId) return false;
 
-type APIKey = z.infer<typeof apiKeySchema>;
-type CreateAPIKeyResponse = {
-	api_key: APIKey;
-	reveal_token: string;
-};
+	const where = {
+		id: projectId,
+		OR: requireAdmin
+			? [
+					{ members: { some: { userId, role: { in: ["owner", "admin"] } } } },
+					{ organization: { ownerId: userId } },
+					{
+						organization: {
+							members: { some: { userId, role: { in: ["owner", "admin"] } } },
+						},
+					},
+				]
+			: [
+					{ members: { some: { userId } } },
+					{ organization: { ownerId: userId } },
+					{ organization: { members: { some: { userId } } } },
+				],
+	};
+
+	const project = await ctx.db.project.findFirst({ where });
+	return !!project;
+}
+
+function filterKeysByUser(
+	keys: ApiKeyResponse[],
+	userId: string,
+): ApiKeyResponse[] {
+	return keys.filter((key) => {
+		const meta = parseMetadata(key.metadata);
+		return meta.userId === userId;
+	});
+}
 
 export const apiKeysRouter = createTRPCRouter({
-	list: protectedProcedure.query(async ({ ctx }): Promise<APIKey[]> => {
+	list: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.clerkAuth.userId;
 		if (!userId) {
 			throw new TRPCError({ code: "UNAUTHORIZED" });
 		}
-		const keys = await ctx.db.apiKey.findMany({
-			where: { userId },
-			orderBy: { createdAt: "desc" },
-		});
-		return keys.map((k) => ({
-			id: k.id,
-			name: k.name,
-			status: k.status,
-			created_at: k.createdAt.toISOString(),
-			updated_at: (k.updatedAt ?? k.createdAt).toISOString(),
-			expires_at: k.expiresAt?.toISOString() ?? null,
-			user_id: k.userId,
-			key_preview: k.keyPrefix,
-		}));
+
+		const response = await goApiClient.apiKeys.list();
+		return filterKeysByUser(response.data, userId);
 	}),
 
 	getById: protectedProcedure
-		.input(z.object({ id: z.string().uuid() }))
-		.query(async ({ ctx, input }): Promise<APIKey> => {
+		.input(z.object({ id: z.number() }))
+		.query(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 			if (!userId) {
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
-			const k = await ctx.db.apiKey.findUnique({
-				where: { id: input.id },
-			});
-			if (!k || k.userId !== userId) {
+
+			const key = await goApiClient.apiKeys.get(input.id);
+			const meta = parseMetadata(key.metadata);
+
+			if (meta.userId !== userId) {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
-			return {
-				id: k.id,
-				name: k.name,
-				status: k.status,
-				created_at: k.createdAt.toISOString(),
-				updated_at: (k.updatedAt ?? k.createdAt).toISOString(),
-				expires_at: k.expiresAt?.toISOString() ?? null,
-				user_id: k.userId,
-				key_preview: k.keyPrefix,
-			};
+
+			return key;
 		}),
 
 	create: protectedProcedure
 		.input(createAPIKeySchema)
-		.mutation(async ({ ctx, input }): Promise<CreateAPIKeyResponse> => {
+		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 			if (!userId) {
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			const randomBytes = crypto.randomBytes(API_KEY_BYTE_LENGTH);
-			const fullKey = `sk-${randomBytes.toString("base64url")}`;
-			const prefix = fullKey.slice(0, API_KEY_PREFIX_LENGTH);
-			const hash = crypto.createHash("sha256").update(fullKey).digest("hex");
-
-			const expiresAt = input.expires_at
-				? new Date(input.expires_at)
-				: undefined;
-
-			// If projectId is provided, verify user has access to the project
-			if (input.projectId) {
-				const project = await ctx.db.project.findFirst({
-					where: {
-						id: input.projectId,
-						OR: [
-							{ members: { some: { userId } } },
-							{ organization: { ownerId: userId } },
-							{ organization: { members: { some: { userId } } } },
-						],
-					},
+			const hasAccess = await verifyProjectAccess(ctx, input.projectId, true);
+			if (!hasAccess) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message:
+						"You don't have permission to create API keys for this project",
 				});
-
-				if (!project) {
-					throw new TRPCError({
-						code: "FORBIDDEN",
-						message: "You don't have access to this project",
-					});
-				}
 			}
 
-			const k = await ctx.db.apiKey.create({
-				data: {
-					userId,
-					name: input.name,
-					status: input.status,
-					keyPrefix: prefix,
-					keyHash: hash,
-					expiresAt,
-					projectId: input.projectId,
-				},
+			const metadata = createMetadata(userId, input.projectId);
+
+			const key = await goApiClient.apiKeys.create({
+				name: input.name,
+				metadata,
+				scopes: input.scopes,
+				rate_limit_rpm: input.rate_limit_rpm,
+				budget_limit: input.budget_limit,
+				budget_currency: input.budget_currency,
+				budget_reset_type: input.budget_reset_type,
+				expires_at: input.expires_at,
 			});
 
-			// Create a one-time reveal token
-			const revealToken = crypto.randomBytes(32).toString("hex");
-			if (!process.env.API_KEY_ENCRYPTION_SECRET) {
-				throw new Error(
-					"Environment variable API_KEY_ENCRYPTION_SECRET is required but not set.",
-				);
+			return key;
+		}),
+
+	createForProject: protectedProcedure
+		.input(createAPIKeySchema)
+		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.clerkAuth.userId;
+			if (!userId) {
+				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
-			const encryptionSecret = process.env.API_KEY_ENCRYPTION_SECRET;
-			const encryptedKey = encryptKey(fullKey, encryptionSecret);
-			const revealExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-			await ctx.db.apiKeyRevealToken.create({
-				data: {
-					apiKeyId: k.id,
-					userId,
-					token: revealToken,
-					fullKey: encryptedKey,
-					expiresAt: revealExpiresAt,
-				},
+			const hasAccess = await verifyProjectAccess(ctx, input.projectId, true);
+			if (!hasAccess) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message:
+						"You don't have permission to create API keys for this project",
+				});
+			}
+
+			const metadata = createMetadata(userId, input.projectId);
+
+			const key = await goApiClient.apiKeys.create({
+				name: input.name,
+				metadata,
+				scopes: input.scopes,
+				rate_limit_rpm: input.rate_limit_rpm,
+				budget_limit: input.budget_limit,
+				budget_currency: input.budget_currency,
+				budget_reset_type: input.budget_reset_type,
+				expires_at: input.expires_at,
 			});
 
-			const api_key: APIKey = {
-				id: k.id,
-				name: k.name,
-				status: k.status,
-				created_at: k.createdAt.toISOString(),
-				updated_at: (k.updatedAt ?? k.createdAt).toISOString(),
-				expires_at: k.expiresAt?.toISOString() ?? null,
-				user_id: k.userId,
-				key_preview: k.keyPrefix,
-			};
-
-			return { api_key, reveal_token: revealToken };
+			return key;
 		}),
 
 	update: protectedProcedure
@@ -213,260 +174,177 @@ export const apiKeysRouter = createTRPCRouter({
 			if (!userId) {
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
-			const existing = await ctx.db.apiKey.findUnique({
-				where: { id: input.id },
-			});
-			if (!existing || existing.userId !== userId) {
+
+			const existing = await goApiClient.apiKeys.get(input.id);
+			const meta = parseMetadata(existing.metadata);
+
+			if (meta.userId !== userId) {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
-			const k = await ctx.db.apiKey.update({
-				where: { id: input.id },
-				data: {
-					name: input.name,
-					status: input.status,
-				},
-			});
-			return {
-				id: k.id,
-				name: k.name,
-				status: k.status,
-				created_at: k.createdAt.toISOString(),
-				updated_at: (k.updatedAt ?? k.createdAt).toISOString(),
-				expires_at: k.expiresAt?.toISOString() ?? null,
-				user_id: k.userId,
-				key_preview: k.keyPrefix,
-			};
+
+			if (meta.projectId) {
+				const hasAccess = await verifyProjectAccess(ctx, meta.projectId, true);
+				if (!hasAccess) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "You don't have permission to update this API key",
+					});
+				}
+			}
+
+			const { id, ...updateData } = input;
+			const key = await goApiClient.apiKeys.update(id, updateData);
+
+			return key;
 		}),
 
 	delete: protectedProcedure
-		.input(z.object({ id: z.string().uuid() }))
+		.input(z.object({ id: z.number() }))
 		.mutation(async ({ ctx, input }) => {
-			const userId = ctx.clerkAuth.userId;
-
-			const existing = await ctx.db.apiKey.findUnique({
-				where: { id: input.id },
-			});
-			if (!existing || existing.userId !== userId) {
-				throw new TRPCError({ code: "NOT_FOUND" });
-			}
-			await ctx.db.apiKey.delete({ where: { id: input.id } });
-			return { success: true };
-		}),
-
-	verify: publicProcedure
-		.input(z.object({ apiKey: z.string() }))
-		.query(async ({ ctx, input }) => {
-			const apiKey = input.apiKey;
-			const apiKeyRegex = /^sk-[A-Za-z0-9_-]+$/;
-			if (!apiKeyRegex.test(apiKey)) {
-				return { valid: false };
-			}
-			const prefix = apiKey.slice(0, 11);
-			const record = await ctx.db.apiKey.findFirst({
-				where: { keyPrefix: prefix, status: "active" },
-			});
-			if (!record) {
-				return { valid: false };
-			}
-
-			// Check if key is expired
-			if (record.expiresAt && record.expiresAt < new Date()) {
-				return { valid: false };
-			}
-
-			const hash = crypto.createHash("sha256").update(apiKey).digest("hex");
-			const isValid = hash === record.keyHash;
-
-			if (!isValid) {
-				return { valid: false };
-			}
-
-			return {
-				valid: true,
-				projectId: record.projectId,
-				userId: record.userId,
-			};
-		}),
-
-	// Get API keys for a specific project
-	getByProject: protectedProcedure
-		.input(z.object({ projectId: z.string() }))
-		.query(async ({ ctx, input }): Promise<APIKey[]> => {
 			const userId = ctx.clerkAuth.userId;
 			if (!userId) {
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			// Verify user has access to the project
-			const project = await ctx.db.project.findFirst({
-				where: {
-					id: input.projectId,
-					OR: [
-						{ members: { some: { userId } } },
-						{ organization: { ownerId: userId } },
-						{ organization: { members: { some: { userId } } } },
-					],
-				},
-			});
+			const existing = await goApiClient.apiKeys.get(input.id);
+			const meta = parseMetadata(existing.metadata);
 
-			if (!project) {
+			if (meta.userId !== userId) {
+				throw new TRPCError({ code: "NOT_FOUND" });
+			}
+
+			await goApiClient.apiKeys.delete(input.id);
+			return { success: true };
+		}),
+
+	revoke: protectedProcedure
+		.input(z.object({ id: z.number() }))
+		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.clerkAuth.userId;
+			if (!userId) {
+				throw new TRPCError({ code: "UNAUTHORIZED" });
+			}
+
+			const existing = await goApiClient.apiKeys.get(input.id);
+			const meta = parseMetadata(existing.metadata);
+
+			if (meta.userId !== userId) {
+				throw new TRPCError({ code: "NOT_FOUND" });
+			}
+
+			const key = await goApiClient.apiKeys.revoke(input.id);
+			return key;
+		}),
+
+	verify: publicProcedure
+		.input(z.object({ apiKey: z.string() }))
+		.query(async ({ input }) => {
+			const result = await goApiClient.apiKeys.verify({ key: input.apiKey });
+
+			if (!result.valid) {
+				return { valid: false };
+			}
+
+			const meta = parseMetadata(result.metadata);
+
+			return {
+				valid: true,
+				api_key_id: result.api_key_id,
+				projectId: meta.projectId,
+				userId: meta.userId,
+			};
+		}),
+
+	getByProject: protectedProcedure
+		.input(z.object({ projectId: z.string() }))
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.clerkAuth.userId;
+			if (!userId) {
+				throw new TRPCError({ code: "UNAUTHORIZED" });
+			}
+
+			const hasAccess = await verifyProjectAccess(ctx, input.projectId);
+			if (!hasAccess) {
 				throw new TRPCError({
 					code: "FORBIDDEN",
 					message: "You don't have access to this project",
 				});
 			}
 
-			const keys = await ctx.db.apiKey.findMany({
-				where: { projectId: input.projectId },
-				orderBy: { createdAt: "desc" },
-			});
+			const response = await goApiClient.apiKeys.list();
 
-			return keys.map((k) => ({
-				id: k.id,
-				name: k.name,
-				status: k.status,
-				created_at: k.createdAt.toISOString(),
-				updated_at: (k.updatedAt ?? k.createdAt).toISOString(),
-				expires_at: k.expiresAt?.toISOString() ?? null,
-				user_id: k.userId,
-				key_preview: k.keyPrefix,
-			}));
+			return response.data.filter((key) => {
+				const meta = parseMetadata(key.metadata);
+				return meta.projectId === input.projectId;
+			});
 		}),
 
-	// Create API key for a specific project
-	createForProject: protectedProcedure
+	getUsage: protectedProcedure
 		.input(
 			z.object({
-				name: z.string().min(1),
-				projectId: z.string(),
-				status: z.enum(["active", "revoked", "inactive"]).default("active"),
-				expires_at: z.string().optional(),
+				id: z.number(),
+				start_date: z.string().optional(),
+				end_date: z.string().optional(),
+				limit: z.number().optional(),
 			}),
 		)
-		.mutation(async ({ ctx, input }): Promise<CreateAPIKeyResponse> => {
+		.query(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 			if (!userId) {
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			// Verify user has permission to create API keys for this project
-			const project = await ctx.db.project.findFirst({
-				where: {
-					id: input.projectId,
-					OR: [
-						{ members: { some: { userId, role: { in: ["owner", "admin"] } } } },
-						{ organization: { ownerId: userId } },
-						{
-							organization: {
-								members: { some: { userId, role: { in: ["owner", "admin"] } } },
-							},
-						},
-					],
-				},
-			});
+			const existing = await goApiClient.apiKeys.get(input.id);
+			const meta = parseMetadata(existing.metadata);
 
-			if (!project) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message:
-						"You don't have permission to create API keys for this project",
-				});
+			if (meta.userId !== userId) {
+				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
-			const { fullKey, prefix, hash } = generateApiKey();
-
-			const expiresAt = input.expires_at
-				? new Date(input.expires_at)
-				: undefined;
-
-			const k = await ctx.db.apiKey.create({
-				data: {
-					userId,
-					name: input.name,
-					status: input.status,
-					keyPrefix: prefix,
-					keyHash: hash,
-					expiresAt,
-					projectId: input.projectId,
-				},
-			});
-
-			// Create a one-time reveal token
-			const revealToken = crypto.randomBytes(32).toString("hex");
-			const encryptionSecret =
-				process.env.API_KEY_ENCRYPTION_SECRET ||
-				"default-secret-change-in-production";
-			const encryptedKey = encryptKey(fullKey, encryptionSecret);
-			const revealExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-			await ctx.db.apiKeyRevealToken.create({
-				data: {
-					apiKeyId: k.id,
-					userId,
-					token: revealToken,
-					fullKey: encryptedKey,
-					expiresAt: revealExpiresAt,
-				},
-			});
-
-			const api_key: APIKey = {
-				id: k.id,
-				name: k.name,
-				status: k.status,
-				created_at: k.createdAt.toISOString(),
-				updated_at: (k.updatedAt ?? k.createdAt).toISOString(),
-				expires_at: k.expiresAt?.toISOString() ?? null,
-				user_id: k.userId,
-				key_preview: k.keyPrefix,
-			};
-
-			return { api_key, reveal_token: revealToken };
+			const { id, ...params } = input;
+			return goApiClient.apiKeys.getUsage(id, params);
 		}),
 
-	// Reveal API key using one-time token
-	revealApiKey: protectedProcedure
-		.input(z.object({ token: z.string() }))
+	getStats: protectedProcedure
+		.input(
+			z.object({
+				id: z.number(),
+				start_date: z.string().optional(),
+				end_date: z.string().optional(),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.clerkAuth.userId;
+			if (!userId) {
+				throw new TRPCError({ code: "UNAUTHORIZED" });
+			}
+
+			const existing = await goApiClient.apiKeys.get(input.id);
+			const meta = parseMetadata(existing.metadata);
+
+			if (meta.userId !== userId) {
+				throw new TRPCError({ code: "NOT_FOUND" });
+			}
+
+			const { id, ...params } = input;
+			return goApiClient.apiKeys.getStats(id, params);
+		}),
+
+	resetBudget: protectedProcedure
+		.input(z.object({ id: z.number() }))
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 			if (!userId) {
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			// Find the reveal token
-			const revealToken = await ctx.db.apiKeyRevealToken.findFirst({
-				where: {
-					token: input.token,
-					userId,
-					revealed: false,
-					expiresAt: { gt: new Date() },
-				},
-			});
+			const existing = await goApiClient.apiKeys.get(input.id);
+			const meta = parseMetadata(existing.metadata);
 
-			if (!revealToken) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Invalid or expired reveal token",
-				});
+			if (meta.userId !== userId) {
+				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
-			// Mark as revealed and decrypt the key
-			await ctx.db.apiKeyRevealToken.update({
-				where: { id: revealToken.id },
-				data: { revealed: true },
-			});
-
-			const encryptionSecret =
-				process.env.API_KEY_ENCRYPTION_SECRET ||
-				"default-secret-change-in-production";
-			const fullKey = decryptKey(revealToken.fullKey, encryptionSecret);
-
-			// Clean up expired tokens periodically
-			await ctx.db.apiKeyRevealToken.deleteMany({
-				where: {
-					expiresAt: { lt: new Date() },
-				},
-			});
-
-			return { full_api_key: fullKey };
+			return goApiClient.apiKeys.resetBudget(input.id);
 		}),
 });
