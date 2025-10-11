@@ -1,9 +1,3 @@
-enum ApiKeyStatus {
-  active
-  inactive
-  revoked
-}
-
 enum OrganizationMemberRole {
   owner
   admin
@@ -59,46 +53,6 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
   output   = "./generated"
-}
-
-model ApiKey {
-  id         String    @id @default(uuid())
-  userId     String    // Clerk user ID
-  projectId  String?   // Optional project association
-  name       String
-  keyPrefix  String
-  keyHash    String
-  status     ApiKeyStatus    // 'active' | 'inactive' | 'revoked'
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  expiresAt  DateTime?
-  lastUsedAt DateTime?
-
-  project          Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  usage            ApiUsage[]
-  revealTokens     ApiKeyRevealToken[]
-  creditTransactions CreditTransaction[]
-
-  @@unique([keyPrefix, keyHash])
-  @@index([userId])
-  @@index([projectId])
-}
-
-model ApiKeyRevealToken {
-  id         String    @id @default(uuid())
-  apiKeyId   String
-  userId     String    // Clerk user ID for additional security
-  token      String    @unique
-  fullKey    String    // Encrypted full key
-  expiresAt  DateTime  // Short expiration (5 minutes)
-  revealed   Boolean   @default(false) // Track if already revealed
-  createdAt  DateTime  @default(now())
-
-  apiKey     ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
-
-  @@index([token])
-  @@index([expiresAt])
-  @@index([userId])
 }
 
 model Conversation {
@@ -178,7 +132,6 @@ model Project {
   
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   members        ProjectMember[]
-  apiKeys        ApiKey[]
   usage          ApiUsage[]
   llmClusters    LLMCluster[]
   providers      Provider[]
@@ -205,7 +158,6 @@ model ProjectMember {
 
 model ApiUsage {
   id                String   @id @default(cuid())
-  apiKeyId          String?  // Make optional to preserve data when API key is deleted
   projectId         String?
   clusterId         String?  // LLM cluster used for this request
   provider          String?  // Provider name (e.g., 'openai', 'anthropic', 'custom-provider')
@@ -219,13 +171,11 @@ model ApiUsage {
   requestCount      Int      @default(1)
   timestamp         DateTime @default(now())
   metadata          Json?    // Additional request metadata
-  
-  apiKey            ApiKey?  @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+
   project           Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   cluster           LLMCluster? @relation(fields: [clusterId], references: [id], onDelete: SetNull)
   creditTransactions CreditTransaction[]
-  
-  @@index([apiKeyId])
+
   @@index([projectId])
   @@index([clusterId])
   @@index([provider])
@@ -382,23 +332,20 @@ model CreditTransaction {
   // Stripe-related fields for purchases
   stripePaymentIntentId String? // For one-time credit purchases
   stripeSessionId       String? // Checkout session that created this transaction
-  
+
   // API usage-related fields
-  apiKeyId        String?   // Which API key was used (for usage transactions)
   apiUsageId      String?   // Link to the specific API usage record
-  
+
   createdAt       DateTime  @default(now())
-  
+
   organizationCredit OrganizationCredit @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
-  apiKey          ApiKey?    @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
   apiUsage        ApiUsage?  @relation(fields: [apiUsageId], references: [id], onDelete: SetNull)
-  
+
   @@index([organizationId])
   @@index([userId])
   @@index([type])
   @@index([createdAt])
   @@index([stripePaymentIntentId])
-  @@index([apiKeyId])
 }
 
 model CreditPackage {
