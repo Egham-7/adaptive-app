@@ -1,62 +1,99 @@
 import { z } from "zod";
-import { cacheTierSchema } from "@/types/cache";
-import { providerEnum } from "@/types/providers";
+
+// ============================================================================
+// adaptive-proxy usage API types
+// ============================================================================
 
 /**
- * Usage input schema for API usage recording
+ * Usage record from adaptive-proxy
  */
-export const usageInputSchema = z.object({
-	promptTokens: z.number().min(0, "Prompt tokens must be non-negative"),
-	completionTokens: z.number().min(0, "Completion tokens must be non-negative"),
-	totalTokens: z.number().min(0, "Total tokens must be non-negative"),
-});
-
-/**
- * Schema for recording API usage
- */
-export const recordApiUsageInputSchema = z.object({
-	apiKey: z.string().min(1, "API key is required"),
-	provider: z.enum(providerEnum).nullable(),
-	model: z.string().nullable(),
-	usage: usageInputSchema,
-	duration: z.number().min(0, "Duration must be non-negative"),
-	timestamp: z.date(),
-	requestCount: z.number().min(1).default(1),
-	clusterId: z.string().optional(),
-	metadata: z.record(z.string(), z.any()).optional(),
-	error: z.string().optional(),
-	cacheTier: cacheTierSchema.optional(),
-});
-
-/**
- * Schema for recording API errors
- */
-export const recordErrorInputSchema = z.object({
-	apiKey: z.string().min(1, "API key is required"),
-	provider: z.enum(providerEnum).optional(),
-	model: z.string().optional(),
-	error: z.string().min(1, "Error message is required"),
-	timestamp: z.date(),
-});
-
-// Type inference from schemas
-export type UsageInput = z.infer<typeof usageInputSchema>;
-export type RecordApiUsageInput = z.infer<typeof recordApiUsageInputSchema>;
-export type RecordErrorInput = z.infer<typeof recordErrorInputSchema>;
-
-/**
- * Function to create usage metadata
- */
-export function createUsageMetadata(
-	input: RecordApiUsageInput,
-	apiKey: { userId: string; [key: string]: any },
-) {
-	return {
-		...input.metadata,
-		duration: input.duration,
-		timestamp: input.timestamp,
-		error: input.error,
-		userId: apiKey.userId,
-		cacheTier: input.cacheTier,
-	};
+export interface UsageRecord {
+	id: number;
+	api_key_id: number;
+	endpoint: string;
+	provider: string;
+	model: string;
+	tokens_input: number;
+	tokens_output: number;
+	tokens_total: number;
+	cost: number;
+	currency: string;
+	status_code: number;
+	latency_ms: number;
+	metadata: Record<string, any>;
+	request_id?: string;
+	user_agent?: string;
+	ip_address?: string;
+	error_message?: string;
+	created_at: string;
 }
+
+/**
+ * Usage statistics from adaptive-proxy
+ */
+export interface UsageStats {
+	total_requests: number;
+	total_cost: number;
+	total_tokens: number;
+	success_requests: number;
+	failed_requests: number;
+	avg_latency_ms: number;
+}
+
+/**
+ * Usage by period response
+ */
+export interface UsageByPeriod {
+	period: string;
+	total_requests: number;
+	total_cost: number;
+	total_tokens: number;
+	success_requests: number;
+	failed_requests: number;
+}
+
+/**
+ * Request to record usage in adaptive-proxy
+ */
+export interface RecordUsageRequest {
+	api_key_id: number;
+	organization_id?: string;
+	user_id?: string;
+	endpoint: string;
+	provider: string;
+	model: string;
+	tokens_input: number;
+	tokens_output: number;
+	cost: number;
+	currency?: string;
+	status_code: number;
+	latency_ms: number;
+	metadata?: Record<string, any>;
+	request_id?: string;
+	user_agent?: string;
+	ip_address?: string;
+	error_message?: string;
+}
+
+/**
+ * Zod schema for RecordUsageRequest
+ */
+export const recordUsageRequestSchema = z.object({
+	api_key_id: z.number(),
+	organization_id: z.string().optional(),
+	user_id: z.string().optional(),
+	endpoint: z.string(),
+	provider: z.string(),
+	model: z.string(),
+	tokens_input: z.number().min(0),
+	tokens_output: z.number().min(0),
+	cost: z.number().min(0),
+	currency: z.string().optional(),
+	status_code: z.number(),
+	latency_ms: z.number().min(0),
+	metadata: z.record(z.string(), z.any()).optional(),
+	request_id: z.string().optional(),
+	user_agent: z.string().optional(),
+	ip_address: z.string().optional(),
+	error_message: z.string().optional(),
+});

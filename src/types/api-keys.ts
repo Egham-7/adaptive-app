@@ -112,6 +112,8 @@ export const usageLogSchema = z.object({
 export const usageStatsSchema = z.object({
 	total_requests: z.number(),
 	total_cost: z.number(),
+	total_tokens: z.number().optional(),
+	error_count: z.number().optional(),
 	average_cost: z.number(),
 	period_start: z.string().optional(),
 	period_end: z.string().optional(),

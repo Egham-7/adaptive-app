@@ -36,20 +36,46 @@ export class ApiKeysClient extends BaseApiClient {
 	}
 
 	/**
-	 * List API keys with optional pagination and filtering
+	 * List API keys by user ID with optional pagination
 	 */
-	async list(params?: {
-		limit?: number;
-		offset?: number;
-		metadata?: string;
-	}): Promise<ListApiKeysResponse> {
+	async listByUserId(
+		userId: string,
+		params?: {
+			limit?: number;
+			offset?: number;
+		},
+	): Promise<ListApiKeysResponse> {
 		try {
-			return await this.get<ListApiKeysResponse>("", { params });
+			return await this.get<ListApiKeysResponse>(`/user/${userId}`, { params });
 		} catch (error) {
 			if (error instanceof Error) {
-				throw new Error(error.message || "Failed to list API keys");
+				throw new Error(error.message || "Failed to list API keys by user ID");
 			}
-			throw new Error("Failed to list API keys");
+			throw new Error("Failed to list API keys by user ID");
+		}
+	}
+
+	/**
+	 * List API keys by project ID with optional pagination
+	 */
+	async listByProjectId(
+		projectId: string,
+		params?: {
+			limit?: number;
+			offset?: number;
+		},
+	): Promise<ListApiKeysResponse> {
+		try {
+			return await this.get<ListApiKeysResponse>(`/project/${projectId}`, {
+				params,
+			});
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(
+					error.message || "Failed to list API keys by project ID",
+				);
+			}
+			throw new Error("Failed to list API keys by project ID");
 		}
 	}
 

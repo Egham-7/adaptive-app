@@ -16,14 +16,6 @@ enum ProjectMemberRole {
   member
 }
 
-enum RequestType {
-  completion
-  chat
-  embedding
-  image
-  audio
-}
-
 enum CreditTransactionType {
   purchase
   usage
@@ -130,7 +122,6 @@ model Project {
 
   organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   members      ProjectMember[]
-  usage        ApiUsage[]
 
   @@index([organizationId])
   @@index([status])
@@ -149,32 +140,6 @@ model ProjectMember {
   @@unique([userId, projectId])
   @@index([userId])
   @@index([projectId])
-}
-
-model ApiUsage {
-  id           String      @id @default(cuid())
-  apiKeyId     Int? // Reference to API key in adaptive-proxy (not a foreign key)
-  projectId    String?
-  provider     String? // Provider name (e.g., 'openai', 'anthropic', 'custom-provider')
-  model        String? // Model name used
-  requestType  RequestType // 'completion' | 'chat' | 'embedding' | 'image' | 'audio'
-  inputTokens  Int         @default(0)
-  outputTokens Int         @default(0)
-  totalTokens  Int         @default(0)
-  cost         Decimal     @default(0) @db.Decimal(12, 6)
-  creditCost   Decimal     @default(0) @db.Decimal(12, 6) // Cost deducted from user credits
-  requestCount Int         @default(1)
-  timestamp    DateTime    @default(now())
-  metadata     Json? // Additional request metadata
-
-  project            Project?            @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  creditTransactions CreditTransaction[]
-
-  @@index([apiKeyId])
-  @@index([projectId])
-  @@index([provider])
-  @@index([timestamp])
-  @@index([requestType])
 }
 
 model Subscription {
@@ -222,14 +187,13 @@ model CreditTransaction {
   stripePaymentIntentId String? // For one-time credit purchases
   stripeSessionId       String? // Checkout session that created this transaction
 
-  // API usage-related fields
+  // API usage-related fields (references to adaptive-proxy data)
   apiKeyId   Int? // Reference to API key in adaptive-proxy (not a foreign key)
-  apiUsageId String? // Link to the specific API usage record
+  apiUsageId Int? // Reference to usage record in adaptive-proxy (not a foreign key)
 
   createdAt DateTime @default(now())
 
   organizationCredit OrganizationCredit @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
-  apiUsage           ApiUsage?          @relation(fields: [apiUsageId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([userId])

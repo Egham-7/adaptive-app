@@ -40,7 +40,7 @@ async function verifyProjectAccess(
 	return !!project;
 }
 
-function filterKeysByUser(
+function _filterKeysByUser(
 	keys: ApiKeyResponse[],
 	userId: string,
 ): ApiKeyResponse[] {
@@ -54,8 +54,8 @@ export const apiKeysRouter = createTRPCRouter({
 			throw new TRPCError({ code: "UNAUTHORIZED" });
 		}
 
-		const response = await apiKeysClient.list();
-		return filterKeysByUser(response.data, userId);
+		const response = await apiKeysClient.listByUserId(userId);
+		return response.data;
 	}),
 
 	getById: protectedProcedure
@@ -274,11 +274,9 @@ export const apiKeysRouter = createTRPCRouter({
 				});
 			}
 
-			const response = await apiKeysClient.list();
+			const response = await apiKeysClient.listByProjectId(input.projectId);
 
-			return response.data.filter(
-				(key: ApiKeyResponse) => key.project_id === input.projectId,
-			);
+			return response.data;
 		}),
 
 	getUsage: protectedProcedure

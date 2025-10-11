@@ -259,7 +259,7 @@ export async function deductCredits(params: {
 	description?: string;
 	metadata?: InputJsonValue;
 	apiKeyId?: number;
-	apiUsageId?: string;
+	apiUsageId?: number; // Reference to usage record in adaptive-proxy
 }) {
 	const {
 		organizationId,
@@ -368,17 +368,8 @@ export async function getOrganizationTransactionHistory(
 		orderBy: { createdAt: "desc" },
 		take: limit,
 		skip: offset,
-		include: {
-			apiUsage: {
-				select: {
-					provider: true,
-					model: true,
-					inputTokens: true,
-					outputTokens: true,
-					totalTokens: true,
-				},
-			},
-		},
+		// Note: apiUsage is now tracked in adaptive-proxy, not in this database
+		// apiUsageId is just a reference (number) to the record in adaptive-proxy
 	});
 
 	return transactions;
