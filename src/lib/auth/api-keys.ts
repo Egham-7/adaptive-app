@@ -1,9 +1,9 @@
 import crypto from "node:crypto";
 import { auth as getClerkAuth } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
+import { goApiClient, parseMetadata } from "@/lib/go-api";
 import type { Context } from "@/server/api/trpc";
 import type { AuthResult } from "@/types/auth";
-import { goApiClient, parseMetadata } from "@/lib/go-api";
 
 export const normalizeAndValidateApiKey = (apiKey: string) => {
 	const normalizedKey = apiKey.trim();

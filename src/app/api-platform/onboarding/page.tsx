@@ -13,7 +13,6 @@ import { Progress } from "@/components/ui/progress";
 import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
 import { useCreateOrganization } from "@/hooks/organizations/use-create-organization";
 import { useCreateProject } from "@/hooks/projects/use-create-project";
-import { api } from "@/trpc/react";
 import type {
 	OrganizationCreateResponse,
 	ProjectCreateResponse,

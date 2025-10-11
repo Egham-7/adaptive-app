@@ -3,12 +3,12 @@ import { env } from "@/env";
 import type {
 	ApiKeyResponse,
 	CreateApiKeyRequest,
+	GetStatsResponse,
+	GetUsageResponse,
+	ListApiKeysResponse,
 	UpdateApiKeyRequest,
 	VerifyApiKeyRequest,
 	VerifyApiKeyResponse,
-	ListApiKeysResponse,
-	GetUsageResponse,
-	GetStatsResponse,
 } from "@/types/go-api-keys";
 
 const baseURL = env.ADAPTIVE_API_BASE_URL;
@@ -16,7 +16,7 @@ const baseURL = env.ADAPTIVE_API_BASE_URL;
 export const goApiClient = {
 	apiKeys: {
 		async create(data: CreateApiKeyRequest): Promise<ApiKeyResponse> {
-			const response = await betterFetch<ApiKeyResponse>("/api-keys", {
+			const response = await betterFetch<ApiKeyResponse>("/admin/api-keys", {
 				method: "POST",
 				baseURL,
 				body: data,
@@ -40,7 +40,7 @@ export const goApiClient = {
 			if (params?.metadata) searchParams.set("metadata", params.metadata);
 
 			const response = await betterFetch<ListApiKeysResponse>(
-				`/api-keys?${searchParams.toString()}`,
+				`/admin/api-keys?${searchParams.toString()}`,
 				{
 					method: "GET",
 					baseURL,
@@ -55,10 +55,13 @@ export const goApiClient = {
 		},
 
 		async get(id: number): Promise<ApiKeyResponse> {
-			const response = await betterFetch<ApiKeyResponse>(`/api-keys/${id}`, {
-				method: "GET",
-				baseURL,
-			});
+			const response = await betterFetch<ApiKeyResponse>(
+				`/admin/api-keys/${id}`,
+				{
+					method: "GET",
+					baseURL,
+				},
+			);
 
 			if (!response.data) {
 				throw new Error(response.error?.message ?? "Failed to get API key");
@@ -71,11 +74,14 @@ export const goApiClient = {
 			id: number,
 			data: UpdateApiKeyRequest,
 		): Promise<ApiKeyResponse> {
-			const response = await betterFetch<ApiKeyResponse>(`/api-keys/${id}`, {
-				method: "PUT",
-				baseURL,
-				body: data,
-			});
+			const response = await betterFetch<ApiKeyResponse>(
+				`/admin/api-keys/${id}`,
+				{
+					method: "PATCH",
+					baseURL,
+					body: data,
+				},
+			);
 
 			if (!response.data) {
 				throw new Error(response.error?.message ?? "Failed to update API key");
@@ -85,7 +91,7 @@ export const goApiClient = {
 		},
 
 		async delete(id: number): Promise<void> {
-			const response = await betterFetch(`/api-keys/${id}`, {
+			const response = await betterFetch(`/admin/api-keys/${id}`, {
 				method: "DELETE",
 				baseURL,
 			});
@@ -97,7 +103,7 @@ export const goApiClient = {
 
 		async revoke(id: number): Promise<ApiKeyResponse> {
 			const response = await betterFetch<ApiKeyResponse>(
-				`/api-keys/${id}/revoke`,
+				`/admin/api-keys/${id}/revoke`,
 				{
 					method: "POST",
 					baseURL,
@@ -113,7 +119,7 @@ export const goApiClient = {
 
 		async verify(data: VerifyApiKeyRequest): Promise<VerifyApiKeyResponse> {
 			const response = await betterFetch<VerifyApiKeyResponse>(
-				"/api-keys/verify",
+				"/admin/api-keys/verify",
 				{
 					method: "POST",
 					baseURL,
@@ -133,13 +139,12 @@ export const goApiClient = {
 			params?: { start_date?: string; end_date?: string; limit?: number },
 		): Promise<GetUsageResponse> {
 			const searchParams = new URLSearchParams();
-			if (params?.start_date)
-				searchParams.set("start_date", params.start_date);
+			if (params?.start_date) searchParams.set("start_date", params.start_date);
 			if (params?.end_date) searchParams.set("end_date", params.end_date);
 			if (params?.limit) searchParams.set("limit", params.limit.toString());
 
 			const response = await betterFetch<GetUsageResponse>(
-				`/api-keys/${id}/usage?${searchParams.toString()}`,
+				`/admin/api-keys/${id}/usage?${searchParams.toString()}`,
 				{
 					method: "GET",
 					baseURL,
@@ -160,12 +165,11 @@ export const goApiClient = {
 			params?: { start_date?: string; end_date?: string },
 		): Promise<GetStatsResponse> {
 			const searchParams = new URLSearchParams();
-			if (params?.start_date)
-				searchParams.set("start_date", params.start_date);
+			if (params?.start_date) searchParams.set("start_date", params.start_date);
 			if (params?.end_date) searchParams.set("end_date", params.end_date);
 
 			const response = await betterFetch<GetStatsResponse>(
-				`/api-keys/${id}/stats?${searchParams.toString()}`,
+				`/admin/api-keys/${id}/stats?${searchParams.toString()}`,
 				{
 					method: "GET",
 					baseURL,
@@ -183,7 +187,7 @@ export const goApiClient = {
 
 		async resetBudget(id: number): Promise<ApiKeyResponse> {
 			const response = await betterFetch<ApiKeyResponse>(
-				`/api-keys/${id}/reset-budget`,
+				`/admin/api-keys/${id}/reset-budget`,
 				{
 					method: "POST",
 					baseURL,

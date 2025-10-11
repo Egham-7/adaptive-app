@@ -46,7 +46,6 @@ import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-
 import { useDeleteProjectApiKey } from "@/hooks/api_keys/use-delete-project-api-key";
 import { useProjectApiKeys } from "@/hooks/api_keys/use-project-api-keys";
 import { parseMetadata } from "@/lib/go-api/metadata";
-import { api } from "@/trpc/react";
 import type { ApiKeyResponse } from "@/types/go-api-keys";
 
 const formSchema = z.object({
@@ -77,11 +76,13 @@ export default function ApiKeysPage() {
 		defaultValues: {
 			name: "",
 			description: "",
-			budget_limit: null,
+			budget_limit: 10,
 			budget_currency: "USD",
-			budget_reset_type: "",
+			budget_reset_type: "monthly",
 			rate_limit_rpm: null,
-			expires_at: null,
+			expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+				.toISOString()
+				.slice(0, 16),
 		},
 	});
 
@@ -174,7 +175,7 @@ export default function ApiKeysPage() {
 							Create new secret key
 						</Button>
 					</DialogTrigger>
-					<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+					<DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
 						<DialogHeader>
 							<DialogTitle>Create new secret key</DialogTitle>
 						</DialogHeader>
@@ -189,11 +190,14 @@ export default function ApiKeysPage() {
 										name="name"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>Name</FormLabel>
+												<FormLabel>
+													Name <span className="text-destructive">*</span>
+												</FormLabel>
 												<FormControl>
 													<Input
 														id="name"
 														placeholder="My test key"
+														required
 														{...field}
 													/>
 												</FormControl>
@@ -223,7 +227,9 @@ export default function ApiKeysPage() {
 									<Separator />
 
 									<div className="space-y-4">
-										<h3 className="font-medium text-sm">Budget Configuration (Optional)</h3>
+										<h3 className="font-medium text-sm">
+											Budget Configuration (Optional)
+										</h3>
 										<div className="grid grid-cols-2 gap-4">
 											<FormField
 												control={form.control}
@@ -238,7 +244,13 @@ export default function ApiKeysPage() {
 																step="0.01"
 																placeholder="100.00"
 																value={field.value ?? ""}
-																onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+																onChange={(e) =>
+																	field.onChange(
+																		e.target.value
+																			? Number.parseFloat(e.target.value)
+																			: null,
+																	)
+																}
 															/>
 														</FormControl>
 														<FormMessage />
@@ -278,8 +290,10 @@ export default function ApiKeysPage() {
 												<FormItem>
 													<FormLabel>Budget Reset Period</FormLabel>
 													<Select
-														onValueChange={field.onChange}
-														defaultValue={field.value}
+														onValueChange={(value) =>
+															field.onChange(value === "none" ? "" : value)
+														}
+														defaultValue={field.value || "none"}
 													>
 														<FormControl>
 															<SelectTrigger>
@@ -287,7 +301,7 @@ export default function ApiKeysPage() {
 															</SelectTrigger>
 														</FormControl>
 														<SelectContent>
-															<SelectItem value="">Never</SelectItem>
+															<SelectItem value="none">Never</SelectItem>
 															<SelectItem value="daily">Daily</SelectItem>
 															<SelectItem value="weekly">Weekly</SelectItem>
 															<SelectItem value="monthly">Monthly</SelectItem>
@@ -313,7 +327,13 @@ export default function ApiKeysPage() {
 														type="number"
 														placeholder="60"
 														value={field.value ?? ""}
-														onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+														onChange={(e) =>
+															field.onChange(
+																e.target.value
+																	? Number.parseInt(e.target.value, 10)
+																	: null,
+															)
+														}
 													/>
 												</FormControl>
 												<FormMessage />
@@ -412,97 +432,101 @@ export default function ApiKeysPage() {
 						</TableHeader>
 						<TableBody>
 							{apiKeys.map((apiKey: ApiKeyResponse) => {
-								const metadata = parseMetadata(apiKey.metadata);
+								const _metadata = parseMetadata(apiKey.metadata);
 								return (
-								<TableRow key={apiKey.id} className="hover:bg-muted/50">
-									<TableCell>{apiKey.name}</TableCell>
-									<TableCell className="font-mono text-muted-foreground text-sm">
-										{apiKey.key_prefix}...
-									</TableCell>
-									<TableCell className="text-muted-foreground text-sm">
-										{apiKey.budget_limit ? (
-											<div className="space-y-0.5">
-												<div className="font-medium">
-													{apiKey.budget_used.toFixed(2)} / {apiKey.budget_limit.toFixed(2)} {apiKey.budget_currency}
+									<TableRow key={apiKey.id} className="hover:bg-muted/50">
+										<TableCell>{apiKey.name}</TableCell>
+										<TableCell className="font-mono text-muted-foreground text-sm">
+											{apiKey.key_prefix}...
+										</TableCell>
+										<TableCell className="text-muted-foreground text-sm">
+											{apiKey.budget_limit ? (
+												<div className="space-y-0.5">
+													<div className="font-medium">
+														{apiKey.budget_used.toFixed(2)} /{" "}
+														{apiKey.budget_limit.toFixed(2)}{" "}
+														{apiKey.budget_currency}
+													</div>
+													{apiKey.budget_remaining !== null && (
+														<div className="text-xs">
+															{apiKey.budget_remaining.toFixed(2)} remaining
+														</div>
+													)}
+													{apiKey.budget_reset_type && (
+														<div className="text-xs capitalize">
+															Resets {apiKey.budget_reset_type}
+														</div>
+													)}
 												</div>
-												{apiKey.budget_remaining !== null && (
-													<div className="text-xs">
-														{apiKey.budget_remaining.toFixed(2)} remaining
-													</div>
-												)}
-												{apiKey.budget_reset_type && (
-													<div className="text-xs capitalize">
-														Resets {apiKey.budget_reset_type}
-													</div>
-												)}
-											</div>
-										) : (
-											<span className="text-muted-foreground">No limit</span>
-										)}
-									</TableCell>
-									<TableCell className="text-muted-foreground text-sm">
-										{apiKey.rate_limit_rpm ? `${apiKey.rate_limit_rpm} RPM` : "Unlimited"}
-									</TableCell>
-									<TableCell className="text-muted-foreground text-sm">
-										{new Date(apiKey.created_at).toLocaleDateString("en-US", {
-											year: "numeric",
-											month: "short",
-											day: "numeric",
-										})}
-									</TableCell>
-									<TableCell className="text-muted-foreground text-sm">
-										{apiKey.expires_at
-											? new Date(apiKey.expires_at).toLocaleDateString(
-													"en-US",
-													{
-														year: "numeric",
-														month: "short",
-														day: "numeric",
-													},
-												)
-											: "Never"}
-									</TableCell>
-									<TableCell className="text-muted-foreground text-sm">
-										<span
-											className={`inline-flex items-center rounded-full px-2 py-1 font-medium text-xs ${
-												apiKey.is_active
-													? "border border-success/20 bg-success/10 text-success"
-													: "border border-destructive/20 bg-destructive/10 text-destructive"
-											}`}
-										>
-											{apiKey.is_active ? "Active" : "Inactive"}
-										</span>
-									</TableCell>
-									<TableCell className="text-right font-medium text-sm">
-										<div className="flex items-center justify-end gap-2">
-											<Button
-												variant="ghost"
-												size="sm"
-												disabled
-												className="h-auto cursor-not-allowed p-1 text-muted-foreground/50"
-												aria-disabled="true"
-												aria-describedby="edit-button-disabled-description"
+											) : (
+												<span className="text-muted-foreground">No limit</span>
+											)}
+										</TableCell>
+										<TableCell className="text-muted-foreground text-sm">
+											{apiKey.rate_limit_rpm
+												? `${apiKey.rate_limit_rpm} RPM`
+												: "Unlimited"}
+										</TableCell>
+										<TableCell className="text-muted-foreground text-sm">
+											{new Date(apiKey.created_at).toLocaleDateString("en-US", {
+												year: "numeric",
+												month: "short",
+												day: "numeric",
+											})}
+										</TableCell>
+										<TableCell className="text-muted-foreground text-sm">
+											{apiKey.expires_at
+												? new Date(apiKey.expires_at).toLocaleDateString(
+														"en-US",
+														{
+															year: "numeric",
+															month: "short",
+															day: "numeric",
+														},
+													)
+												: "Never"}
+										</TableCell>
+										<TableCell className="text-muted-foreground text-sm">
+											<span
+												className={`inline-flex items-center rounded-full px-2 py-1 font-medium text-xs ${
+													apiKey.is_active
+														? "border border-success/20 bg-success/10 text-success"
+														: "border border-destructive/20 bg-destructive/10 text-destructive"
+												}`}
 											>
-												<Edit className="h-4 w-4" />
-												<span
-													id="edit-button-disabled-description"
-													className="sr-only"
+												{apiKey.is_active ? "Active" : "Inactive"}
+											</span>
+										</TableCell>
+										<TableCell className="text-right font-medium text-sm">
+											<div className="flex items-center justify-end gap-2">
+												<Button
+													variant="ghost"
+													size="sm"
+													disabled
+													className="h-auto cursor-not-allowed p-1 text-muted-foreground/50"
+													aria-disabled="true"
+													aria-describedby="edit-button-disabled-description"
 												>
-													Editing is disabled because the API key is inactive.
-												</span>
-											</Button>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() => handleDeleteApiKey(apiKey.id)}
-												disabled={deleteApiKey.isPending}
-												className="h-auto p-1 text-muted-foreground hover:text-destructive"
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
+													<Edit className="h-4 w-4" />
+													<span
+														id="edit-button-disabled-description"
+														className="sr-only"
+													>
+														Editing is disabled because the API key is inactive.
+													</span>
+												</Button>
+												<Button
+													variant="ghost"
+													size="sm"
+													onClick={() => handleDeleteApiKey(apiKey.id)}
+													disabled={deleteApiKey.isPending}
+													className="h-auto p-1 text-muted-foreground hover:text-destructive"
+												>
+													<Trash2 className="h-4 w-4" />
+												</Button>
+											</div>
+										</TableCell>
+									</TableRow>
 								);
 							})}
 						</TableBody>

@@ -158,6 +158,7 @@ model ProjectMember {
 
 model ApiUsage {
   id                String   @id @default(cuid())
+  apiKeyId          String?  // Reference to API key in adaptive-proxy (not a foreign key)
   projectId         String?
   clusterId         String?  // LLM cluster used for this request
   provider          String?  // Provider name (e.g., 'openai', 'anthropic', 'custom-provider')
@@ -176,6 +177,7 @@ model ApiUsage {
   cluster           LLMCluster? @relation(fields: [clusterId], references: [id], onDelete: SetNull)
   creditTransactions CreditTransaction[]
 
+  @@index([apiKeyId])
   @@index([projectId])
   @@index([clusterId])
   @@index([provider])
@@ -334,6 +336,7 @@ model CreditTransaction {
   stripeSessionId       String? // Checkout session that created this transaction
 
   // API usage-related fields
+  apiKeyId        String?   // Reference to API key in adaptive-proxy (not a foreign key)
   apiUsageId      String?   // Link to the specific API usage record
 
   createdAt       DateTime  @default(now())
@@ -346,6 +349,7 @@ model CreditTransaction {
   @@index([type])
   @@index([createdAt])
   @@index([stripePaymentIntentId])
+  @@index([apiKeyId])
 }
 
 model CreditPackage {

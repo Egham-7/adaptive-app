@@ -1,11 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { createMetadata, goApiClient, parseMetadata } from "@/lib/go-api";
 import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
-import { goApiClient, createMetadata, parseMetadata } from "@/lib/go-api";
 import type { ApiKeyResponse } from "@/types/go-api-keys";
 
 const createAPIKeySchema = z.object({
@@ -113,7 +113,8 @@ export const apiKeysRouter = createTRPCRouter({
 			if (!hasAccess) {
 				throw new TRPCError({
 					code: "FORBIDDEN",
-					message: "You don't have permission to create API keys for this project",
+					message:
+						"You don't have permission to create API keys for this project",
 				});
 			}
 
@@ -145,7 +146,8 @@ export const apiKeysRouter = createTRPCRouter({
 			if (!hasAccess) {
 				throw new TRPCError({
 					code: "FORBIDDEN",
-					message: "You don't have permission to create API keys for this project",
+					message:
+						"You don't have permission to create API keys for this project",
 				});
 			}
 

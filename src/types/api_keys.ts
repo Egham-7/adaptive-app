@@ -88,10 +88,7 @@ export type APIKeyCore = Pick<
 /**
  * API key data for forms (without server-generated fields).
  */
-export type APIKeyFormData = Pick<
-	APIKeyCreateInput,
-	"name" | "expires_at"
->;
+export type APIKeyFormData = Pick<APIKeyCreateInput, "name" | "expires_at">;
 
 /**
  * API key data for updates (without immutable fields).
