@@ -369,9 +369,6 @@ export async function getOrganizationTransactionHistory(
 		take: limit,
 		skip: offset,
 		include: {
-			apiKey: {
-				select: { name: true, keyPrefix: true },
-			},
 			apiUsage: {
 				select: {
 					provider: true,

@@ -68,8 +68,8 @@ export default function SelectModelPage() {
 	const { data: apiKeys } = api.api_keys.getByProject.useQuery({ projectId });
 
 	const firstApiKey = apiKeys?.[0];
-	const exampleKey = firstApiKey?.key_preview
-		? `your_api_key_here_preview_${firstApiKey.key_preview}`
+	const exampleKey = firstApiKey?.key_prefix
+		? `your_api_key_here_preview_${firstApiKey.key_prefix}`
 		: "your_api_key_here_preview_sk-abcd";
 
 	const curlExample = `curl -X POST "${API_BASE_URL}/api/v1/select-model" \\
