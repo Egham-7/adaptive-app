@@ -10,6 +10,7 @@ import {
 	getOrganizationTransactionHistory,
 	hasSufficientCredits,
 } from "@/lib/credits";
+import { goApiClient, parseMetadata } from "@/lib/go-api";
 import { formatCurrency } from "@/lib/shared/currency";
 import { stripe } from "@/lib/stripe/stripe";
 import {
@@ -17,11 +18,6 @@ import {
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
-
-function hashApiKey(apiKey: string): string {
-	// Simple hash function for API keys
-	return Buffer.from(apiKey).toString("base64");
-}
 
 export const creditsRouter = createTRPCRouter({
 	// Pre-flight credit check before API usage (used by backend services)
@@ -38,23 +34,40 @@ export const creditsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			// Hash the API key to find it in database
-			const keyHash = hashApiKey(input.apiKey);
+			// Verify API key with Go backend
+			const result = await goApiClient.apiKeys.verify({ key: input.apiKey });
 
-			// Verify API key and get organization
-			const apiKey = await ctx.db.apiKey.findFirst({
-				where: { keyHash },
-				include: { project: { include: { organization: true } } },
-			});
-
-			if (!apiKey || !apiKey.project) {
+			if (!result.valid || !result.api_key_id) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
-					message: "Invalid API key",
+					message: result.reason ?? "Invalid API key",
 				});
 			}
 
-			const organizationId = apiKey.project.organization.id;
+			// Parse metadata to get project info
+			const meta = parseMetadata(result.metadata);
+
+			if (!meta.projectId) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "API key is not associated with a project",
+				});
+			}
+
+			// Get project and organization info from database
+			const project = await ctx.db.project.findUnique({
+				where: { id: meta.projectId },
+				include: { organization: true },
+			});
+
+			if (!project) {
+				throw new TRPCError({
+					code: "UNAUTHORIZED",
+					message: "Project not found for API key",
+				});
+			}
+
+			const organizationId = project.organizationId;
 
 			// Calculate estimated credit cost
 			const estimatedCreditCost = calculateCreditCost(

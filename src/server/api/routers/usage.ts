@@ -8,7 +8,6 @@ import {
 	getProviderModel,
 	validateApiKey,
 } from "@/lib/server/api-key-utils";
-import { hashApiKey } from "@/lib/server/usage-utils";
 import { invalidateAnalyticsCache } from "@/lib/shared/cache";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import {
@@ -101,17 +100,12 @@ export const usageRouter = createTRPCRouter({
 					);
 				}
 
-				// Update API key last used timestamp and invalidate cache
-				await Promise.all([
-					ctx.db.apiKey.update({
-						where: { id: apiKey.id },
-						data: { lastUsedAt: new Date() },
-					}),
-					invalidateAnalyticsCache(
-						apiKey.userId,
-						apiKey.projectId || undefined,
-					),
-				]);
+				// Invalidate analytics cache
+				// Note: API key last_used_at is now tracked automatically by the Go backend
+				await invalidateAnalyticsCache(
+					apiKey.userId,
+					apiKey.projectId || undefined,
+				);
 
 				console.log("✅ API usage recorded successfully.");
 
@@ -150,32 +144,8 @@ export const usageRouter = createTRPCRouter({
 		.input(recordErrorInputSchema)
 		.mutation(async ({ ctx, input }) => {
 			try {
-				// Hash the provided API key to compare with stored hash
-				const keyHash = hashApiKey(input.apiKey);
-
-				// Find the API key in the database by the key hash
-				const apiKey = await ctx.db.apiKey.findFirst({
-					where: {
-						keyHash,
-						status: "active",
-					},
-					include: {
-						project: {
-							include: {
-								organization: true,
-							},
-						},
-					},
-				});
-
-				if (!apiKey) {
-					// For error recording, still try to record even with invalid key
-					console.warn("Invalid API key for error recording:", input.apiKey);
-					throw new TRPCError({
-						code: "FORBIDDEN",
-						message: "Invalid API key",
-					});
-				}
+				// Validate API key using Go backend
+				const apiKey = await validateApiKey(ctx.db, input.apiKey);
 
 				// Record the error as usage with 0 tokens
 				const usage = await ctx.db.apiUsage.create({
