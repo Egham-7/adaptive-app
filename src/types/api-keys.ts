@@ -33,20 +33,17 @@ export const createApiKeySchema = z.object({
 	budget_limit: z.number().nullable().optional(),
 	budget_currency: z.string().optional(),
 	budget_reset_type: z.enum(["", "daily", "weekly", "monthly"]).optional(),
-	expires_at: z.preprocess(
-		(val) => {
-			if (!val || val === null) return null;
-			if (typeof val === "string") {
-				try {
-					return new Date(val).toISOString();
-				} catch {
-					return val;
-				}
+	expires_at: z.preprocess((val) => {
+		if (!val || val === null) return null;
+		if (typeof val === "string") {
+			try {
+				return new Date(val).toISOString();
+			} catch {
+				return val;
 			}
-			return val;
-		},
-		z.string().datetime().nullable().optional()
-	),
+		}
+		return val;
+	}, z.string().datetime().nullable().optional()),
 });
 
 export const updateApiKeySchema = z.object({

@@ -55,20 +55,17 @@ const formSchema = z.object({
 	budget_currency: z.string().optional(),
 	budget_reset_type: z.enum(["", "daily", "weekly", "monthly"]).optional(),
 	rate_limit_rpm: z.number().nullable().optional(),
-	expires_at: z.preprocess(
-		(val) => {
-			if (!val || val === null) return null;
-			if (typeof val === "string") {
-				try {
-					return new Date(val).toISOString();
-				} catch {
-					return val;
-				}
+	expires_at: z.preprocess((val) => {
+		if (!val || val === null) return null;
+		if (typeof val === "string") {
+			try {
+				return new Date(val).toISOString();
+			} catch {
+				return val;
 			}
-			return val;
-		},
-		z.string().datetime().nullable().optional()
-	),
+		}
+		return val;
+	}, z.string().datetime().nullable().optional()),
 });
 
 export default function ApiKeysPage() {
@@ -355,31 +352,29 @@ export default function ApiKeysPage() {
 									<FormField
 										control={form.control}
 										name="expires_at"
-								render={({ field }) => {
-									const displayValue = field.value
-										? new Date(field.value)
-												.toISOString()
-												.slice(0, 16)
-										: "";
+										render={({ field }) => {
+											const displayValue = field.value
+												? new Date(field.value).toISOString().slice(0, 16)
+												: "";
 
-									return (
-										<FormItem>
-											<FormLabel>Expiration Date (optional)</FormLabel>
-											<FormControl>
-												<Input
-													id="expires_at"
-													type="datetime-local"
-													value={displayValue}
-													onChange={(e) => {
-														const value = e.target.value;
-														field.onChange(value || null);
-													}}
-												/>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									);
-								}}
+											return (
+												<FormItem>
+													<FormLabel>Expiration Date (optional)</FormLabel>
+													<FormControl>
+														<Input
+															id="expires_at"
+															type="datetime-local"
+															value={displayValue}
+															onChange={(e) => {
+																const value = e.target.value;
+																field.onChange(value || null);
+															}}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											);
+										}}
 									/>
 
 									<div className="flex justify-end gap-2">
