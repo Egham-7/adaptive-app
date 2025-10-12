@@ -89,7 +89,6 @@ model Organization {
 
   projects Project[]
   members  OrganizationMember[]
-  credit   OrganizationCredit?
 
   @@index([ownerId])
   @@index([name])
@@ -155,66 +154,4 @@ model Subscription {
 
   @@index([userId])
   @@index([status])
-}
-
-// Credit system models
-// NOTE: These models are managed by the Go backend (adaptive-proxy)
-// The frontend only reads credit data for display purposes
-// All credit operations (balance updates, transactions, Stripe) are handled by adaptive-proxy
-model OrganizationCredit {
-  id             String   @id @default(cuid())
-  organizationId String   @unique // Organization ID
-  balance        Decimal  @default(0) @db.Decimal(12, 6) // Current credit balance in USD
-  totalPurchased Decimal  @default(0) @db.Decimal(12, 6) // Total credits ever purchased
-  totalUsed      Decimal  @default(0) @db.Decimal(12, 6) // Total credits ever used
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  transactions CreditTransaction[]
-
-  @@index([organizationId])
-}
-
-// NOTE: Managed by Go backend (adaptive-proxy)
-model CreditTransaction {
-  id             String                @id @default(cuid())
-  organizationId String // Organization ID
-  userId         String // Clerk user ID who initiated the transaction
-  type           CreditTransactionType // 'purchase' | 'usage' | 'refund' | 'promotional'
-  amount         Decimal               @db.Decimal(12, 6) // Amount in USD (positive for credits added, negative for usage)
-  balanceAfter   Decimal               @db.Decimal(12, 6) // Organization's balance after this transaction
-  description    String? // Human readable description
-  metadata       Json? // Additional data (Stripe payment ID, API usage details, etc.)
-
-  // Stripe-related fields for purchases
-  stripePaymentIntentId String? // For one-time credit purchases
-  stripeSessionId       String? // Checkout session that created this transaction
-
-  // API usage-related fields (references to adaptive-proxy data)
-  apiKeyId   Int? // Reference to API key in adaptive-proxy (not a foreign key)
-  apiUsageId Int? // Reference to usage record in adaptive-proxy (not a foreign key)
-
-  createdAt DateTime @default(now())
-
-  organizationCredit OrganizationCredit @relation(fields: [organizationId], references: [organizationId], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([userId])
-  @@index([type])
-  @@index([createdAt])
-  @@index([stripePaymentIntentId])
-  @@index([apiKeyId])
-}
-
-// NOTE: Credit packages for Stripe checkout - managed by Go backend (adaptive-proxy)
-model CreditPackage {
-  id            String   @id @default(cuid())
-  name          String // e.g., "Starter Pack", "Pro Pack"
-  description   String? // Description of the package
-  creditAmount  Decimal  @db.Decimal(12, 6) // Amount of credits in USD
-  price         Decimal  @db.Decimal(12, 6) // Price in USD
-  stripePriceId String   @unique // Stripe price ID for this package
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 }
