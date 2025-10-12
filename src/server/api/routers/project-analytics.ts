@@ -72,7 +72,8 @@ export const projectAnalyticsRouter = createTRPCRouter({
 
 				const now = new Date();
 				const endDate = input.endDate ?? now;
-				const startDate = input.startDate ?? new Date(endDate.getTime() - THIRTY_DAYS_MS);
+				const startDate =
+					input.startDate ?? new Date(endDate.getTime() - THIRTY_DAYS_MS);
 
 				const startDateStr = startDate.toISOString();
 				const endDateStr = endDate.toISOString();
@@ -102,9 +103,14 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						acc.totalRequests += overall.total_requests;
 						acc.errorCount += overall.error_count ?? 0;
 
-						if (statsResult.by_endpoint && Array.isArray(statsResult.by_endpoint)) {
+						if (
+							statsResult.by_endpoint &&
+							Array.isArray(statsResult.by_endpoint)
+						) {
 							statsResult.by_endpoint.forEach((endpoint) => {
-								const existing = acc.endpointBreakdown.get(endpoint.endpoint) ?? {
+								const existing = acc.endpointBreakdown.get(
+									endpoint.endpoint,
+								) ?? {
 									count: 0,
 									cost: 0,
 								};
@@ -127,7 +133,8 @@ export const projectAnalyticsRouter = createTRPCRouter({
 									spend: existing.spend + dayData.cost,
 									requests: existing.requests + 1,
 									tokens: existing.tokens,
-									errorCount: existing.errorCount + (dayData.status_code >= 400 ? 1 : 0),
+									errorCount:
+										existing.errorCount + (dayData.status_code >= 400 ? 1 : 0),
 								});
 							});
 						}
@@ -139,12 +146,25 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						totalTokens: 0,
 						totalRequests: 0,
 						errorCount: 0,
-						endpointBreakdown: new Map<string, { count: number; cost: number }>(),
-						dailyTrendsMap: new Map<string, { spend: number; requests: number; tokens: number; errorCount: number }>(),
+						endpointBreakdown: new Map<
+							string,
+							{ count: number; cost: number }
+						>(),
+						dailyTrendsMap: new Map<
+							string,
+							{
+								spend: number;
+								requests: number;
+								tokens: number;
+								errorCount: number;
+							}
+						>(),
 					},
 				);
 
-				const requestTypeBreakdown = Array.from(aggregated.endpointBreakdown.entries())
+				const requestTypeBreakdown = Array.from(
+					aggregated.endpointBreakdown.entries(),
+				)
 					.map(([endpoint, data]) => ({
 						type: endpoint,
 						count: data.count,
@@ -162,9 +182,10 @@ export const projectAnalyticsRouter = createTRPCRouter({
 					}))
 					.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-				const errorRate = aggregated.totalRequests > 0 
-					? (aggregated.errorCount / aggregated.totalRequests) * 100 
-					: 0;
+				const errorRate =
+					aggregated.totalRequests > 0
+						? (aggregated.errorCount / aggregated.totalRequests) * 100
+						: 0;
 
 				return {
 					totalSpend: aggregated.totalSpend,
@@ -188,7 +209,8 @@ export const projectAnalyticsRouter = createTRPCRouter({
 			return withCache(cacheKey, async () => {
 				const now = new Date();
 				const endDate = input.endDate ?? now;
-				const startDate = input.startDate ?? new Date(endDate.getTime() - THIRTY_DAYS_MS);
+				const startDate =
+					input.startDate ?? new Date(endDate.getTime() - THIRTY_DAYS_MS);
 
 				const startDateStr = startDate.toISOString();
 				const endDateStr = endDate.toISOString();
@@ -237,7 +259,10 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						totalSpend: 0,
 						totalTokens: 0,
 						totalRequests: 0,
-						projectMap: new Map<string, { spend: number; requests: number; tokens: number }>(),
+						projectMap: new Map<
+							string,
+							{ spend: number; requests: number; tokens: number }
+						>(),
 					},
 				);
 
