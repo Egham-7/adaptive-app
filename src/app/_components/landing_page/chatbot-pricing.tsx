@@ -1,7 +1,6 @@
 "use client";
 import { SignUpButton, useUser } from "@clerk/nextjs";
 import { Check } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -10,67 +9,27 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { api } from "@/trpc/react";
 import SubscribeButton from "../stripe/subscribe-button";
 
 export default function ChatbotPricing() {
 	const { user } = useUser();
-	const [isSubscribed, setIsSubscribed] = useState(false);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
 
-	useEffect(() => {
-		let aborted = false;
-
-		async function fetchSubscriptionStatus() {
-			if (!user) {
-				setLoading(false);
-				return;
-			}
-
-			try {
-				setError(null);
-				const response = await fetch("/api/subscription-status");
-
-				if (aborted) return;
-
-				if (!response.ok) {
-					throw new Error(
-						`Failed to fetch subscription status: ${response.status}`,
-					);
-				}
-
-				const data = await response.json();
-
-				if (aborted) return;
-
-				setIsSubscribed(data.isSubscribed);
-			} catch (error) {
-				if (aborted) return;
-
-				console.error("Error fetching subscription status:", error);
-				setError(
-					"Unable to load subscription status. Please try refreshing the page.",
-				);
-			} finally {
-				if (!aborted) {
-					setLoading(false);
-				}
-			}
-		}
-
-		fetchSubscriptionStatus();
-
-		return () => {
-			aborted = true;
-		};
-	}, [user]);
+	// Use tRPC to fetch subscription status
+	const {
+		data: isSubscribed,
+		isLoading: loading,
+		error,
+	} = api.subscription.isSubscribed.useQuery(undefined, {
+		enabled: !!user,
+	});
 
 	return (
 		<div className="w-full p-6">
 			<h2 className="mb-8 text-center font-bold text-2xl">Choose Your Plan</h2>
 			{error && (
 				<div className="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-center text-red-800 text-sm">
-					{error}
+					Unable to load subscription status. Please try refreshing the page.
 				</div>
 			)}
 			<div className="mx-auto grid w-full gap-6 md:grid-cols-2">

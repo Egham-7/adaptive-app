@@ -1,5 +1,4 @@
 import { TRPCError } from "@trpc/server";
-import { getDetailedPromotionalStats } from "@/lib/credits/admin";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 // Admin user IDs from environment variable
@@ -31,18 +30,27 @@ export const adminRouter = createTRPCRouter({
 	/**
 	 * Get detailed promotional credit statistics
 	 * Admin only - shows all promotional credit awards
+	 * NOTE: This functionality has been moved to the Go backend (adaptive-proxy)
+	 * TODO: Implement by calling Go backend admin endpoints when needed
 	 */
 	getPromotionalStats: adminProcedure.query(async () => {
-		try {
-			const stats = await getDetailedPromotionalStats();
-			return stats;
-		} catch (error) {
-			console.error("Error fetching promotional stats:", error);
-			throw new TRPCError({
-				code: "INTERNAL_SERVER_ERROR",
-				message: "Failed to fetch promotional credit statistics",
-				cause: error,
-			});
-		}
+		// Placeholder - to be implemented by calling Go backend
+		return {
+			totalAwarded: 0,
+			totalUsers: 0,
+			transactions: [],
+			stats: {
+				used: 0,
+				remaining: 0,
+				available: false,
+			},
+			config: {
+				FREE_CREDIT_AMOUNT: 0,
+				MAX_PROMOTIONAL_USERS: 0,
+				ENABLED: false,
+				DESCRIPTION:
+					"Promotional credits system (To be implemented in Go backend)",
+			},
+		};
 	}),
 });

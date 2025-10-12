@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { apiKeysClient, createMetadata } from "@/lib/api-keys";
+import { apiKeysClient, createMetadata } from "@/lib/api/api-keys";
 import {
 	createTRPCRouter,
 	protectedProcedure,

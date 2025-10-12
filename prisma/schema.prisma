@@ -158,6 +158,9 @@ model Subscription {
 }
 
 // Credit system models
+// NOTE: These models are managed by the Go backend (adaptive-proxy)
+// The frontend only reads credit data for display purposes
+// All credit operations (balance updates, transactions, Stripe) are handled by adaptive-proxy
 model OrganizationCredit {
   id             String   @id @default(cuid())
   organizationId String   @unique // Organization ID
@@ -173,6 +176,7 @@ model OrganizationCredit {
   @@index([organizationId])
 }
 
+// NOTE: Managed by Go backend (adaptive-proxy)
 model CreditTransaction {
   id             String                @id @default(cuid())
   organizationId String // Organization ID
@@ -203,6 +207,7 @@ model CreditTransaction {
   @@index([apiKeyId])
 }
 
+// NOTE: Credit packages for Stripe checkout - managed by Go backend (adaptive-proxy)
 model CreditPackage {
   id            String   @id @default(cuid())
   name          String // e.g., "Starter Pack", "Pro Pack"

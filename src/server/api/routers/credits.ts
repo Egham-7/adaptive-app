@@ -1,138 +1,71 @@
 import { TRPCError } from "@trpc/server";
-import type { CreditTransactionType } from "prisma/generated";
 import { z } from "zod";
-import { apiKeysClient, parseMetadata } from "@/lib/api-keys";
-import {
-	awardPromotionalCredits,
-	calculateCreditCost,
-	getOrganizationBalance,
-	getOrganizationCreditStats,
-	getOrganizationTransactionHistory,
-	hasSufficientCredits,
-} from "@/lib/credits";
-import { TOKEN_PRICING } from "@/lib/pricing/config";
-import { formatCurrency } from "@/lib/shared/currency";
-import { stripe } from "@/lib/stripe/stripe";
-import {
-	createTRPCRouter,
-	protectedProcedure,
-	publicProcedure,
-} from "@/server/api/trpc";
+import { creditsClient } from "@/lib/api/credits";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
+/**
+ * Helper function to verify user has access to organization
+ */
+async function verifyOrganizationAccess(
+	ctx: { clerkAuth: { userId: string | null }; db: any },
+	organizationId: string,
+): Promise<boolean> {
+	const userId = ctx.clerkAuth.userId;
+	if (!userId) return false;
+
+	const organization = await ctx.db.organization.findFirst({
+		where: {
+			id: organizationId,
+			OR: [{ ownerId: userId }, { members: { some: { userId } } }],
+		},
+	});
+
+	return !!organization;
+}
+
+/**
+ * Credits router - proxies requests to Go backend (adaptive-proxy)
+ * All credit operations are handled by the Go backend
+ */
 export const creditsRouter = createTRPCRouter({
-	// Pre-flight credit check before API usage (used by backend services)
-	checkCreditsBeforeUsage: publicProcedure
-		.input(
-			z.object({
-				apiKey: z.string(),
-				estimatedInputTokens: z
-					.number()
-					.min(0, "Input tokens must be non-negative"),
-				estimatedOutputTokens: z
-					.number()
-					.min(0, "Output tokens must be non-negative"),
-			}),
-		)
-		.mutation(async ({ ctx, input }) => {
-			// Verify API key with Go backend
-			const result = await apiKeysClient.verify({ key: input.apiKey });
-
-			if (!result.valid || !result.api_key_id) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: result.reason ?? "Invalid API key",
-				});
-			}
-
-			// Parse metadata to get project info
-			const meta = parseMetadata(result.metadata);
-
-			if (!meta.projectId) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "API key is not associated with a project",
-				});
-			}
-
-			// Get project and organization info from database
-			const project = await ctx.db.project.findUnique({
-				where: { id: meta.projectId },
-				include: { organization: true },
-			});
-
-			if (!project) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "Project not found for API key",
-				});
-			}
-
-			const organizationId = project.organizationId;
-
-			// Calculate estimated credit cost
-			const estimatedCreditCost = calculateCreditCost(
-				input.estimatedInputTokens,
-				input.estimatedOutputTokens,
-			);
-
-			// Check if organization has sufficient credits
-			const hasEnoughCredits = await hasSufficientCredits(
-				organizationId,
-				estimatedCreditCost,
-			);
-
-			if (!hasEnoughCredits) {
-				const currentBalance = await getOrganizationBalance(organizationId);
-				throw new TRPCError({
-					code: "PAYMENT_REQUIRED",
-					message: `Insufficient credits. Estimated cost: $${estimatedCreditCost.toFixed(
-						4,
-					)}, Available: $${currentBalance.toFixed(
-						4,
-					)}. Please purchase more credits.`,
-				});
-			}
-
-			return {
-				hasEnoughCredits: true,
-				currentBalance: await getOrganizationBalance(organizationId),
-				estimatedCost: estimatedCreditCost,
-			};
-		}),
-
 	// Get organization's current credit balance
 	getBalance: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			const userId = ctx.userId;
+			const userId = ctx.clerkAuth.userId;
 
 			if (!userId) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
-					message: "User ID not found in context",
+					message: "User not authenticated",
+				});
+			}
+
+			// Verify user has access to this organization
+			const hasAccess = await verifyOrganizationAccess(
+				ctx,
+				input.organizationId,
+			);
+			if (!hasAccess) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You don't have access to this organization",
 				});
 			}
 
 			try {
-				const balance = await getOrganizationBalance(input.organizationId);
+				const response = await creditsClient.getBalance(input.organizationId);
 				return {
-					balance,
-					formattedBalance: formatCurrency(balance),
+					balance: response.balance,
+					formattedBalance: `$${response.balance.toFixed(2)}`,
 				};
 			} catch (error) {
-				// Check if it's a specific error we can handle
-				if (error instanceof Error && error.message.includes("not found")) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message:
-							"Organization not found. Please make sure you have access to this organization.",
-					});
-				}
-
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message:
-						"Failed to fetch credit balance. Please try again or contact support if the issue persists.",
+						error instanceof Error
+							? error.message
+							: "Failed to fetch credit balance",
 				});
 			}
 		}),
@@ -141,30 +74,46 @@ export const creditsRouter = createTRPCRouter({
 	getStats: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			const userId = ctx.userId;
+			const userId = ctx.clerkAuth.userId;
 
 			if (!userId) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
-					message: "User ID not found in context",
+					message: "User not authenticated",
+				});
+			}
+
+			// Verify user has access to this organization
+			const hasAccess = await verifyOrganizationAccess(
+				ctx,
+				input.organizationId,
+			);
+			if (!hasAccess) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You don't have access to this organization",
 				});
 			}
 
 			try {
-				const stats = await getOrganizationCreditStats(input.organizationId);
+				const response = await creditsClient.getBalance(input.organizationId);
 				return {
-					...stats,
-					// Add formatted versions for UI display
+					currentBalance: response.balance,
+					totalPurchased: response.total_purchased,
+					totalUsed: response.total_used,
 					formatted: {
-						currentBalance: formatCurrency(stats.currentBalance),
-						totalPurchased: formatCurrency(stats.totalPurchased),
-						totalUsed: formatCurrency(stats.totalUsed),
+						currentBalance: `$${response.balance.toFixed(2)}`,
+						totalPurchased: `$${response.total_purchased.toFixed(2)}`,
+						totalUsed: `$${response.total_used.toFixed(2)}`,
 					},
 				};
-			} catch (_error) {
+			} catch (error) {
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to fetch credit statistics",
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to fetch credit statistics",
 				});
 			}
 		}),
@@ -176,198 +125,107 @@ export const creditsRouter = createTRPCRouter({
 				organizationId: z.string(),
 				limit: z.number().min(1).max(100).default(20),
 				offset: z.number().min(0).default(0),
-				type: z.enum(["purchase", "usage", "refund", "promotional"]).optional(),
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const userId = ctx.userId;
+			const userId = ctx.clerkAuth.userId;
 
 			if (!userId) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
-					message: "User ID not found in context",
+					message: "User not authenticated",
+				});
+			}
+
+			// Verify user has access to this organization
+			const hasAccess = await verifyOrganizationAccess(
+				ctx,
+				input.organizationId,
+			);
+			if (!hasAccess) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You don't have access to this organization",
 				});
 			}
 
 			try {
-				const transactions = await getOrganizationTransactionHistory(
+				const response = await creditsClient.getTransactionHistory(
 					input.organizationId,
 					{
 						limit: input.limit,
 						offset: input.offset,
-						type: input.type,
 					},
 				);
 
 				// Format transactions for UI display
-				const formattedTransactions = transactions.map((transaction) => {
-					const amount = transaction.amount;
-					const balanceAfter = transaction.balanceAfter;
-					return {
-						...transaction,
-						formattedAmount: amount.greaterThanOrEqualTo(0)
-							? `+${formatCurrency(amount).substring(1)}` // Remove $ and add +
-							: `-${formatCurrency(amount.abs()).substring(1)}`, // Remove $ and add -
-						formattedBalance: formatCurrency(balanceAfter),
-						// Add readable descriptions for different transaction types
-						readableType: (() => {
-							const typeMap: Record<CreditTransactionType, string> = {
-								purchase: "Credit Purchase",
-								usage: "API Usage",
-								refund: "Refund",
-								promotional: "Promotional Credit",
-							};
-							return typeMap[transaction.type];
-						})(),
-					};
-				});
+				const formattedTransactions = response.transactions.map(
+					(transaction) => {
+						const amount = transaction.amount;
+						return {
+							...transaction,
+							formattedAmount:
+								amount >= 0
+									? `+$${amount.toFixed(2)}`
+									: `-$${Math.abs(amount).toFixed(2)}`,
+							formattedBalance: `$${transaction.balance_after.toFixed(2)}`,
+							readableType: (() => {
+								const typeMap: Record<string, string> = {
+									purchase: "Credit Purchase",
+									usage: "API Usage",
+									refund: "Refund",
+									promotional: "Promotional Credit",
+								};
+								return typeMap[transaction.type] ?? transaction.type;
+							})(),
+						};
+					},
+				);
 
 				return {
 					transactions: formattedTransactions,
-					hasMore: transactions.length === input.limit,
-					nextOffset: input.offset + transactions.length,
-				};
-			} catch (_error) {
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to fetch transaction history",
-				});
-			}
-		}),
-
-	// Calculate cost for a hypothetical API request (for preview/estimation)
-	calculateCost: protectedProcedure
-		.input(
-			z.object({
-				inputTokens: z.number().min(0),
-				outputTokens: z.number().min(0),
-			}),
-		)
-		.query(async ({ input }) => {
-			const cost = calculateCreditCost(input.inputTokens, input.outputTokens);
-
-			return {
-				cost,
-				formattedCost: formatCurrency(cost),
-				breakdown: {
-					inputCost: TOKEN_PRICING.calculateInputCost(input.inputTokens),
-					outputCost: TOKEN_PRICING.calculateOutputCost(input.outputTokens),
-					inputTokens: input.inputTokens,
-					outputTokens: input.outputTokens,
-					totalTokens: input.inputTokens + input.outputTokens,
-				},
-			};
-		}),
-
-	// Check if user has sufficient credits for a cost
-	checkSufficientCredits: protectedProcedure
-		.input(
-			z.object({
-				organizationId: z.string(),
-				requiredAmount: z.number().min(0),
-			}),
-		)
-		.query(async ({ ctx, input }) => {
-			const userId = ctx.userId;
-
-			if (!userId) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "User ID not found in context",
-				});
-			}
-
-			try {
-				const hasSufficient = await hasSufficientCredits(
-					input.organizationId,
-					input.requiredAmount,
-				);
-				const currentBalance = await getOrganizationBalance(
-					input.organizationId,
-				);
-
-				return {
-					hasSufficientCredits: hasSufficient,
-					currentBalance,
-					requiredAmount: input.requiredAmount,
-					shortfall: hasSufficient ? 0 : input.requiredAmount - currentBalance,
-				};
-			} catch (_error) {
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to check credit sufficiency",
-				});
-			}
-		}),
-
-	// Award promotional credits (admin/system use)
-	awardPromotionalCredits: protectedProcedure
-		.input(
-			z.object({
-				organizationId: z.string(),
-				amount: z.number().min(0.01),
-				description: z.string().min(1),
-			}),
-		)
-		.mutation(async ({ ctx, input }) => {
-			const userId = ctx.userId;
-
-			if (!userId) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "User ID not found in context",
-				});
-			}
-
-			try {
-				const result = await awardPromotionalCredits(
-					input.organizationId,
-					userId,
-					input.amount,
-					input.description,
-				);
-
-				return {
-					success: true,
-					newBalance: result.newBalance,
-					transaction: result.transaction,
-					message: `Successfully awarded ${formatCurrency(
-						input.amount,
-					)} in promotional credits`,
+					hasMore: response.transactions.length === input.limit,
+					nextOffset: input.offset + response.transactions.length,
 				};
 			} catch (error) {
-				if (
-					error instanceof Error &&
-					error.message.includes("already received")
-				) {
-					throw new TRPCError({
-						code: "CONFLICT",
-						message: "User has already received promotional credits",
-					});
-				}
-
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to award promotional credits",
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to fetch transaction history",
 				});
 			}
 		}),
 
-	// Get low balance warning threshold
+	// Get low balance warning threshold (frontend-only logic)
 	getLowBalanceStatus: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			const userId = ctx.userId;
+			const userId = ctx.clerkAuth.userId;
 
 			if (!userId) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
-					message: "User ID not found in context",
+					message: "User not authenticated",
+				});
+			}
+
+			// Verify user has access to this organization
+			const hasAccess = await verifyOrganizationAccess(
+				ctx,
+				input.organizationId,
+			);
+			if (!hasAccess) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You don't have access to this organization",
 				});
 			}
 
 			try {
-				const balance = await getOrganizationBalance(input.organizationId);
+				const response = await creditsClient.getBalance(input.organizationId);
+				const balance = response.balance;
 				const LOW_BALANCE_THRESHOLD = 1.0; // $1.00
 				const VERY_LOW_BALANCE_THRESHOLD = 0.1; // $0.10
 
@@ -380,13 +238,13 @@ export const creditsRouter = createTRPCRouter({
 						"Your credit balance is empty. Please purchase credits to continue using the API.";
 				} else if (balance <= VERY_LOW_BALANCE_THRESHOLD) {
 					status = "very_low";
-					message = `Your credit balance is very low (${formatCurrency(
-						balance,
+					message = `Your credit balance is very low ($${balance.toFixed(
+						2,
 					)}). Please consider purchasing credits soon.`;
 				} else if (balance <= LOW_BALANCE_THRESHOLD) {
 					status = "low";
-					message = `Your credit balance is low (${formatCurrency(
-						balance,
+					message = `Your credit balance is low ($${balance.toFixed(
+						2,
 					)}). Consider purchasing credits.`;
 				}
 
@@ -399,10 +257,13 @@ export const creditsRouter = createTRPCRouter({
 						veryLow: VERY_LOW_BALANCE_THRESHOLD,
 					},
 				};
-			} catch (_error) {
+			} catch (error) {
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to check balance status",
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to check balance status",
 				});
 			}
 		}),
@@ -418,92 +279,50 @@ export const creditsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const userId = ctx.userId;
+			const userId = ctx.clerkAuth.userId;
 
 			if (!userId) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
-					message: "User ID not found in context",
+					message: "User not authenticated",
+				});
+			}
+
+			// Verify user has access to this organization
+			const hasAccess = await verifyOrganizationAccess(
+				ctx,
+				input.organizationId,
+			);
+			if (!hasAccess) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You don't have access to this organization",
 				});
 			}
 
 			try {
-				console.log("🛒 Creating checkout session.");
-
-				// Get or create Stripe customer
-				let customerId: string;
-
-				// Check if user already has a Stripe customer ID
-				const existingSubscription = await ctx.db.subscription.findUnique({
-					where: { userId },
-					select: { stripeCustomerId: true },
-				});
-
-				if (existingSubscription?.stripeCustomerId) {
-					customerId = existingSubscription.stripeCustomerId;
-				} else {
-					// Create new Stripe customer
-					const customer = await stripe.customers.create({
-						metadata: {
-							userId,
-							type: "api_credit_customer",
-						},
-					});
-					customerId = customer.id;
-
-					// Store customer ID for future use
-					await ctx.db.subscription.upsert({
-						where: { userId },
-						create: {
-							userId,
-							stripeCustomerId: customerId,
-							status: "incomplete",
-						},
-						update: {
-							stripeCustomerId: customerId,
-						},
-					});
-				}
-
-				// Create Stripe checkout session for one-time payment
-				const session = await stripe.checkout.sessions.create({
-					customer: customerId,
-					payment_method_types: ["card"],
-					mode: "payment", // One-time payment, not subscription
-					line_items: [
-						{
-							price_data: {
-								currency: "usd",
-								product_data: {
-									name: `API Credits - $${input.amount}`,
-									description: `$${input.amount} in API credits for your account`,
-								},
-								unit_amount: Math.round(input.amount * 100), // Convert to cents
-							},
-							quantity: 1,
-						},
-					],
+				const response = await creditsClient.createCheckoutSession({
+					organization_id: input.organizationId,
+					user_id: userId,
+					stripe_price_id: "", // Will be determined by amount
+					credit_amount: input.amount,
 					success_url: input.successUrl,
 					cancel_url: input.cancelUrl,
-					metadata: {
-						userId,
-						organizationId: input.organizationId,
-						creditAmount: input.amount.toString(),
-						type: "credit_purchase",
-					},
 				});
 
-				console.log("✅ Checkout session created.");
 				return {
-					checkoutUrl: session.url,
-					sessionId: session.id,
+					checkoutUrl: response.checkout_url,
+					sessionId: response.session_id,
 					amount: input.amount,
-					formattedAmount: formatCurrency(input.amount),
+					formattedAmount: `$${input.amount.toFixed(2)}`,
 				};
-			} catch (_error) {
+			} catch (error) {
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to create checkout session",
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to create checkout session",
 				});
 			}
 		}),

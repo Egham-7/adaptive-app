@@ -4,7 +4,6 @@ export * from "./auth";
 export * from "./cache";
 export * from "./chat-completion";
 export * from "./conversations";
-export * from "./credits";
 export * from "./messages";
 export * from "./models";
 export * from "./organizations";

@@ -45,7 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
 import { useDeleteProjectApiKey } from "@/hooks/api_keys/use-delete-project-api-key";
 import { useProjectApiKeys } from "@/hooks/api_keys/use-project-api-keys";
-import { parseMetadata } from "@/lib/api-keys/metadata";
+import { parseMetadata } from "@/lib/api/api-keys/metadata";
 import type { ApiKeyResponse } from "@/types/api-keys";
 
 const formSchema = z.object({

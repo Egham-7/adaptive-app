@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-import { TOKEN_PRICING } from "@/lib/pricing/config";
 import { safeParseJson } from "@/lib/server/utils";
 import { api } from "@/trpc/server";
 import { selectModelRequestSchema } from "@/types/select-model";
@@ -64,29 +63,10 @@ export async function POST(req: NextRequest) {
 		});
 	}
 
-	// Pre-flight credit check for select-model request ($0.001 per request)
-	// Convert $0.001 to tokens using centralized pricing
-	const selectModelCostInTokens = TOKEN_PRICING.tokensForUsd(0.001);
+	// NOTE: Credit checking is now handled by the Go backend (adaptive-proxy)
+	// The Go backend middleware automatically checks and deducts credits
+	// No need for pre-flight credit checks in frontend API routes
 
-	try {
-		await api.credits.checkCreditsBeforeUsage({
-			apiKey,
-			estimatedInputTokens: selectModelCostInTokens,
-			estimatedOutputTokens: 0,
-		});
-	} catch (error: unknown) {
-		const statusCode =
-			(error as { code?: string }).code === "PAYMENT_REQUIRED" ? 402 : 400;
-		return new Response(
-			JSON.stringify({
-				error: (error as { message?: string }).message || "Credit check failed",
-			}),
-			{
-				status: statusCode,
-				headers: { "Content-Type": "application/json" },
-			},
-		);
-	}
 	// Call the tRPC selectModel procedure
 	const result = await api.selectModel.selectModel({
 		request: body,
