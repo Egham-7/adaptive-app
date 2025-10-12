@@ -45,8 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
 import { useDeleteProjectApiKey } from "@/hooks/api_keys/use-delete-project-api-key";
 import { useProjectApiKeys } from "@/hooks/api_keys/use-project-api-keys";
-import { parseMetadata } from "@/lib/go-api/metadata";
-import type { ApiKeyResponse } from "@/types/go-api-keys";
+import type { ApiKeyResponse } from "@/types/api-keys";
 
 const formSchema = z.object({
 	name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -55,7 +54,7 @@ const formSchema = z.object({
 	budget_currency: z.string().optional(),
 	budget_reset_type: z.enum(["", "daily", "weekly", "monthly"]).optional(),
 	rate_limit_rpm: z.number().nullable().optional(),
-	expires_at: z.string().nullable().optional(),
+	expires_at: z.string().datetime().nullable(),
 });
 
 export default function ApiKeysPage() {
@@ -80,22 +79,25 @@ export default function ApiKeysPage() {
 			budget_currency: "USD",
 			budget_reset_type: "monthly",
 			rate_limit_rpm: null,
-			expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-				.toISOString()
-				.slice(0, 16),
+			expires_at: null,
 		},
 	});
 
 	const handleCreateApiKey = (values: z.infer<typeof formSchema>) => {
+		const expiresAt = values.expires_at
+			? new Date(values.expires_at).toISOString()
+			: null;
+
 		createApiKey.mutate(
 			{
 				name: values.name,
 				projectId,
+				description: values.description,
 				budget_limit: values.budget_limit,
-				budget_currency: values.budget_currency || "USD",
+				budget_currency: values.budget_currency,
 				budget_reset_type: values.budget_reset_type,
 				rate_limit_rpm: values.rate_limit_rpm,
-				expires_at: values.expires_at,
+				expires_at: expiresAt,
 			},
 			{
 				onSuccess: (data) => {
@@ -344,20 +346,29 @@ export default function ApiKeysPage() {
 									<FormField
 										control={form.control}
 										name="expires_at"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Expiration Date (optional)</FormLabel>
-												<FormControl>
-													<Input
-														id="expires_at"
-														type="datetime-local"
-														value={field.value ?? ""}
-														onChange={field.onChange}
-													/>
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
+										render={({ field }) => {
+											const displayValue = field.value
+												? new Date(field.value).toISOString().slice(0, 16)
+												: "";
+
+											return (
+												<FormItem>
+													<FormLabel>Expiration Date (optional)</FormLabel>
+													<FormControl>
+														<Input
+															id="expires_at"
+															type="datetime-local"
+															value={displayValue}
+															onChange={(e) => {
+																const value = e.target.value;
+																field.onChange(value || null);
+															}}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											);
+										}}
 									/>
 
 									<div className="flex justify-end gap-2">
@@ -432,7 +443,6 @@ export default function ApiKeysPage() {
 						</TableHeader>
 						<TableBody>
 							{apiKeys.map((apiKey: ApiKeyResponse) => {
-								const _metadata = parseMetadata(apiKey.metadata);
 								return (
 									<TableRow key={apiKey.id} className="hover:bg-muted/50">
 										<TableCell>{apiKey.name}</TableCell>

@@ -1,4 +1,4 @@
-import { DAILY_MESSAGE_LIMIT } from "@/lib/chat/message-limits";
+import { DAILY_MESSAGE_LIMIT } from "@/lib/chat/message-utils";
 import SubscribeButton from "@/app/_components/stripe/subscribe-button";
 import { cn } from "@/lib/shared/utils";
 import { BsChatSquare, BsExclamationTriangle } from "react-icons/bs";

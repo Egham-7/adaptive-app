@@ -8,11 +8,14 @@ import {
 	FaExclamationTriangle,
 	FaServer,
 } from "react-icons/fa";
+import type { RouterOutputs } from "@/trpc/react";
 import { api } from "@/trpc/react";
 import type { ProjectAnalytics } from "@/types/api-platform/dashboard";
-import type { CreditTransactionItem } from "@/types/credits";
 import { MetricCardSkeleton } from "./loading-skeleton";
 import { VersatileMetricChart } from "./versatile-metric-chart";
+
+type CreditTransactionItem =
+	RouterOutputs["credits"]["getTransactionHistory"]["transactions"][number];
 
 interface MetricsOverviewProps {
 	data: ProjectAnalytics | null;
@@ -61,8 +64,8 @@ export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
 		.reverse() // chronological order
 		.map((transaction: CreditTransactionItem) => ({
 			// Stable date string for charting (YYYY-MM-DD, UTC)
-			date: new Date(transaction.createdAt).toISOString().slice(0, 10),
-			value: Number.parseFloat(transaction.balanceAfter.toString()),
+			date: new Date(transaction.created_at).toISOString().slice(0, 10),
+			value: Number.parseFloat(transaction.balance_after.toString()),
 		}));
 
 	const allMetrics = [

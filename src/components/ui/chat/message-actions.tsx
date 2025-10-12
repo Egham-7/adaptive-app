@@ -1,11 +1,9 @@
 import { Edit3, RotateCcw, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import type { UIMessage } from "@ai-sdk/react";
-import { useState } from "react";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
-import { CostComparison, CostComparisonResult } from "./cost-comparison";
 import { getMessageContent } from "./chat-utils";
 import { getProviderLogo, getProviderDisplayName } from "@/lib/providers/logos";
 import type { MessageTextPart } from "./chat-types";
@@ -80,8 +78,6 @@ export function MessageActions({
     (message.parts?.find((p) => p.type === "text") as MessageTextPart)?.text ||
     getMessageContent(message);
 
-  const [selectedModel, setSelectedModel] = useState<string | null>(null);
-
   // Extract provider and model info from metadata
   const provider = (message.metadata as any)?.providerMetadata?.adaptive?.provider;
   const modelId = (message.metadata as any)?.response?.modelId;
@@ -111,11 +107,6 @@ export function MessageActions({
             content={messageContent}
             copyMessage="Copied response to clipboard!"
           />
-          <CostComparison 
-            message={message} 
-            selectedModel={selectedModel}
-            onModelSelect={setSelectedModel}
-          />
           {canRate && (
             <>
               <Button
@@ -138,11 +129,6 @@ export function MessageActions({
           )}
         </div>
       </div>
-      <CostComparisonResult 
-        message={message}
-        selectedModel={selectedModel}
-        onReset={() => setSelectedModel(null)}
-      />
     </div>
   );
 }

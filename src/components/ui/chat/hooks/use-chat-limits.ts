@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { UIMessage } from "@ai-sdk/react";
 import type { ChatLimitsState, ChatLimitsProps } from "../chat-types";
-import { DAILY_MESSAGE_LIMIT } from "@/lib/chat/message-limits";
+import { DAILY_MESSAGE_LIMIT } from "@/lib/chat/message-utils";
 import { CHAT_LIMITS, CHAT_STATUS } from "../constants/chat-constants";
 import { useOptimisticMessageCount } from "./use-optimistic-message-count";
 

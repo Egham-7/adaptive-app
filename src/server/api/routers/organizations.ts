@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import type { Prisma } from "prisma/generated";
 import { z } from "zod";
+import { creditsClient } from "@/lib/api/credits";
 import { invalidateOrganizationCache, withCache } from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
@@ -114,6 +115,15 @@ export const organizationsRouter = createTRPCRouter({
 				const userId = ctx.clerkAuth.userId;
 
 				try {
+					// Check if this is the user's first organization
+					const existingOrgCount = await ctx.db.organization.count({
+						where: {
+							OR: [{ ownerId: userId }, { members: { some: { userId } } }],
+						},
+					});
+
+					const isFirstOrganization = existingOrgCount === 0;
+
 					const organization = await ctx.db.organization.create({
 						data: {
 							name: input.name,
@@ -135,6 +145,32 @@ export const organizationsRouter = createTRPCRouter({
 							},
 						},
 					});
+
+					// Award promotional credits for first organization ($3.14)
+					if (isFirstOrganization) {
+						try {
+							await creditsClient.addCredits({
+								organization_id: organization.id,
+								user_id: userId,
+								amount: 3.14,
+								type: "promotional",
+								description: "Welcome bonus - First organization created",
+								metadata: {
+									source: "first_organization",
+									timestamp: new Date().toISOString(),
+								},
+							});
+							console.log(
+								`Awarded $3.14 promotional credits to user ${userId} for organization ${organization.id}`,
+							);
+						} catch (creditError) {
+							// Log error but don't fail organization creation
+							console.error(
+								"Failed to award promotional credits:",
+								creditError,
+							);
+						}
+					}
 
 					// Invalidate organization cache
 					await invalidateOrganizationCache(userId);

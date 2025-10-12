@@ -1,35 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createMetadata, goApiClient, parseMetadata } from "@/lib/go-api";
+import { apiKeysClient, createMetadata } from "@/lib/api/api-keys";
 import {
 	createTRPCRouter,
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
-import type { ApiKeyResponse } from "@/types/go-api-keys";
-
-const createAPIKeySchema = z.object({
-	name: z.string().min(1).max(255),
-	projectId: z.string(),
-	scopes: z.array(z.string()).optional(),
-	rate_limit_rpm: z.number().nullable().optional(),
-	budget_limit: z.number().nullable().optional(),
-	budget_currency: z.string().optional(),
-	budget_reset_type: z.enum(["", "daily", "weekly", "monthly"]).optional(),
-	expires_at: z.string().nullable().optional(),
-});
-
-const updateAPIKeySchema = z.object({
-	id: z.number(),
-	name: z.string().min(1).max(255).optional(),
-	scopes: z.string().optional(),
-	rate_limit_rpm: z.number().nullable().optional(),
-	budget_limit: z.number().nullable().optional(),
-	budget_currency: z.string().optional(),
-	budget_reset_type: z.string().optional(),
-	is_active: z.boolean().optional(),
-	expires_at: z.string().nullable().optional(),
-});
+import type { ApiKeyResponse } from "@/types/api-keys";
+import { createApiKeySchema, updateApiKeySchema } from "@/types/api-keys";
 
 async function verifyProjectAccess(
 	ctx: { clerkAuth: { userId: string | null }; db: any },
@@ -62,14 +40,11 @@ async function verifyProjectAccess(
 	return !!project;
 }
 
-function filterKeysByUser(
+function _filterKeysByUser(
 	keys: ApiKeyResponse[],
 	userId: string,
 ): ApiKeyResponse[] {
-	return keys.filter((key) => {
-		const meta = parseMetadata(key.metadata);
-		return meta.userId === userId;
-	});
+	return keys.filter((key) => key.user_id === userId);
 }
 
 export const apiKeysRouter = createTRPCRouter({
@@ -79,8 +54,8 @@ export const apiKeysRouter = createTRPCRouter({
 			throw new TRPCError({ code: "UNAUTHORIZED" });
 		}
 
-		const response = await goApiClient.apiKeys.list();
-		return filterKeysByUser(response.data, userId);
+		const response = await apiKeysClient.listByUserId(userId);
+		return response.data;
 	}),
 
 	getById: protectedProcedure
@@ -91,10 +66,9 @@ export const apiKeysRouter = createTRPCRouter({
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			const key = await goApiClient.apiKeys.get(input.id);
-			const meta = parseMetadata(key.metadata);
+			const key = await apiKeysClient.getById(input.id);
 
-			if (meta.userId !== userId) {
+			if (key.user_id !== userId) {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
@@ -102,7 +76,7 @@ export const apiKeysRouter = createTRPCRouter({
 		}),
 
 	create: protectedProcedure
-		.input(createAPIKeySchema)
+		.input(createApiKeySchema)
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 			if (!userId) {
@@ -118,10 +92,25 @@ export const apiKeysRouter = createTRPCRouter({
 				});
 			}
 
+			const project = await ctx.db.project.findUnique({
+				where: { id: input.projectId },
+				select: { organizationId: true },
+			});
+
+			if (!project) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Project not found",
+				});
+			}
+
 			const metadata = createMetadata(userId, input.projectId);
 
-			const key = await goApiClient.apiKeys.create({
+			const key = await apiKeysClient.create({
 				name: input.name,
+				organization_id: project.organizationId,
+				user_id: userId,
+				project_id: input.projectId,
 				metadata,
 				scopes: input.scopes,
 				rate_limit_rpm: input.rate_limit_rpm,
@@ -135,7 +124,7 @@ export const apiKeysRouter = createTRPCRouter({
 		}),
 
 	createForProject: protectedProcedure
-		.input(createAPIKeySchema)
+		.input(createApiKeySchema)
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 			if (!userId) {
@@ -151,10 +140,25 @@ export const apiKeysRouter = createTRPCRouter({
 				});
 			}
 
+			const project = await ctx.db.project.findUnique({
+				where: { id: input.projectId },
+				select: { organizationId: true },
+			});
+
+			if (!project) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Project not found",
+				});
+			}
+
 			const metadata = createMetadata(userId, input.projectId);
 
-			const key = await goApiClient.apiKeys.create({
+			const key = await apiKeysClient.create({
 				name: input.name,
+				organization_id: project.organizationId,
+				user_id: userId,
+				project_id: input.projectId,
 				metadata,
 				scopes: input.scopes,
 				rate_limit_rpm: input.rate_limit_rpm,
@@ -168,22 +172,25 @@ export const apiKeysRouter = createTRPCRouter({
 		}),
 
 	update: protectedProcedure
-		.input(updateAPIKeySchema)
+		.input(updateApiKeySchema)
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 			if (!userId) {
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			const existing = await goApiClient.apiKeys.get(input.id);
-			const meta = parseMetadata(existing.metadata);
+			const existing = await apiKeysClient.getById(input.id);
 
-			if (meta.userId !== userId) {
+			if (existing.user_id !== userId) {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
-			if (meta.projectId) {
-				const hasAccess = await verifyProjectAccess(ctx, meta.projectId, true);
+			if (existing.project_id) {
+				const hasAccess = await verifyProjectAccess(
+					ctx,
+					existing.project_id,
+					true,
+				);
 				if (!hasAccess) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
@@ -193,7 +200,7 @@ export const apiKeysRouter = createTRPCRouter({
 			}
 
 			const { id, ...updateData } = input;
-			const key = await goApiClient.apiKeys.update(id, updateData);
+			const key = await apiKeysClient.update(id, updateData);
 
 			return key;
 		}),
@@ -206,14 +213,13 @@ export const apiKeysRouter = createTRPCRouter({
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			const existing = await goApiClient.apiKeys.get(input.id);
-			const meta = parseMetadata(existing.metadata);
+			const existing = await apiKeysClient.getById(input.id);
 
-			if (meta.userId !== userId) {
+			if (existing.user_id !== userId) {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
-			await goApiClient.apiKeys.delete(input.id);
+			await apiKeysClient.deleteById(input.id);
 			return { success: true };
 		}),
 
@@ -225,33 +231,30 @@ export const apiKeysRouter = createTRPCRouter({
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			const existing = await goApiClient.apiKeys.get(input.id);
-			const meta = parseMetadata(existing.metadata);
+			const existing = await apiKeysClient.getById(input.id);
 
-			if (meta.userId !== userId) {
+			if (existing.user_id !== userId) {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
-			const key = await goApiClient.apiKeys.revoke(input.id);
+			const key = await apiKeysClient.revoke(input.id);
 			return key;
 		}),
 
 	verify: publicProcedure
 		.input(z.object({ apiKey: z.string() }))
 		.query(async ({ input }) => {
-			const result = await goApiClient.apiKeys.verify({ key: input.apiKey });
+			const result = await apiKeysClient.verify({ key: input.apiKey });
 
 			if (!result.valid) {
 				return { valid: false };
 			}
 
-			const meta = parseMetadata(result.metadata);
-
 			return {
 				valid: true,
 				api_key_id: result.api_key_id,
-				projectId: meta.projectId,
-				userId: meta.userId,
+				projectId: result.project_id,
+				userId: result.user_id,
 			};
 		}),
 
@@ -271,12 +274,9 @@ export const apiKeysRouter = createTRPCRouter({
 				});
 			}
 
-			const response = await goApiClient.apiKeys.list();
+			const response = await apiKeysClient.listByProjectId(input.projectId);
 
-			return response.data.filter((key) => {
-				const meta = parseMetadata(key.metadata);
-				return meta.projectId === input.projectId;
-			});
+			return response.data;
 		}),
 
 	getUsage: protectedProcedure
@@ -294,15 +294,14 @@ export const apiKeysRouter = createTRPCRouter({
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			const existing = await goApiClient.apiKeys.get(input.id);
-			const meta = parseMetadata(existing.metadata);
+			const existing = await apiKeysClient.getById(input.id);
 
-			if (meta.userId !== userId) {
+			if (existing.user_id !== userId) {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
 			const { id, ...params } = input;
-			return goApiClient.apiKeys.getUsage(id, params);
+			return apiKeysClient.getUsage(id, params);
 		}),
 
 	getStats: protectedProcedure
@@ -319,15 +318,14 @@ export const apiKeysRouter = createTRPCRouter({
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			const existing = await goApiClient.apiKeys.get(input.id);
-			const meta = parseMetadata(existing.metadata);
+			const existing = await apiKeysClient.getById(input.id);
 
-			if (meta.userId !== userId) {
+			if (existing.user_id !== userId) {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
 			const { id, ...params } = input;
-			return goApiClient.apiKeys.getStats(id, params);
+			return apiKeysClient.getStats(id, params);
 		}),
 
 	resetBudget: protectedProcedure
@@ -338,13 +336,12 @@ export const apiKeysRouter = createTRPCRouter({
 				throw new TRPCError({ code: "UNAUTHORIZED" });
 			}
 
-			const existing = await goApiClient.apiKeys.get(input.id);
-			const meta = parseMetadata(existing.metadata);
+			const existing = await apiKeysClient.getById(input.id);
 
-			if (meta.userId !== userId) {
+			if (existing.user_id !== userId) {
 				throw new TRPCError({ code: "NOT_FOUND" });
 			}
 
-			return goApiClient.apiKeys.resetBudget(input.id);
+			return apiKeysClient.resetBudget(input.id);
 		}),
 });

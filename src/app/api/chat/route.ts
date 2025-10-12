@@ -13,9 +13,9 @@ import {
 import { Exa } from "exa-js";
 import type { z } from "zod";
 import { z as zodSchema } from "zod";
-import { hasReachedDailyLimit } from "@/lib/chat/message-limits";
+import { hasReachedDailyLimit } from "@/lib/chat/message-utils";
 import { multiTagReasoningMiddleware } from "@/lib/middleware/multi-tag-reasoning";
-import { safeParseJson } from "@/lib/server/json-utils";
+import { safeParseJson } from "@/lib/server/utils";
 import { db } from "@/server/db";
 import { api } from "@/trpc/server";
 import type { messageRoleSchema } from "@/types/chat";

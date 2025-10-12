@@ -1,0 +1,137 @@
+import { betterFetch } from "@better-fetch/fetch";
+import { env } from "@/env";
+
+/**
+ * Configuration for API client
+ */
+export interface ApiClientConfig {
+	baseURL: string;
+	basePath?: string;
+}
+
+/**
+ * Options for API requests
+ */
+export interface RequestOptions<T = unknown> {
+	headers?: Record<string, string>;
+	body?: T;
+	params?: Record<string, string | number | boolean | undefined | null>;
+}
+
+/**
+ * Base API client for making requests to the Adaptive backend
+ * Provides standardized methods for HTTP operations with proper error handling
+ */
+export class BaseApiClient {
+	protected readonly baseURL: string;
+	protected readonly basePath: string;
+
+	constructor(config?: Partial<ApiClientConfig>) {
+		this.baseURL = config?.baseURL ?? env.ADAPTIVE_API_BASE_URL;
+		this.basePath = config?.basePath ?? "";
+	}
+
+	/**
+	 * Build full URL with optional query parameters
+	 */
+	protected buildUrl(path: string, params?: RequestOptions["params"]): string {
+		const fullPath = `${this.basePath}${path}`;
+		const url = new URL(fullPath, this.baseURL);
+
+		if (params) {
+			for (const [key, value] of Object.entries(params)) {
+				if (value !== undefined && value !== null) {
+					url.searchParams.set(key, String(value));
+				}
+			}
+		}
+
+		return url.toString();
+	}
+
+	/**
+	 * Make a GET request
+	 */
+	protected async get<TResponse>(
+		path: string,
+		options?: RequestOptions,
+	): Promise<TResponse> {
+		const url = this.buildUrl(path, options?.params);
+
+		const response = await betterFetch<TResponse>(url, {
+			method: "GET",
+			headers: options?.headers,
+		});
+
+		if (!response.data) {
+			throw new Error(response.error?.message ?? "Request failed");
+		}
+
+		return response.data;
+	}
+
+	/**
+	 * Make a POST request
+	 */
+	protected async post<TResponse, TBody = unknown>(
+		path: string,
+		options?: RequestOptions<TBody>,
+	): Promise<TResponse> {
+		const url = this.buildUrl(path, options?.params);
+
+		const response = await betterFetch<TResponse>(url, {
+			method: "POST",
+			headers: options?.headers,
+			body: options?.body,
+		});
+
+		if (!response.data) {
+			throw new Error(response.error?.message ?? "Request failed");
+		}
+
+		return response.data;
+	}
+
+	/**
+	 * Make a PATCH request
+	 */
+	protected async patch<TResponse, TBody = unknown>(
+		path: string,
+		options?: RequestOptions<TBody>,
+	): Promise<TResponse> {
+		const url = this.buildUrl(path, options?.params);
+
+		const response = await betterFetch<TResponse>(url, {
+			method: "PATCH",
+			headers: options?.headers,
+			body: options?.body,
+		});
+
+		if (!response.data) {
+			throw new Error(response.error?.message ?? "Request failed");
+		}
+
+		return response.data;
+	}
+
+	/**
+	 * Make a DELETE request
+	 */
+	protected async delete<TResponse = void>(
+		path: string,
+		options?: RequestOptions,
+	): Promise<TResponse> {
+		const url = this.buildUrl(path, options?.params);
+
+		const response = await betterFetch<TResponse>(url, {
+			method: "DELETE",
+			headers: options?.headers,
+		});
+
+		if (response.error) {
+			throw new Error(response.error.message ?? "Request failed");
+		}
+
+		return response.data as TResponse;
+	}
+}

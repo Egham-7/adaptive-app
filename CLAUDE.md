@@ -20,6 +20,40 @@ For documentation needs, use Ref MCP tools:
 
 The adaptive-app is a modern Next.js frontend that provides a comprehensive web interface for the Adaptive LLM infrastructure. Built with React 19, Next.js 15, and TypeScript, it offers multi-tenant chat capabilities, real-time analytics dashboards, credit management, and API key administration.
 
+## Architecture Changes: Usage Tracking Migration
+
+**IMPORTANT**: Usage tracking and credit management have been migrated from the frontend to adaptive-proxy (Go backend).
+
+### What Changed
+- **Before**: Frontend API routes (Next.js) recorded usage via tRPC after each request
+- **After**: adaptive-proxy (Go backend) automatically records usage and manages credits
+
+### How It Works Now
+1. **Frontend**: API routes (`/api/v1/chat/completions`, `/api/v1/messages`, etc.) simply proxy requests to adaptive-proxy
+2. **adaptive-proxy**: Automatically tracks usage with middleware and stores to shared PostgreSQL database
+3. **Metadata**: Proxy enriches usage records with `projectId`, `organizationId`, `clusterId` from API key relationships
+4. **Credits**: Proxy checks credit balance before processing and deducts after completion (allows slight overdraft)
+
+### Benefits
+- **Single source of truth**: Usage tracked at proxy layer (Go performance)
+- **No duplicate writes**: One write operation instead of two
+- **Automatic enrichment**: Metadata populated from database relationships
+- **Better performance**: Async Go vs synchronous Node.js
+- **Credit enforcement**: Balance checked before request processing
+
+### Frontend Code Changes
+- Removed all `api.usage.recordApiUsage()` calls from API routes
+- Removed all `api.usage.recordError()` calls
+- tRPC usage endpoints kept for reading historical data only
+- Frontend no longer responsible for credit deduction
+
+### Shared Database
+Both adaptive-app and adaptive-proxy connect to the same PostgreSQL database:
+- adaptive-proxy writes usage records with metadata
+- adaptive-app reads usage for analytics dashboards
+- Credit balances managed by adaptive-proxy
+- Stripe webhooks handled by adaptive-proxy
+
 ## Key Features
 
 - **Multi-Tenant Architecture**: Organization → Project → API Key hierarchy
