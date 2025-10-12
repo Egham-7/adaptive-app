@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { apiKeysClient } from "@/lib/api/api-keys";
 import { usageClient } from "@/lib/api/usage";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { recordUsageRequestSchema } from "@/types/usage";
@@ -111,8 +112,11 @@ export const usageRouter = createTRPCRouter({
 		)
 		.query(async ({ input }) => {
 			try {
-				const { apiKeyId, ...params } = input;
-				return await usageClient.getUsageByPeriod(apiKeyId, params);
+				const { apiKeyId, startDate, endDate } = input;
+				return await apiKeysClient.getUsage(apiKeyId, {
+					start_date: startDate,
+					end_date: endDate,
+				});
 			} catch (error) {
 				console.error("Failed to get usage by period:", error);
 

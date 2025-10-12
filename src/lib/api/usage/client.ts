@@ -1,7 +1,5 @@
-import type { GetStatsResponse } from "@/types/api-keys";
 import type {
 	RecordUsageRequest,
-	UsageByPeriod,
 	UsageRecord,
 	UsageStats,
 } from "@/types/usage";
@@ -69,52 +67,6 @@ export class UsageClient extends BaseApiClient {
 				throw new Error(error.message || "Failed to get usage stats");
 			}
 			throw new Error("Failed to get usage stats");
-		}
-	}
-
-	/**
-	 * Get detailed usage statistics for an API key (via API keys endpoint)
-	 */
-	async getStats(
-		apiKeyId: number,
-		params?: {
-			start_time?: string;
-			end_time?: string;
-		},
-	): Promise<GetStatsResponse> {
-		try {
-			return await this.get<GetStatsResponse>(
-				`/admin/api-keys/${apiKeyId}/stats`,
-				{ params },
-			);
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(error.message || "Failed to get stats");
-			}
-			throw new Error("Failed to get stats");
-		}
-	}
-
-	/**
-	 * Get usage grouped by time period
-	 */
-	async getUsageByPeriod(
-		apiKeyId: number,
-		params?: {
-			startDate?: string;
-			endDate?: string;
-			groupBy?: "day" | "week" | "month";
-		},
-	): Promise<UsageByPeriod[]> {
-		try {
-			return await this.get<UsageByPeriod[]>(`/${apiKeyId}/by-period`, {
-				params,
-			});
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(error.message || "Failed to get usage by period");
-			}
-			throw new Error("Failed to get usage by period");
 		}
 	}
 }

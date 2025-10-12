@@ -28,22 +28,13 @@ export const apiKeyResponseSchema = z.object({
 export const createApiKeySchema = z.object({
 	name: z.string().min(1).max(255),
 	projectId: z.string(),
+	description: z.string().optional(),
 	scopes: z.array(z.string()).optional(),
 	rate_limit_rpm: z.number().nullable().optional(),
 	budget_limit: z.number().nullable().optional(),
 	budget_currency: z.string().optional(),
 	budget_reset_type: z.enum(["", "daily", "weekly", "monthly"]).optional(),
-	expires_at: z.preprocess((val) => {
-		if (!val || val === null) return null;
-		if (typeof val === "string") {
-			try {
-				return new Date(val).toISOString();
-			} catch {
-				return val;
-			}
-		}
-		return val;
-	}, z.string().datetime().nullable().optional()),
+	expires_at: z.string().datetime().nullable(),
 });
 
 export const updateApiKeySchema = z.object({

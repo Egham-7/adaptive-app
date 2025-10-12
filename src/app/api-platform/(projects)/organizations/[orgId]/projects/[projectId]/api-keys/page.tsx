@@ -45,7 +45,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
 import { useDeleteProjectApiKey } from "@/hooks/api_keys/use-delete-project-api-key";
 import { useProjectApiKeys } from "@/hooks/api_keys/use-project-api-keys";
-import { parseMetadata } from "@/lib/api/api-keys/metadata";
 import type { ApiKeyResponse } from "@/types/api-keys";
 
 const formSchema = z.object({
@@ -55,17 +54,7 @@ const formSchema = z.object({
 	budget_currency: z.string().optional(),
 	budget_reset_type: z.enum(["", "daily", "weekly", "monthly"]).optional(),
 	rate_limit_rpm: z.number().nullable().optional(),
-	expires_at: z.preprocess((val) => {
-		if (!val || val === null) return null;
-		if (typeof val === "string") {
-			try {
-				return new Date(val).toISOString();
-			} catch {
-				return val;
-			}
-		}
-		return val;
-	}, z.string().datetime().nullable().optional()),
+	expires_at: z.string().datetime().nullable(),
 });
 
 export default function ApiKeysPage() {
@@ -95,15 +84,20 @@ export default function ApiKeysPage() {
 	});
 
 	const handleCreateApiKey = (values: z.infer<typeof formSchema>) => {
+		const expiresAt = values.expires_at
+			? new Date(values.expires_at).toISOString()
+			: null;
+
 		createApiKey.mutate(
 			{
 				name: values.name,
 				projectId,
+				description: values.description,
 				budget_limit: values.budget_limit,
-				budget_currency: values.budget_currency || "USD",
+				budget_currency: values.budget_currency,
 				budget_reset_type: values.budget_reset_type,
 				rate_limit_rpm: values.rate_limit_rpm,
-				expires_at: values.expires_at,
+				expires_at: expiresAt,
 			},
 			{
 				onSuccess: (data) => {
@@ -449,7 +443,6 @@ export default function ApiKeysPage() {
 						</TableHeader>
 						<TableBody>
 							{apiKeys.map((apiKey: ApiKeyResponse) => {
-								const _metadata = parseMetadata(apiKey.metadata);
 								return (
 									<TableRow key={apiKey.id} className="hover:bg-muted/50">
 										<TableCell>{apiKey.name}</TableCell>

@@ -84,6 +84,7 @@ export default function OnboardingPage() {
 			{
 				name: "Default API Key",
 				projectId: createdProject.id,
+				expires_at: null,
 			},
 			{
 				onSuccess: (data) => {

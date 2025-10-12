@@ -1,6 +1,5 @@
 import { TRPCError } from "@trpc/server";
 import { apiKeysClient } from "@/lib/api/api-keys";
-import { usageClient } from "@/lib/api/usage";
 import { withCache } from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
@@ -85,14 +84,13 @@ export const projectAnalyticsRouter = createTRPCRouter({
 					// Fetch usage stats and daily trends for all API keys in this project
 					const usagePromises = apiKeys.map((apiKey) =>
 						Promise.all([
-							usageClient.getStats(apiKey.id, {
-								start_time: startDateStr,
-								end_time: endDateStr,
+							apiKeysClient.getStats(apiKey.id, {
+								start_date: startDateStr,
+								end_date: endDateStr,
 							}),
-							usageClient.getUsageByPeriod(apiKey.id, {
-								startDate: startDateStr,
-								endDate: endDateStr,
-								groupBy: "day",
+							apiKeysClient.getUsage(apiKey.id, {
+								start_date: startDateStr,
+								end_date: endDateStr,
 							}),
 						]),
 					);
@@ -118,7 +116,10 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						}
 					>();
 
-					for (const [statsResult, periodResult] of usageResults) {
+					for (let i = 0; i < usageResults.length; i++) {
+						const [statsResult, usageResult] = usageResults[i] ?? [];
+						if (!statsResult) continue;
+
 						const overall = statsResult.overall;
 						totalSpend += overall.total_cost;
 						totalTokens += overall.total_tokens ?? 0;
@@ -138,19 +139,22 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						}
 
 						// Aggregate daily trends
-						for (const dayData of periodResult) {
-							const existing = dailyTrendsMap.get(dayData.period) || {
-								spend: 0,
-								requests: 0,
-								tokens: 0,
-								errorCount: 0,
-							};
-							dailyTrendsMap.set(dayData.period, {
-								spend: existing.spend + dayData.total_cost,
-								requests: existing.requests + dayData.total_requests,
-								tokens: existing.tokens + dayData.total_tokens,
-								errorCount: existing.errorCount + dayData.failed_requests,
-							});
+						if (usageResult?.data) {
+							for (const dayData of usageResult.data) {
+								const existing = dailyTrendsMap.get(dayData.timestamp) || {
+									spend: 0,
+									requests: 0,
+									tokens: 0,
+									errorCount: 0,
+								};
+								dailyTrendsMap.set(dayData.timestamp, {
+									spend: existing.spend + dayData.cost,
+									requests: existing.requests + 1,
+									tokens: existing.tokens + 0,
+									errorCount:
+										existing.errorCount + (dayData.status_code >= 400 ? 1 : 0),
+								});
+							}
 						}
 					}
 
@@ -240,9 +244,9 @@ export const projectAnalyticsRouter = createTRPCRouter({
 
 					// Fetch usage stats for all API keys
 					const usagePromises = apiKeys.map((apiKey) =>
-						usageClient.getStats(apiKey.id, {
-							start_time: startDateStr,
-							end_time: endDateStr,
+						apiKeysClient.getStats(apiKey.id, {
+							start_date: startDateStr,
+							end_date: endDateStr,
 						}),
 					);
 
@@ -265,21 +269,21 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						const overall = result.overall;
 
 						totalSpend += overall.total_cost;
-						totalTokens += overall.total_tokens ?? 0;
+						totalTokens += overall.total_tokens || 0;
 						totalRequests += overall.total_requests;
 
-						if (apiKey.project_id) {
-							const existing = projectMap.get(apiKey.project_id) || {
-								spend: 0,
-								requests: 0,
-								tokens: 0,
-							};
-							projectMap.set(apiKey.project_id, {
-								spend: existing.spend + overall.total_cost,
-								requests: existing.requests + overall.total_requests,
-								tokens: existing.tokens + (overall.total_tokens ?? 0),
-							});
-						}
+						// Aggregate by project
+						const projectId = apiKey.project_id ?? "unknown";
+						const existing = projectMap.get(projectId) || {
+							spend: 0,
+							requests: 0,
+							tokens: 0,
+						};
+						projectMap.set(projectId, {
+							spend: existing.spend + overall.total_cost,
+							requests: existing.requests + overall.total_requests,
+							tokens: existing.tokens + (overall.total_tokens || 0),
+						});
 					}
 
 					// Build project breakdown
