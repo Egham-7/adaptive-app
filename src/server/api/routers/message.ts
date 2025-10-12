@@ -1,20 +1,18 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
-	getRemainingMessages,
-	hasReachedDailyLimit,
-} from "@/lib/chat/message-limits";
-import {
 	createMessageData,
 	createMessageWithTimestampUpdate,
 	findConversationByUserAndId,
 	findMessageWithConversationAccess,
+	getRemainingMessages,
+	hasReachedDailyLimit,
 	softDeleteMessageWithTimestampUpdate,
 	updateMessageData,
 	updateMessageWithTimestampUpdate,
 	validateConversationAccess,
 	validateMessageAccess,
-} from "@/lib/server/message-utils";
+} from "@/lib/chat/message-utils";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { createMessageSchema, updateMessageSchema } from "@/types/chat";
 
