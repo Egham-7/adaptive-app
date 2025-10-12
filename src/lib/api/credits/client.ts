@@ -22,7 +22,6 @@ export class CreditsClient extends BaseApiClient {
 	 */
 	async getBalance(organizationId: string): Promise<GetBalanceResponse> {
 		try {
-			// Call Go backend: GET /admin/credits/balance/:organization_id
 			return await this.get<GetBalanceResponse>(`/balance/${organizationId}`);
 		} catch (error) {
 			if (error instanceof Error) {
@@ -43,7 +42,6 @@ export class CreditsClient extends BaseApiClient {
 		},
 	): Promise<GetTransactionHistoryResponse> {
 		try {
-			// Call Go backend: GET /admin/credits/transactions/:organization_id
 			return await this.get<GetTransactionHistoryResponse>(
 				`/transactions/${organizationId}`,
 				{ params },
@@ -126,7 +124,8 @@ export class CreditsClient extends BaseApiClient {
 		path: string,
 		params?: Record<string, string | number | boolean | undefined | null>,
 	): string {
-		const url = new URL(path, this.baseURL);
+		const fullPath = `${this.basePath}${path}`;
+		const url = new URL(fullPath, this.baseURL);
 
 		if (params) {
 			for (const [key, value] of Object.entries(params)) {
@@ -144,3 +143,4 @@ export class CreditsClient extends BaseApiClient {
  * Singleton instance of the credits client
  */
 export const creditsClient = new CreditsClient();
+
