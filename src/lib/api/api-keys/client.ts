@@ -28,6 +28,7 @@ export class ApiKeysClient extends BaseApiClient {
 				body: data,
 			});
 		} catch (error) {
+			console.log("Error: ", error);
 			if (error instanceof Error) {
 				throw new Error(error.message || "Failed to create API key");
 			}

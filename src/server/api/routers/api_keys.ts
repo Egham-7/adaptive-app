@@ -126,12 +126,12 @@ export const apiKeysRouter = createTRPCRouter({
 	createForProject: protectedProcedure
 		.input(createApiKeySchema)
 		.mutation(async ({ ctx, input }) => {
-			const userId = ctx.clerkAuth.userId;
-			if (!userId) {
-				throw new TRPCError({ code: "UNAUTHORIZED" });
-			}
+		const userId = ctx.clerkAuth.userId;
+		if (!userId) {
+			throw new TRPCError({ code: "UNAUTHORIZED" });
+		}
 
-			const hasAccess = await verifyProjectAccess(ctx, input.projectId, true);
+		const hasAccess = await verifyProjectAccess(ctx, input.projectId, true);
 			if (!hasAccess) {
 				throw new TRPCError({
 					code: "FORBIDDEN",

@@ -33,7 +33,20 @@ export const createApiKeySchema = z.object({
 	budget_limit: z.number().nullable().optional(),
 	budget_currency: z.string().optional(),
 	budget_reset_type: z.enum(["", "daily", "weekly", "monthly"]).optional(),
-	expires_at: z.string().nullable().optional(),
+	expires_at: z.preprocess(
+		(val) => {
+			if (!val || val === null) return null;
+			if (typeof val === "string") {
+				try {
+					return new Date(val).toISOString();
+				} catch {
+					return val;
+				}
+			}
+			return val;
+		},
+		z.string().datetime().nullable().optional()
+	),
 });
 
 export const updateApiKeySchema = z.object({
@@ -45,7 +58,7 @@ export const updateApiKeySchema = z.object({
 	budget_currency: z.string().optional(),
 	budget_reset_type: z.string().optional(),
 	is_active: z.boolean().optional(),
-	expires_at: z.string().nullable().optional(),
+	expires_at: z.string().datetime().nullable().optional(),
 });
 
 export const createApiKeyRequestSchema = z.object({
@@ -59,7 +72,7 @@ export const createApiKeyRequestSchema = z.object({
 	budget_limit: z.number().nullable().optional(),
 	budget_currency: z.string().optional(),
 	budget_reset_type: z.enum(["", "daily", "weekly", "monthly"]).optional(),
-	expires_at: z.string().nullable().optional(),
+	expires_at: z.string().datetime().nullable().optional(),
 });
 
 export const updateApiKeyRequestSchema = z.object({
@@ -71,7 +84,7 @@ export const updateApiKeyRequestSchema = z.object({
 	budget_currency: z.string().optional(),
 	budget_reset_type: z.string().optional(),
 	is_active: z.boolean().optional(),
-	expires_at: z.string().nullable().optional(),
+	expires_at: z.string().datetime().nullable().optional(),
 });
 
 export const verifyApiKeyRequestSchema = z.object({
