@@ -143,4 +143,3 @@ export class CreditsClient extends BaseApiClient {
  * Singleton instance of the credits client
  */
 export const creditsClient = new CreditsClient();
-
