@@ -22,6 +22,7 @@ export class CreditsClient extends BaseApiClient {
 	 */
 	async getBalance(organizationId: string): Promise<GetBalanceResponse> {
 		try {
+			// Call Go backend: GET /admin/credits/balance/:organization_id
 			return await this.get<GetBalanceResponse>(`/balance/${organizationId}`);
 		} catch (error) {
 			if (error instanceof Error) {
@@ -42,6 +43,7 @@ export class CreditsClient extends BaseApiClient {
 		},
 	): Promise<GetTransactionHistoryResponse> {
 		try {
+			// Call Go backend: GET /admin/credits/transactions/:organization_id
 			return await this.get<GetTransactionHistoryResponse>(
 				`/transactions/${organizationId}`,
 				{ params },
