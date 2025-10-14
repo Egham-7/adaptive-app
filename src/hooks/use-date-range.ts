@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 
 export interface DateRangePreset {
@@ -21,40 +21,43 @@ export function useDateRange(initialRange?: DateRange) {
 		},
 	);
 
-	const presets: DateRangePreset[] = [
-		{
-			label: "Last 7 days",
-			value: "7d",
-			range: {
-				from: getDaysAgo(7),
-				to: new Date(),
+	const presets: DateRangePreset[] = useMemo(
+		() => [
+			{
+				label: "Last 7 days",
+				value: "7d",
+				range: {
+					from: getDaysAgo(7),
+					to: new Date(),
+				},
 			},
-		},
-		{
-			label: "Last 30 days",
-			value: "30d",
-			range: {
-				from: getDaysAgo(30),
-				to: new Date(),
+			{
+				label: "Last 30 days",
+				value: "30d",
+				range: {
+					from: getDaysAgo(30),
+					to: new Date(),
+				},
 			},
-		},
-		{
-			label: "Last 90 days",
-			value: "90d",
-			range: {
-				from: getDaysAgo(90),
-				to: new Date(),
+			{
+				label: "Last 90 days",
+				value: "90d",
+				range: {
+					from: getDaysAgo(90),
+					to: new Date(),
+				},
 			},
-		},
-		{
-			label: "Last year",
-			value: "1y",
-			range: {
-				from: getDaysAgo(365),
-				to: new Date(),
+			{
+				label: "Last year",
+				value: "1y",
+				range: {
+					from: getDaysAgo(365),
+					to: new Date(),
+				},
 			},
-		},
-	];
+		],
+		[],
+	);
 
 	const setPreset = useCallback(
 		(presetValue: string) => {
@@ -63,7 +66,7 @@ export function useDateRange(initialRange?: DateRange) {
 				setDateRange(preset.range);
 			}
 		},
-		[presets.find],
+		[presets.find, presets],
 	);
 
 	const formatDateRange = useCallback((range: DateRange) => {
