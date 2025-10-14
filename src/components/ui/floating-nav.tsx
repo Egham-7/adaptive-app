@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { GitHubStarsButton } from "@/components/animate-ui/buttons/github-stars";
 import { ModeToggle } from "@/app/_components/mode-toggle";
-import { useSmartRedirect } from "@/hooks/use-smart-redirect";
 
 function LoadingLink({
   href,
@@ -58,7 +57,6 @@ export const FloatingNav = ({
   const { scrollYProgress } = useScroll();
   const [visible, setVisible] = useState(false);
   const pathname = usePathname();
-  const smartRedirectPath = useSmartRedirect();
 
   useMotionValueEvent(scrollYProgress, "change", (current) => {
     if (typeof current === "number") {
@@ -167,13 +165,13 @@ export const FloatingNav = ({
                     </Button>
                   </SignInButton>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <SignInButton signUpForceRedirectUrl={smartRedirectPath || "/api-platform/organizations"}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      API Platform
-                    </Button>
-                  </SignInButton>
-                </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <SignInButton signUpForceRedirectUrl="/api-platform/orgs">
+                  <Button variant="ghost" className="w-full justify-start">
+                    API Platform
+                  </Button>
+                </SignInButton>
+              </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -196,13 +194,13 @@ export const FloatingNav = ({
                     </Button>
                   </SignUpButton>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <SignUpButton signInForceRedirectUrl={smartRedirectPath || "/api-platform/organizations"}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      API Platform
-                    </Button>
-                  </SignUpButton>
-                </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <SignUpButton signInForceRedirectUrl="/api-platform/orgs">
+                  <Button variant="ghost" className="w-full justify-start">
+                    API Platform
+                  </Button>
+                </SignUpButton>
+              </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SignedOut>
@@ -227,13 +225,13 @@ export const FloatingNav = ({
                     </Button>
                   </LoadingLink>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <LoadingLink href={smartRedirectPath || "/api-platform/organizations"}>
-                    <Button variant="ghost" className="w-full justify-start">
-                      API Platform
-                    </Button>
-                  </LoadingLink>
-                </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <LoadingLink href="/api-platform/orgs">
+                  <Button variant="ghost" className="w-full justify-start">
+                    API Platform
+                  </Button>
+                </LoadingLink>
+              </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SignedIn>

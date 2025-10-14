@@ -12,7 +12,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useSmartRedirect } from "@/hooks/use-smart-redirect";
 import { ModeToggle } from "../../mode-toggle";
 import { iconMenuItems, menuItems } from "./navigation-items";
 
@@ -43,7 +42,6 @@ export function MobileNavigation({
 	setMenuState,
 }: MobileNavigationProps) {
 	const pathname = usePathname();
-	const redirectPath = useSmartRedirect();
 
 	return (
 		<div
@@ -191,7 +189,7 @@ export function MobileNavigation({
 								Chatbot App
 							</Button>
 						</LoadingLink>
-						<LoadingLink href={redirectPath || "/api-platform/orgs"}>
+						<LoadingLink href="/api-platform/orgs">
 							<Button
 								variant="outline"
 								className="w-full"

@@ -12,11 +12,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { useSmartRedirect } from "@/hooks/use-smart-redirect";
-
 export default function Pricing() {
 	const [isAnnual, setIsAnnual] = useState(true);
-	const redirectPath = useSmartRedirect();
 
 	return (
 		<section id="pricing" className="overflow-hidden py-16 md:py-32">
@@ -93,15 +90,9 @@ export default function Pricing() {
 								</SignUpButton>
 							</SignedOut>
 							<SignedIn>
-								{redirectPath ? (
-									<Button variant="outline" className="mt-4 w-full" asChild>
-										<Link href={redirectPath}>Get Started</Link>
-									</Button>
-								) : (
-									<Button variant="outline" className="mt-4 w-full" disabled>
-										Get Started
-									</Button>
-								)}
+								<Button variant="outline" className="mt-4 w-full" asChild>
+									<Link href="/api-platform/orgs">Get Started</Link>
+								</Button>
 							</SignedIn>
 						</CardHeader>
 						<CardContent className="space-y-4">
@@ -153,25 +144,15 @@ export default function Pricing() {
 								</SignUpButton>
 							</SignedOut>
 							<SignedIn>
-								{redirectPath ? (
-									<Button
-										className="mt-4 w-full bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
-										asChild
-									>
-										<Link href={redirectPath}>
-											<Zap className="relative mr-2 size-4" />
-											<span>Get Started</span>
-										</Link>
-									</Button>
-								) : (
-									<Button
-										className="mt-4 w-full bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
-										disabled
-									>
+								<Button
+									className="mt-4 w-full bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
+									asChild
+								>
+									<Link href="/api-platform/orgs">
 										<Zap className="relative mr-2 size-4" />
 										<span>Get Started</span>
-									</Button>
-								)}
+									</Link>
+								</Button>
 							</SignedIn>
 						</CardHeader>
 						<CardContent className="space-y-4">

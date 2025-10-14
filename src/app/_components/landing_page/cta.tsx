@@ -4,11 +4,8 @@ import { SignedIn, SignedOut, SignUpButton } from "@clerk/nextjs";
 import { Rocket } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useSmartRedirect } from "@/hooks/use-smart-redirect";
 
 export default function CallToAction() {
-	const redirectPath = useSmartRedirect();
-
 	return (
 		<section className="py-16 md:py-32">
 			<div className="mx-auto max-w-5xl px-6">
@@ -46,7 +43,7 @@ export default function CallToAction() {
 								className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
 								asChild
 							>
-								<Link href={redirectPath || "/api-platform/orgs"}>
+								<Link href="/api-platform/orgs">
 									<Rocket className="relative mr-2 size-4" />
 									View Dashboard
 								</Link>
