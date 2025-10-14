@@ -5,7 +5,7 @@ import { providerEnum } from "@/types/providers";
  * Schema for project analytics input
  */
 export const projectAnalyticsInputSchema = z.object({
-	projectId: z.string(),
+	projectId: z.number(),
 	startDate: z.date().optional(),
 	endDate: z.date().optional(),
 	provider: z.enum(providerEnum).optional(),

@@ -18,7 +18,6 @@ export default async function OrganizationPage({
 						Sorry, organization {paramOrgId} is not valid.
 					</p>
 					<OrganizationList
-						hideSlug={false}
 						afterCreateOrganizationUrl="/api-platform/orgs/:slug"
 						afterSelectOrganizationUrl="/api-platform/orgs/:slug"
 					/>
@@ -31,7 +30,6 @@ export default async function OrganizationPage({
 		return (
 			<div className="flex min-h-screen items-center justify-center">
 				<OrganizationList
-					hideSlug={false}
 					afterCreateOrganizationUrl="/api-platform/orgs/:slug"
 					afterSelectOrganizationUrl="/api-platform/orgs/:slug"
 				/>

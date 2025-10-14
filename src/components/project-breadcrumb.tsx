@@ -20,10 +20,12 @@ export function ProjectBreadcrumb({ className }: ProjectBreadcrumbProps) {
 
 	const { data: project, isLoading: projectLoading } =
 		api.projects.getById.useQuery(
-			{ id: projectId || "" },
+			{ id: projectId ? Number(projectId) : 0 },
 			{
 				enabled:
-					!!projectId && typeof projectId === "string" && projectId.length > 0,
+					!!projectId &&
+					typeof projectId === "string" &&
+					!Number.isNaN(Number(projectId)),
 			},
 		);
 

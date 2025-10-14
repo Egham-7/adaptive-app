@@ -18,7 +18,7 @@ export const useUpdateProject = () => {
 			if (!previousProject) return;
 
 			const previousProjects = utils.projects.getByOrganization.getData({
-				organizationId: previousProject.organizationId,
+				organizationId: previousProject.organization_id,
 			});
 
 			// Optimistically update to the new values
@@ -26,7 +26,7 @@ export const useUpdateProject = () => {
 			utils.projects.getById.setData({ id: variables.id }, optimisticProject);
 
 			utils.projects.getByOrganization.setData(
-				{ organizationId: previousProject.organizationId },
+				{ organizationId: previousProject.organization_id },
 				(old) => {
 					if (!old) return old;
 					return old.map((project) =>
@@ -39,7 +39,7 @@ export const useUpdateProject = () => {
 			return {
 				previousProjects,
 				previousProject,
-				organizationId: previousProject.organizationId,
+				organizationId: previousProject.organization_id,
 			};
 		},
 		onSuccess: (_data, variables) => {

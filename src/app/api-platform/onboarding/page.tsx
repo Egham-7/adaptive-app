@@ -110,7 +110,7 @@ export default function OnboardingPage() {
 	const handleComplete = () => {
 		if (organization && createdProject) {
 			router.push(
-				`/api-platform/orgs/${organization.slug}/projects/${createdProject.id}`,
+				`/api-platform/orgs/${organization.slug}/projects/${createdProject.id.toString()}`,
 			);
 		} else {
 			router.push("/api-platform/orgs");
@@ -165,24 +165,6 @@ export default function OnboardingPage() {
 				{/* Welcome Step */}
 				{currentStep === "welcome" && (
 					<WelcomeStep onContinue={() => setCurrentStep("project")} />
-				)}
-
-				{/* Project Step */}
-				{currentStep === "project" && (
-					<ProjectStep
-						onSubmit={onProjectSubmit}
-						onBack={handleBack}
-						isLoading={createProject.isPending}
-					/>
-				)}
-
-				{/* Project Step */}
-				{currentStep === "project" && (
-					<ProjectStep
-						onSubmit={onProjectSubmit}
-						onBack={handleBack}
-						isLoading={createProject.isPending}
-					/>
 				)}
 
 				{/* Project Step */}

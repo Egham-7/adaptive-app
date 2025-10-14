@@ -4,7 +4,6 @@ import { AlertCircle, Check, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,7 +69,7 @@ export default function QuickstartPage() {
 		data: apiKeys,
 		isLoading: apiKeysLoading,
 		isError: apiKeysError,
-	} = api.api_keys.getByProject.useQuery({ projectId });
+	} = api.api_keys.getByProject.useQuery({ projectId: Number(projectId) });
 
 	const firstApiKey = apiKeys?.[0];
 	const exampleKey = firstApiKey?.key_prefix
@@ -137,9 +136,6 @@ print(completion.choices[0].message.content)`;
 
 	return (
 		<div className="mx-auto max-w-7xl px-2 py-2 sm:px-4">
-			<div className="mb-6">
-				<ProjectBreadcrumb />
-			</div>
 			{/* Header Section */}
 			<div className="mb-8" id="quickstart-header">
 				<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

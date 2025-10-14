@@ -1,11 +1,10 @@
 "use client";
 
 import { useOrganization } from "@clerk/nextjs";
-import { CreditCard } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { MdDashboard, MdKey, MdPlayArrow } from "react-icons/md";
+import { MdDashboard, MdKey, MdPlayArrow, MdSettings } from "react-icons/md";
 import { ApiSidebarNavFooter } from "@/app/_components/api-platform/sidebar-nav-footer";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import {
@@ -39,10 +38,12 @@ export function ProjectSidebar() {
 
 	const { data: project, isLoading: projectLoading } =
 		api.projects.getById.useQuery(
-			{ id: projectId || "" },
+			{ id: projectId ? Number(projectId) : 0 },
 			{
 				enabled:
-					!!projectId && typeof projectId === "string" && projectId.length > 0,
+					!!projectId &&
+					typeof projectId === "string" &&
+					!Number.isNaN(Number(projectId)),
 			},
 		);
 
@@ -62,13 +63,10 @@ export function ProjectSidebar() {
 			href: `/api-platform/orgs/${orgSlug}/projects/${projectId}/api-keys`,
 			icon: <MdKey className="h-5 w-5" />,
 		},
-	];
-
-	const organizationLinks: NavLink[] = [
 		{
-			label: "Billing",
-			href: `/api-platform/orgs/${orgSlug}?tab=credits`,
-			icon: <CreditCard className="h-5 w-5" />,
+			label: "Settings",
+			href: `/api-platform/orgs/${orgSlug}/projects/${projectId}/settings`,
+			icon: <MdSettings className="h-5 w-5" />,
 		},
 	];
 
@@ -76,10 +74,14 @@ export function ProjectSidebar() {
 		<Sidebar collapsible="icon" className="h-screen">
 			<SidebarHeader className="flex items-center px-4 py-2">
 				{state === "collapsed" ? (
-					<SocialLogo width={32} height={32} className="h-8 w-8" />
+					<Link href={`/api-platform/orgs/${orgSlug}`}>
+						<SocialLogo width={32} height={32} className="h-8 w-8" />
+					</Link>
 				) : (
 					<div className="flex w-full items-center gap-2 overflow-hidden">
-						<SocialLogo width={60} height={20} className="shrink-0" />
+						<Link href={`/api-platform/orgs/${orgSlug}`}>
+							<SocialLogo width={60} height={20} className="shrink-0" />
+						</Link>
 						<span className="shrink-0 text-muted-foreground">/</span>
 						<div className="shrink-0">
 							<OrganizationSwitcher />
@@ -98,24 +100,6 @@ export function ProjectSidebar() {
 			<SidebarContent>
 				<SidebarMenu>
 					{projectLinks.map((link) => (
-						<SidebarMenuItem key={link.label}>
-							<SidebarMenuButton asChild>
-								<Link
-									href={link.href}
-									id={`${link.label.toLowerCase().replace(" ", "-")}-nav`}
-								>
-									{link.icon}
-									<span>{link.label}</span>
-								</Link>
-							</SidebarMenuButton>
-						</SidebarMenuItem>
-					))}
-				</SidebarMenu>
-
-				<SidebarSeparator />
-
-				<SidebarMenu>
-					{organizationLinks.map((link) => (
 						<SidebarMenuItem key={link.label}>
 							<SidebarMenuButton asChild>
 								<Link

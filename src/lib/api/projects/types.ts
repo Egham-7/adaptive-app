@@ -20,7 +20,7 @@ export const projectResponseSchema = z.object({
 	status: projectStatusSchema,
 	progress: z.number(),
 	organization_id: z.string(),
-	members: z.array(projectMemberSchema).optional(),
+	members: z.array(projectMemberSchema),
 	created_at: z.string(),
 	updated_at: z.string(),
 });

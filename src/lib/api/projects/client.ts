@@ -27,7 +27,7 @@ export class ProjectsClient extends BaseApiClient {
 		}
 	}
 
-	async getById(id: string): Promise<ProjectResponse> {
+	async getById(id: number): Promise<ProjectResponse> {
 		try {
 			return await this.get<ProjectResponse>(`/${id}`);
 		} catch (error) {
@@ -53,7 +53,7 @@ export class ProjectsClient extends BaseApiClient {
 	}
 
 	async update(
-		id: string,
+		id: number,
 		req: ProjectUpdateRequest,
 	): Promise<ProjectResponse> {
 		try {
@@ -68,7 +68,7 @@ export class ProjectsClient extends BaseApiClient {
 		}
 	}
 
-	async deleteProject(id: string): Promise<void> {
+	async deleteProject(id: number): Promise<void> {
 		try {
 			await this.delete(`/${id}`);
 		} catch (error) {
@@ -80,7 +80,7 @@ export class ProjectsClient extends BaseApiClient {
 	}
 
 	async addMember(
-		projectId: string,
+		projectId: number,
 		req: AddProjectMemberRequest,
 	): Promise<ProjectMember> {
 		try {
@@ -98,7 +98,7 @@ export class ProjectsClient extends BaseApiClient {
 		}
 	}
 
-	async removeMember(projectId: string, userId: string): Promise<void> {
+	async removeMember(projectId: number, userId: string): Promise<void> {
 		try {
 			await this.delete(`/${projectId}/members/${userId}`);
 		} catch (error) {
@@ -109,7 +109,7 @@ export class ProjectsClient extends BaseApiClient {
 		}
 	}
 
-	async listMembers(projectId: string): Promise<ProjectMember[]> {
+	async listMembers(projectId: number): Promise<ProjectMember[]> {
 		try {
 			const response = await this.get<ProjectMemberListResponse>(
 				`/${projectId}/members`,
@@ -120,6 +120,26 @@ export class ProjectsClient extends BaseApiClient {
 				throw new Error(error.message || "Failed to list members");
 			}
 			throw new Error("Failed to list members");
+		}
+	}
+
+	async updateMemberRole(
+		projectId: number,
+		userId: string,
+		role: string,
+	): Promise<ProjectMember> {
+		try {
+			return await this.patch<ProjectMember, { role: string }>(
+				`/${projectId}/members/${userId}`,
+				{
+					body: { role },
+				},
+			);
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(error.message || "Failed to update member role");
+			}
+			throw new Error("Failed to update member role");
 		}
 	}
 }

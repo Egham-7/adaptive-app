@@ -43,8 +43,6 @@ export async function POST(req: NextRequest) {
 			});
 		}
 
-		const { projectId } = verificationResult;
-
 		// Provider configs removed during refactor - will be handled by proxy
 		const providerConfigs: Record<string, ProviderConfig> = {};
 

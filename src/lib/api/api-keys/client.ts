@@ -60,7 +60,7 @@ export class ApiKeysClient extends BaseApiClient {
 	 * List API keys by project ID with optional pagination
 	 */
 	async listByProjectId(
-		projectId: string,
+		projectId: number,
 		params?: {
 			limit?: number;
 			offset?: number;

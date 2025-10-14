@@ -12,7 +12,6 @@ import {
 	SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { SupportButton } from "@/components/ui/support-button";
-import { ModeToggle } from "../mode-toggle";
 
 export function ApiSidebarNavFooter() {
 	const { user } = useUser();
@@ -78,11 +77,6 @@ export function ApiSidebarNavFooter() {
 					<SidebarMenuItem>
 						<SidebarMenuButton onClick={() => signOut()} title="Log out">
 							<LogOut className="h-4 w-4" />
-						</SidebarMenuButton>
-					</SidebarMenuItem>
-					<SidebarMenuItem>
-						<SidebarMenuButton asChild>
-							<ModeToggle />
 						</SidebarMenuButton>
 					</SidebarMenuItem>
 				</div>

@@ -6,7 +6,6 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { ProjectBreadcrumb } from "@/components/project-breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -92,7 +91,7 @@ export default function ApiKeysPage() {
 		createApiKey.mutate(
 			{
 				name: values.name,
-				projectId,
+				projectId: Number(projectId),
 				description: values.description,
 				budget_limit: values.budget_limit,
 				budget_currency: values.budget_currency,
@@ -161,10 +160,7 @@ export default function ApiKeysPage() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="mb-6">
-				<ProjectBreadcrumb />
-			</div>
+		<div className="space-y-6 px-6 py-6">
 			{/* Header */}
 			<div className="flex items-center justify-between" id="api-keys-header">
 				<h1 className="font-bold text-2xl text-foreground">API keys</h1>

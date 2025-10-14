@@ -9,14 +9,14 @@ import type { ProviderConfig } from "./providers";
 // Extended request type with Adaptive-specific fields
 export interface AdaptiveGeminiRequest extends GenerateContentParameters {
 	// Adaptive-specific extensions (passed through to backend)
-	provider_configs?: Record<string, any>;
-	model_router?: Record<string, any>;
+	provider_configs?: Record<string, ProviderConfig>;
+	model_router?: Record<string, unknown>;
 	semantic_cache?: {
 		enabled: boolean;
 		semantic_threshold: number;
 	};
-	prompt_cache?: Record<string, any>;
-	fallback?: Record<string, any>;
+	prompt_cache?: Record<string, unknown>;
+	fallback?: Record<string, unknown>;
 }
 
 // Extended response types with Adaptive features - keep Gemini format

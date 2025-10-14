@@ -240,7 +240,7 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						acc.totalTokens += overall.total_tokens ?? 0;
 						acc.totalRequests += overall.total_requests;
 
-						const projectId = apiKey.project_id ?? "unknown";
+						const projectId = apiKey.project_id?.toString() ?? "unknown";
 						const existing = acc.projectMap.get(projectId) ?? {
 							spend: 0,
 							requests: 0,

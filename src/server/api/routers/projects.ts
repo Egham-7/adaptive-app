@@ -1,34 +1,9 @@
+import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import type { ProjectMember, ProjectResponse } from "@/lib/api/projects";
 import { ProjectsClient } from "@/lib/api/projects";
 import { invalidateProjectCache, withCache } from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-
-function transformProjectResponse(project: ProjectResponse) {
-	return {
-		id: project.id,
-		name: project.name,
-		description: project.description,
-		status: project.status,
-		progress: project.progress,
-		organizationId: project.organization_id,
-		createdAt: new Date(project.created_at),
-		updatedAt: new Date(project.updated_at),
-		members: project.members?.map(transformProjectMember) ?? [],
-	};
-}
-
-function transformProjectMember(member: ProjectMember) {
-	return {
-		id: member.id,
-		userId: member.user_id,
-		projectId: member.project_id,
-		role: member.role,
-		createdAt: new Date(member.created_at),
-		updatedAt: new Date(member.updated_at),
-	};
-}
 
 export const projectsRouter = createTRPCRouter({
 	// Get all projects for an organization
@@ -47,7 +22,7 @@ export const projectsRouter = createTRPCRouter({
 					const projects = await client.listByOrganization(
 						input.organizationId,
 					);
-					return projects.map(transformProjectResponse);
+					return projects;
 				} catch (error) {
 					console.error("Error fetching projects:", error);
 					if (error instanceof Error && error.message.includes("FORBIDDEN")) {
@@ -66,7 +41,7 @@ export const projectsRouter = createTRPCRouter({
 
 	// Get a specific project by ID
 	getById: protectedProcedure
-		.input(z.object({ id: z.string() }))
+		.input(z.object({ id: z.number() }))
 		.query(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 			const cacheKey = `project:${userId}:${input.id}`;
@@ -78,7 +53,16 @@ export const projectsRouter = createTRPCRouter({
 
 					const client = new ProjectsClient(token);
 					const project = await client.getById(input.id);
-					return transformProjectResponse(project);
+
+					const currentUserMember = project.members?.find(
+						(m) => m.user_id === userId,
+					);
+					const currentUserRole = currentUserMember?.role ?? null;
+
+					return {
+						...project,
+						currentUserRole,
+					};
 				} catch (error) {
 					console.error("Error fetching project:", error);
 					if (error instanceof Error && error.message.includes("NOT_FOUND")) {
@@ -128,7 +112,7 @@ export const projectsRouter = createTRPCRouter({
 
 				await invalidateProjectCache(userId);
 
-				return transformProjectResponse(project);
+				return project;
 			} catch (error) {
 				console.error("Error creating project:", error);
 				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
@@ -149,7 +133,7 @@ export const projectsRouter = createTRPCRouter({
 	update: protectedProcedure
 		.input(
 			z.object({
-				id: z.string(),
+				id: z.number(),
 				name: z.string().min(1, "Project name is required").optional(),
 				description: z.string().optional(),
 				status: z.enum(["active", "inactive", "paused"]).optional(),
@@ -167,9 +151,9 @@ export const projectsRouter = createTRPCRouter({
 				const client = new ProjectsClient(token);
 				const project = await client.update(id, updateData);
 
-				await invalidateProjectCache(userId, input.id);
+				await invalidateProjectCache(userId, input.id.toString());
 
-				return transformProjectResponse(project);
+				return project;
 			} catch (error) {
 				console.error("Error updating project:", error);
 				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
@@ -193,7 +177,7 @@ export const projectsRouter = createTRPCRouter({
 
 	// Delete a project
 	delete: protectedProcedure
-		.input(z.object({ id: z.string() }))
+		.input(z.object({ id: z.number() }))
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 
@@ -204,7 +188,7 @@ export const projectsRouter = createTRPCRouter({
 				const client = new ProjectsClient(token);
 				await client.deleteProject(input.id);
 
-				await invalidateProjectCache(userId, input.id);
+				await invalidateProjectCache(userId, input.id.toString());
 
 				return { success: true };
 			} catch (error) {
@@ -232,7 +216,7 @@ export const projectsRouter = createTRPCRouter({
 	addMember: protectedProcedure
 		.input(
 			z.object({
-				projectId: z.string(),
+				projectId: z.number(),
 				userId: z.string(),
 				role: z.enum(["admin", "member"]).default("member"),
 			}),
@@ -250,10 +234,10 @@ export const projectsRouter = createTRPCRouter({
 					role: input.role,
 				});
 
-				await invalidateProjectCache(currentUserId, input.projectId);
-				await invalidateProjectCache(input.userId, input.projectId);
+				await invalidateProjectCache(currentUserId, input.projectId.toString());
+				await invalidateProjectCache(input.userId, input.projectId.toString());
 
-				return transformProjectMember(member);
+				return member;
 			} catch (error) {
 				console.error("Error adding project member:", error);
 				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
@@ -273,7 +257,7 @@ export const projectsRouter = createTRPCRouter({
 	removeMember: protectedProcedure
 		.input(
 			z.object({
-				projectId: z.string(),
+				projectId: z.number(),
 				userId: z.string(),
 			}),
 		)
@@ -287,8 +271,8 @@ export const projectsRouter = createTRPCRouter({
 				const client = new ProjectsClient(token);
 				await client.removeMember(input.projectId, input.userId);
 
-				await invalidateProjectCache(currentUserId, input.projectId);
-				await invalidateProjectCache(input.userId, input.projectId);
+				await invalidateProjectCache(currentUserId, input.projectId.toString());
+				await invalidateProjectCache(input.userId, input.projectId.toString());
 
 				return { success: true };
 			} catch (error) {
@@ -318,6 +302,125 @@ export const projectsRouter = createTRPCRouter({
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to remove project member",
+				});
+			}
+		}),
+
+	// List members of a project
+	listMembers: protectedProcedure
+		.input(z.object({ projectId: z.number() }))
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.clerkAuth.userId;
+			const cacheKey = `project-members:${userId}:${input.projectId}`;
+
+			return withCache(cacheKey, async () => {
+				try {
+					const token = await ctx.clerkAuth.getToken();
+					if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+					const client = new ProjectsClient(token);
+					const members = await client.listMembers(input.projectId);
+
+					const membersWithUserData = await Promise.all(
+						members.map(async (member) => {
+							try {
+								const clerk = await clerkClient();
+								const user = await clerk.users.getUser(member.user_id);
+								return {
+									...member,
+									userName:
+										user.fullName ??
+										user.username ??
+										user.emailAddresses[0]?.emailAddress ??
+										member.user_id,
+									userEmail: user.emailAddresses[0]?.emailAddress ?? null,
+									userImageUrl: user.imageUrl ?? null,
+								};
+							} catch (error) {
+								console.error(
+									`Failed to fetch user data for ${member.user_id}:`,
+									error,
+								);
+								return {
+									...member,
+									userName: member.user_id,
+									userEmail: null,
+									userImageUrl: null,
+								};
+							}
+						}),
+					);
+
+					return membersWithUserData;
+				} catch (error) {
+					console.error("Error fetching project members:", error);
+					if (error instanceof Error && error.message.includes("FORBIDDEN")) {
+						throw new TRPCError({
+							code: "FORBIDDEN",
+							message: "You don't have access to this project",
+						});
+					}
+					throw new TRPCError({
+						code: "INTERNAL_SERVER_ERROR",
+						message: "Failed to fetch project members",
+					});
+				}
+			});
+		}),
+
+	// Update a member's role
+	updateMemberRole: protectedProcedure
+		.input(
+			z.object({
+				projectId: z.number(),
+				userId: z.string(),
+				role: z.enum(["admin", "member"]),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const currentUserId = ctx.clerkAuth.userId;
+
+			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new ProjectsClient(token);
+				await client.updateMemberRole(
+					input.projectId,
+					input.userId,
+					input.role,
+				);
+
+				await invalidateProjectCache(currentUserId, input.projectId.toString());
+				await invalidateProjectCache(input.userId, input.projectId.toString());
+
+				return { success: true };
+			} catch (error) {
+				console.error("Error updating member role:", error);
+				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "You don't have permission to update member roles",
+					});
+				}
+				if (error instanceof Error && error.message.includes("NOT_FOUND")) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Member not found",
+					});
+				}
+				if (
+					error instanceof Error &&
+					error.message.includes("Cannot change owner role")
+				) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "Cannot change the owner's role",
+					});
+				}
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to update member role",
 				});
 			}
 		}),

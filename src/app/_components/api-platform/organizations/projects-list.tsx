@@ -19,6 +19,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
+	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +29,6 @@ import { api } from "@/trpc/react";
 export function ProjectsList({ organizationId }: { organizationId: string }) {
 	const router = useRouter();
 	const { organization } = useOrganization();
-	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 	const [projectName, setProjectName] = useState("");
 	const [projectDescription, setProjectDescription] = useState("");
 
@@ -36,9 +36,10 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 		{ organizationId },
 	);
 
+	console.log("Projects:", projects);
+
 	const createProject = api.projects.create.useMutation({
 		onSuccess: (project) => {
-			setIsCreateDialogOpen(false);
 			setProjectName("");
 			setProjectDescription("");
 			if (organization?.slug) {
@@ -83,10 +84,53 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 						Manage your organization's projects
 					</p>
 				</div>
-				<Button onClick={() => setIsCreateDialogOpen(true)}>
-					<Plus className="mr-2 h-4 w-4" />
-					New Project
-				</Button>
+				<Dialog>
+					<DialogTrigger asChild>
+						<Button>
+							<Plus className="mr-2 h-4 w-4" />
+							New Project
+						</Button>
+					</DialogTrigger>
+					<DialogContent>
+						<DialogHeader>
+							<DialogTitle>Create New Project</DialogTitle>
+							<DialogDescription>
+								Add a new project to your organization. You can configure it
+								later.
+							</DialogDescription>
+						</DialogHeader>
+						<div className="space-y-4">
+							<div className="space-y-2">
+								<Label htmlFor="project-name">Project Name</Label>
+								<Input
+									id="project-name"
+									placeholder="My Awesome Project"
+									value={projectName}
+									onChange={(e) => setProjectName(e.target.value)}
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="project-description">
+									Description (Optional)
+								</Label>
+								<Textarea
+									id="project-description"
+									placeholder="Describe your project..."
+									value={projectDescription}
+									onChange={(e) => setProjectDescription(e.target.value)}
+								/>
+							</div>
+						</div>
+						<DialogFooter>
+							<Button
+								onClick={handleCreateProject}
+								disabled={!projectName.trim() || createProject.isPending}
+							>
+								{createProject.isPending ? "Creating..." : "Create Project"}
+							</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 			</div>
 
 			{projects && projects.length === 0 ? (
@@ -98,13 +142,55 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 							<CardDescription>
 								Get started by creating your first project
 							</CardDescription>
-							<Button
-								onClick={() => setIsCreateDialogOpen(true)}
-								className="mt-4"
-							>
-								<Plus className="mr-2 h-4 w-4" />
-								Create Project
-							</Button>
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button className="mt-4">
+										<Plus className="mr-2 h-4 w-4" />
+										Create Project
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Create New Project</DialogTitle>
+										<DialogDescription>
+											Add a new project to your organization. You can configure
+											it later.
+										</DialogDescription>
+									</DialogHeader>
+									<div className="space-y-4">
+										<div className="space-y-2">
+											<Label htmlFor="empty-project-name">Project Name</Label>
+											<Input
+												id="empty-project-name"
+												placeholder="My Awesome Project"
+												value={projectName}
+												onChange={(e) => setProjectName(e.target.value)}
+											/>
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="empty-project-description">
+												Description (Optional)
+											</Label>
+											<Textarea
+												id="empty-project-description"
+												placeholder="Describe your project..."
+												value={projectDescription}
+												onChange={(e) => setProjectDescription(e.target.value)}
+											/>
+										</div>
+									</div>
+									<DialogFooter>
+										<Button
+											onClick={handleCreateProject}
+											disabled={!projectName.trim() || createProject.isPending}
+										>
+											{createProject.isPending
+												? "Creating..."
+												: "Create Project"}
+										</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
 						</div>
 					</CardHeader>
 				</Card>
@@ -138,54 +224,6 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 					))}
 				</div>
 			)}
-
-			<Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Create New Project</DialogTitle>
-						<DialogDescription>
-							Add a new project to your organization. You can configure it
-							later.
-						</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="project-name">Project Name</Label>
-							<Input
-								id="project-name"
-								placeholder="My Awesome Project"
-								value={projectName}
-								onChange={(e) => setProjectName(e.target.value)}
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="project-description">
-								Description (Optional)
-							</Label>
-							<Textarea
-								id="project-description"
-								placeholder="Describe your project..."
-								value={projectDescription}
-								onChange={(e) => setProjectDescription(e.target.value)}
-							/>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setIsCreateDialogOpen(false)}
-						>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleCreateProject}
-							disabled={!projectName.trim() || createProject.isPending}
-						>
-							{createProject.isPending ? "Creating..." : "Create Project"}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 		</>
 	);
 }

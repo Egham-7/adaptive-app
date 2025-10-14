@@ -90,7 +90,7 @@ export type ProjectStatus = ProjectListItem["status"];
  */
 export type ProjectCore = Pick<
 	ProjectListItem,
-	"id" | "name" | "description" | "status" | "organizationId"
+	"id" | "name" | "description" | "status" | "organization_id"
 >;
 
 /**

@@ -18,12 +18,12 @@ export const useDeleteProject = () => {
 
 			// Snapshot the previous value
 			const previousProjects = utils.projects.getByOrganization.getData({
-				organizationId: projectToDelete.organizationId,
+				organizationId: projectToDelete.organization_id,
 			});
 
 			// Optimistically update to the new value
 			utils.projects.getByOrganization.setData(
-				{ organizationId: projectToDelete.organizationId },
+				{ organizationId: projectToDelete.organization_id },
 				(oldData) => {
 					if (!oldData) return oldData;
 					return oldData.filter((project) => project.id !== variables.id);
@@ -33,7 +33,7 @@ export const useDeleteProject = () => {
 			// Return context object with the snapshotted value
 			return {
 				previousProjects,
-				organizationId: projectToDelete.organizationId,
+				organizationId: projectToDelete.organization_id,
 			};
 		},
 		onSuccess: () => {
