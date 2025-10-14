@@ -10,8 +10,8 @@ import { BaseApiClient } from "../base-client";
  * Extends BaseApiClient to provide usage tracking operations
  */
 export class UsageClient extends BaseApiClient {
-	constructor() {
-		super({ basePath: "/v1/usage" });
+	constructor(token: string) {
+		super({ basePath: "/v1/usage", token });
 	}
 
 	/**
@@ -74,4 +74,4 @@ export class UsageClient extends BaseApiClient {
 /**
  * Singleton instance of the usage client
  */
-export const usageClient = new UsageClient();
+export const usageClient = new UsageClient("");

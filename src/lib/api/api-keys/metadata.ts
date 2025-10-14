@@ -4,14 +4,14 @@
 
 export interface APIKeyMetadata {
 	userId: string;
-	projectId: string;
+	projectId: number;
 	[key: string]: unknown;
 }
 
 /**
  * Create metadata object for API key
  */
-export function createMetadata(userId: string, projectId: string): string {
+export function createMetadata(userId: string, projectId: number): string {
 	const metadata: APIKeyMetadata = {
 		userId,
 		projectId,

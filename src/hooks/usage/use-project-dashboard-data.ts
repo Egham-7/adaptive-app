@@ -13,7 +13,7 @@ export function useProjectDashboardData(
 		error,
 		refetch,
 	} = useProjectAnalytics({
-		projectId,
+		projectId: Number(projectId),
 		startDate: filters.dateRange?.from,
 		endDate: filters.dateRange?.to,
 		provider: filters.provider === "all" ? undefined : filters.provider,

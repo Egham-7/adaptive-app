@@ -1,24 +1,21 @@
 "use client";
 
+import { useOrganizationList } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
-import { api } from "@/trpc/react";
 
 export function useSmartRedirect() {
 	const [redirectPath, setRedirectPath] = useState<string | null>(null);
-	const { data: mostRecentProject, isLoading } =
-		api.projects.getMostRecent.useQuery();
+	const { isLoaded: orgsLoaded } = useOrganizationList({
+		userMemberships: {
+			infinite: true,
+		},
+	});
 
 	useEffect(() => {
-		if (isLoading) return;
+		if (!orgsLoaded) return;
 
-		if (mostRecentProject) {
-			const path = `/api-platform/organizations/${mostRecentProject.organizationId}/projects/${mostRecentProject.id}`;
-			setRedirectPath(path);
-		} else {
-			const path = "/api-platform/organizations";
-			setRedirectPath(path);
-		}
-	}, [mostRecentProject, isLoading]);
+		setRedirectPath("/api-platform/orgs");
+	}, [orgsLoaded]);
 
 	return redirectPath;
 }

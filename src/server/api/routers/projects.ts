@@ -1,62 +1,35 @@
+import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
-import type { Prisma } from "prisma/generated";
 import { z } from "zod";
+import { ProjectsClient } from "@/lib/api/projects";
 import { invalidateProjectCache, withCache } from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-
-type ProjectWithMembers = Prisma.ProjectGetPayload<{
-	include: {
-		members: true;
-	};
-}>;
-
-type ProjectWithMembersAndOrganization = Prisma.ProjectGetPayload<{
-	include: {
-		members: true;
-		organization: true;
-	};
-}>;
 
 export const projectsRouter = createTRPCRouter({
 	// Get all projects for an organization
 	getByOrganization: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
-		.query(async ({ ctx, input }): Promise<ProjectWithMembers[]> => {
+		.query(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 			const cacheKey = `projects:${userId}:${input.organizationId}`;
 
 			return withCache(cacheKey, async () => {
 				try {
-					// Check if user has access to the organization
-					const organization = await ctx.db.organization.findFirst({
-						where: {
-							id: input.organizationId,
-							OR: [{ ownerId: userId }, { members: { some: { userId } } }],
-						},
-					});
+					const token = await ctx.clerkAuth.getToken();
+					if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-					if (!organization) {
+					const client = new ProjectsClient(token);
+					const projects = await client.listByOrganization(
+						input.organizationId,
+					);
+					return projects;
+				} catch (error) {
+					console.error("Error fetching projects:", error);
+					if (error instanceof Error && error.message.includes("FORBIDDEN")) {
 						throw new TRPCError({
 							code: "FORBIDDEN",
 							message: "You don't have access to this organization",
 						});
-					}
-
-					const projects = await ctx.db.project.findMany({
-						where: {
-							organizationId: input.organizationId,
-						},
-						include: {
-							members: true,
-						},
-						orderBy: { createdAt: "desc" },
-					});
-
-					return projects as ProjectWithMembers[];
-				} catch (error) {
-					console.error("Error fetching projects:", error);
-					if (error instanceof TRPCError) {
-						throw error;
 					}
 					throw new TRPCError({
 						code: "INTERNAL_SERVER_ERROR",
@@ -68,51 +41,49 @@ export const projectsRouter = createTRPCRouter({
 
 	// Get a specific project by ID
 	getById: protectedProcedure
-		.input(z.object({ id: z.string() }))
-		.query(
-			async ({
-				ctx,
-				input,
-			}): Promise<ProjectWithMembersAndOrganization | null> => {
-				const userId = ctx.clerkAuth.userId;
-				const cacheKey = `project:${userId}:${input.id}`;
+		.input(z.object({ id: z.number() }))
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.clerkAuth.userId;
+			const cacheKey = `project:${userId}:${input.id}`;
 
-				return withCache(cacheKey, async () => {
-					try {
-						const project = await ctx.db.project.findFirst({
-							where: {
-								id: input.id,
-								organization: {
-									OR: [{ ownerId: userId }, { members: { some: { userId } } }],
-								},
-							},
-							include: {
-								members: true,
-								organization: true,
-							},
-						});
+			return withCache(cacheKey, async () => {
+				try {
+					const token = await ctx.clerkAuth.getToken();
+					if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-						if (!project) {
-							throw new TRPCError({
-								code: "NOT_FOUND",
-								message: "Project not found",
-							});
-						}
+					const client = new ProjectsClient(token);
+					const project = await client.getById(input.id);
 
-						return project as ProjectWithMembersAndOrganization;
-					} catch (error) {
-						console.error("Error fetching project:", error);
-						if (error instanceof TRPCError) {
-							throw error;
-						}
+					const currentUserMember = project.members?.find(
+						(m) => m.user_id === userId,
+					);
+					const currentUserRole = currentUserMember?.role ?? null;
+
+					return {
+						...project,
+						currentUserRole,
+					};
+				} catch (error) {
+					console.error("Error fetching project:", error);
+					if (error instanceof Error && error.message.includes("NOT_FOUND")) {
 						throw new TRPCError({
-							code: "INTERNAL_SERVER_ERROR",
-							message: "Failed to fetch project",
+							code: "NOT_FOUND",
+							message: "Project not found",
 						});
 					}
-				});
-			},
-		),
+					if (error instanceof Error && error.message.includes("FORBIDDEN")) {
+						throw new TRPCError({
+							code: "FORBIDDEN",
+							message: "You don't have access to this project",
+						});
+					}
+					throw new TRPCError({
+						code: "INTERNAL_SERVER_ERROR",
+						message: "Failed to fetch project",
+					});
+				}
+			});
+		}),
 
 	// Create a new project
 	create: protectedProcedure
@@ -128,52 +99,29 @@ export const projectsRouter = createTRPCRouter({
 			const userId = ctx.clerkAuth.userId;
 
 			try {
-				// Check if user has permission to create projects in this organization
-				const organization = await ctx.db.organization.findFirst({
-					where: {
-						id: input.organizationId,
-						OR: [
-							{ ownerId: userId },
-							{
-								members: { some: { userId, role: { in: ["owner", "admin"] } } },
-							},
-						],
-					},
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new ProjectsClient(token);
+				const project = await client.create({
+					name: input.name,
+					description: input.description,
+					organization_id: input.organizationId,
+					status: input.status,
 				});
 
-				if (!organization) {
+				await invalidateProjectCache(userId);
+
+				return project;
+			} catch (error) {
+				console.error("Error creating project:", error);
+				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message:
 							"You don't have permission to create projects in this organization",
 					});
 				}
-
-				const project = await ctx.db.project.create({
-					data: {
-						name: input.name,
-						description: input.description,
-						organizationId: input.organizationId,
-						status: input.status,
-						members: {
-							create: {
-								userId: userId,
-								role: "owner",
-							},
-						},
-					},
-					include: {
-						members: true,
-						organization: true,
-					},
-				});
-
-				// Invalidate project cache
-				await invalidateProjectCache(userId);
-
-				return project as ProjectWithMembersAndOrganization;
-			} catch (error) {
-				console.error("Error creating project:", error);
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to create project",
@@ -185,7 +133,7 @@ export const projectsRouter = createTRPCRouter({
 	update: protectedProcedure
 		.input(
 			z.object({
-				id: z.string(),
+				id: z.number(),
 				name: z.string().min(1, "Project name is required").optional(),
 				description: z.string().optional(),
 				status: z.enum(["active", "inactive", "paused"]).optional(),
@@ -196,55 +144,30 @@ export const projectsRouter = createTRPCRouter({
 			const userId = ctx.clerkAuth.userId;
 
 			try {
-				// Check if user has permission to update this project
-				const project = await ctx.db.project.findFirst({
-					where: {
-						id: input.id,
-						OR: [
-							{
-								members: { some: { userId, role: { in: ["owner", "admin"] } } },
-							},
-							{ organization: { ownerId: userId } },
-							{
-								organization: {
-									members: {
-										some: { userId, role: { in: ["owner", "admin"] } },
-									},
-								},
-							},
-						],
-					},
-				});
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-				if (!project) {
+				const { id, ...updateData } = input;
+				const client = new ProjectsClient(token);
+				const project = await client.update(id, updateData);
+
+				await invalidateProjectCache(userId, input.id.toString());
+
+				return project;
+			} catch (error) {
+				console.error("Error updating project:", error);
+				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message: "You don't have permission to update this project",
 					});
 				}
-
-				const updatedProject = await ctx.db.project.update({
-					where: { id: input.id },
-					data: {
-						...(input.name && { name: input.name }),
-						...(input.description !== undefined && {
-							description: input.description,
-						}),
-						...(input.status && { status: input.status }),
-						...(input.progress !== undefined && { progress: input.progress }),
-					},
-					include: {
-						members: true,
-						organization: true,
-					},
-				});
-
-				// Invalidate project cache
-				await invalidateProjectCache(userId, input.id);
-
-				return updatedProject;
-			} catch (error) {
-				console.error("Error updating project:", error);
+				if (error instanceof Error && error.message.includes("NOT_FOUND")) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Project not found",
+					});
+				}
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to update project",
@@ -254,57 +177,34 @@ export const projectsRouter = createTRPCRouter({
 
 	// Delete a project
 	delete: protectedProcedure
-		.input(z.object({ id: z.string() }))
+		.input(z.object({ id: z.number() }))
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 
 			try {
-				// Check if user has permission to delete this project
-				const project = await ctx.db.project.findFirst({
-					where: {
-						id: input.id,
-						OR: [
-							{ members: { some: { userId, role: "owner" } } },
-							{ organization: { ownerId: userId } },
-						],
-					},
-					include: {
-						organization: true,
-					},
-				});
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-				if (!project) {
+				const client = new ProjectsClient(token);
+				await client.deleteProject(input.id);
+
+				await invalidateProjectCache(userId, input.id.toString());
+
+				return { success: true };
+			} catch (error) {
+				console.error("Error deleting project:", error);
+				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message: "You don't have permission to delete this project",
 					});
 				}
-
-				// Check if this is the organization's last project
-				const organizationProjectCount = await ctx.db.project.count({
-					where: {
-						organizationId: project.organizationId,
-					},
-				});
-
-				if (organizationProjectCount <= 1) {
+				if (error instanceof Error && error.message.includes("NOT_FOUND")) {
 					throw new TRPCError({
-						code: "BAD_REQUEST",
-						message:
-							"Cannot delete the last project in an organization. Each organization must have at least one project.",
+						code: "NOT_FOUND",
+						message: "Project not found",
 					});
 				}
-
-				await ctx.db.project.delete({
-					where: { id: input.id },
-				});
-
-				// Invalidate project cache
-				await invalidateProjectCache(userId, input.id);
-
-				return { success: true };
-			} catch (error) {
-				console.error("Error deleting project:", error);
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to delete project",
@@ -316,7 +216,7 @@ export const projectsRouter = createTRPCRouter({
 	addMember: protectedProcedure
 		.input(
 			z.object({
-				projectId: z.string(),
+				projectId: z.number(),
 				userId: z.string(),
 				role: z.enum(["admin", "member"]).default("member"),
 			}),
@@ -325,73 +225,27 @@ export const projectsRouter = createTRPCRouter({
 			const currentUserId = ctx.clerkAuth.userId;
 
 			try {
-				// Check if current user has permission to add members
-				const project = await ctx.db.project.findFirst({
-					where: {
-						id: input.projectId,
-						OR: [
-							{
-								members: {
-									some: {
-										userId: currentUserId,
-										role: { in: ["owner", "admin"] },
-									},
-								},
-							},
-							{ organization: { ownerId: currentUserId } },
-							{
-								organization: {
-									members: {
-										some: {
-											userId: currentUserId,
-											role: { in: ["owner", "admin"] },
-										},
-									},
-								},
-							},
-						],
-					},
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new ProjectsClient(token);
+				const member = await client.addMember(input.projectId, {
+					user_id: input.userId,
+					role: input.role,
 				});
 
-				if (!project) {
+				await invalidateProjectCache(currentUserId, input.projectId.toString());
+				await invalidateProjectCache(input.userId, input.projectId.toString());
+
+				return member;
+			} catch (error) {
+				console.error("Error adding project member:", error);
+				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message: "You don't have permission to add members to this project",
 					});
 				}
-
-				// Check if user is already a member
-				const existingMember = await ctx.db.projectMember.findUnique({
-					where: {
-						userId_projectId: {
-							userId: input.userId,
-							projectId: input.projectId,
-						},
-					},
-				});
-
-				if (existingMember) {
-					throw new TRPCError({
-						code: "CONFLICT",
-						message: "User is already a member of this project",
-					});
-				}
-
-				const member = await ctx.db.projectMember.create({
-					data: {
-						userId: input.userId,
-						projectId: input.projectId,
-						role: input.role,
-					},
-				});
-
-				// Invalidate project cache for all affected users
-				await invalidateProjectCache(currentUserId, input.projectId);
-				await invalidateProjectCache(input.userId, input.projectId);
-
-				return member;
-			} catch (error) {
-				console.error("Error adding project member:", error);
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to add project member",
@@ -403,7 +257,7 @@ export const projectsRouter = createTRPCRouter({
 	removeMember: protectedProcedure
 		.input(
 			z.object({
-				projectId: z.string(),
+				projectId: z.number(),
 				userId: z.string(),
 			}),
 		)
@@ -411,72 +265,40 @@ export const projectsRouter = createTRPCRouter({
 			const currentUserId = ctx.clerkAuth.userId;
 
 			try {
-				// Check if current user has permission to remove members
-				const project = (await ctx.db.project.findFirst({
-					where: {
-						id: input.projectId,
-						OR: [
-							{
-								members: {
-									some: {
-										userId: currentUserId,
-										role: { in: ["owner", "admin"] },
-									},
-								},
-							},
-							{ organization: { ownerId: currentUserId } },
-							{
-								organization: {
-									members: {
-										some: {
-											userId: currentUserId,
-											role: { in: ["owner", "admin"] },
-										},
-									},
-								},
-							},
-						],
-					},
-					include: {
-						members: true,
-					},
-				})) as ProjectWithMembers;
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-				if (!project) {
+				const client = new ProjectsClient(token);
+				await client.removeMember(input.projectId, input.userId);
+
+				await invalidateProjectCache(currentUserId, input.projectId.toString());
+				await invalidateProjectCache(input.userId, input.projectId.toString());
+
+				return { success: true };
+			} catch (error) {
+				console.error("Error removing project member:", error);
+				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message:
 							"You don't have permission to remove members from this project",
 					});
 				}
-
-				// Prevent removing the project owner
-				const memberToRemove = project.members.find(
-					(m) => m.userId === input.userId,
-				);
-				if (memberToRemove?.role === "owner") {
+				if (error instanceof Error && error.message.includes("NOT_FOUND")) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Member not found",
+					});
+				}
+				if (
+					error instanceof Error &&
+					error.message.includes("Cannot remove project owner")
+				) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message: "Cannot remove the project owner",
 					});
 				}
-
-				await ctx.db.projectMember.delete({
-					where: {
-						userId_projectId: {
-							userId: input.userId,
-							projectId: input.projectId,
-						},
-					},
-				});
-
-				// Invalidate project cache for all affected users
-				await invalidateProjectCache(currentUserId, input.projectId);
-				await invalidateProjectCache(input.userId, input.projectId);
-
-				return { success: true };
-			} catch (error) {
-				console.error("Error removing project member:", error);
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to remove project member",
@@ -484,33 +306,122 @@ export const projectsRouter = createTRPCRouter({
 			}
 		}),
 
-	// Get the most recently created project for the current user
-	getMostRecent: protectedProcedure.query(
-		async ({ ctx }): Promise<ProjectWithMembersAndOrganization | null> => {
+	// List members of a project
+	listMembers: protectedProcedure
+		.input(z.object({ projectId: z.number() }))
+		.query(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
+			const cacheKey = `project-members:${userId}:${input.projectId}`;
+
+			return withCache(cacheKey, async () => {
+				try {
+					const token = await ctx.clerkAuth.getToken();
+					if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+					const client = new ProjectsClient(token);
+					const members = await client.listMembers(input.projectId);
+
+					const membersWithUserData = await Promise.all(
+						members.map(async (member) => {
+							try {
+								const clerk = await clerkClient();
+								const user = await clerk.users.getUser(member.user_id);
+								return {
+									...member,
+									userName:
+										user.fullName ??
+										user.username ??
+										user.emailAddresses[0]?.emailAddress ??
+										member.user_id,
+									userEmail: user.emailAddresses[0]?.emailAddress ?? null,
+									userImageUrl: user.imageUrl ?? null,
+								};
+							} catch (error) {
+								console.error(
+									`Failed to fetch user data for ${member.user_id}:`,
+									error,
+								);
+								return {
+									...member,
+									userName: member.user_id,
+									userEmail: null,
+									userImageUrl: null,
+								};
+							}
+						}),
+					);
+
+					return membersWithUserData;
+				} catch (error) {
+					console.error("Error fetching project members:", error);
+					if (error instanceof Error && error.message.includes("FORBIDDEN")) {
+						throw new TRPCError({
+							code: "FORBIDDEN",
+							message: "You don't have access to this project",
+						});
+					}
+					throw new TRPCError({
+						code: "INTERNAL_SERVER_ERROR",
+						message: "Failed to fetch project members",
+					});
+				}
+			});
+		}),
+
+	// Update a member's role
+	updateMemberRole: protectedProcedure
+		.input(
+			z.object({
+				projectId: z.number(),
+				userId: z.string(),
+				role: z.enum(["admin", "member"]),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const currentUserId = ctx.clerkAuth.userId;
 
 			try {
-				const project = await ctx.db.project.findFirst({
-					where: {
-						organization: {
-							OR: [{ ownerId: userId }, { members: { some: { userId } } }],
-						},
-					},
-					include: {
-						members: true,
-						organization: true,
-					},
-					orderBy: { createdAt: "desc" },
-				});
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-				return project as ProjectWithMembersAndOrganization | null;
+				const client = new ProjectsClient(token);
+				await client.updateMemberRole(
+					input.projectId,
+					input.userId,
+					input.role,
+				);
+
+				await invalidateProjectCache(currentUserId, input.projectId.toString());
+				await invalidateProjectCache(input.userId, input.projectId.toString());
+
+				return { success: true };
 			} catch (error) {
-				console.error("Error fetching most recent project:", error);
+				console.error("Error updating member role:", error);
+				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "You don't have permission to update member roles",
+					});
+				}
+				if (error instanceof Error && error.message.includes("NOT_FOUND")) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Member not found",
+					});
+				}
+				if (
+					error instanceof Error &&
+					error.message.includes("Cannot change owner role")
+				) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "Cannot change the owner's role",
+					});
+				}
 				throw new TRPCError({
 					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to fetch most recent project",
+					message: "Failed to update member role",
 				});
 			}
-		},
-	),
+		}),
 });

@@ -1,15 +1,8 @@
 "use client";
 
+import { useOrganization } from "@clerk/nextjs";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbPage,
-	BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/react";
 
@@ -19,60 +12,41 @@ interface ProjectBreadcrumbProps {
 
 export function ProjectBreadcrumb({ className }: ProjectBreadcrumbProps) {
 	const params = useParams<{
-		orgId: string;
 		projectId: string;
 	}>();
 
-	// Safely extract params with proper typing
-	const orgId = params?.orgId as string | undefined;
 	const projectId = params?.projectId as string | undefined;
+	const { organization, isLoaded: orgLoaded } = useOrganization();
 
-	// Only fetch when we have valid IDs
-	const { data: organization, isLoading: orgLoading } =
-		api.organizations.getById.useQuery(
-			{ id: orgId || "" },
-			{ enabled: !!orgId && typeof orgId === "string" && orgId.length > 0 },
-		);
-
-	// Fetch project data
 	const { data: project, isLoading: projectLoading } =
 		api.projects.getById.useQuery(
-			{ id: projectId || "" },
+			{ id: projectId ? Number(projectId) : 0 },
 			{
 				enabled:
-					!!projectId && typeof projectId === "string" && projectId.length > 0,
+					!!projectId &&
+					typeof projectId === "string" &&
+					!Number.isNaN(Number(projectId)),
 			},
 		);
 
-	if (orgLoading || projectLoading) {
-		return (
-			<div className={className}>
-				<Skeleton className="h-5 w-80" />
-			</div>
-		);
+	if (!orgLoaded || projectLoading) {
+		return <Skeleton className="h-6 w-80" />;
 	}
 
-	if (!organization?.name || !project?.name) {
+	if (!organization || !project?.name) {
 		return null;
 	}
 
 	return (
-		<Breadcrumb className={className}>
-			<BreadcrumbList>
-				<BreadcrumbItem>
-					<BreadcrumbLink asChild>
-						<Link href={`/api-platform/organizations/${orgId}`}>
-							{organization.name}
-						</Link>
-					</BreadcrumbLink>
-				</BreadcrumbItem>
-				<BreadcrumbSeparator>
-					<span className="mx-1">/</span>
-				</BreadcrumbSeparator>
-				<BreadcrumbItem>
-					<BreadcrumbPage>{project.name}</BreadcrumbPage>
-				</BreadcrumbItem>
-			</BreadcrumbList>
-		</Breadcrumb>
+		<div className={`flex items-center gap-2 ${className}`}>
+			<Link
+				href={`/api-platform/orgs/${organization.slug}`}
+				className="hover:underline"
+			>
+				{organization.name}
+			</Link>
+			<span className="text-muted-foreground">/</span>
+			<span className="font-medium">{project.name}</span>
+		</div>
 	);
 }

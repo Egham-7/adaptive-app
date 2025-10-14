@@ -18,7 +18,7 @@ export const useUpdateProject = () => {
 			if (!previousProject) return;
 
 			const previousProjects = utils.projects.getByOrganization.getData({
-				organizationId: previousProject.organizationId,
+				organizationId: previousProject.organization_id,
 			});
 
 			// Optimistically update to the new values
@@ -26,7 +26,7 @@ export const useUpdateProject = () => {
 			utils.projects.getById.setData({ id: variables.id }, optimisticProject);
 
 			utils.projects.getByOrganization.setData(
-				{ organizationId: previousProject.organizationId },
+				{ organizationId: previousProject.organization_id },
 				(old) => {
 					if (!old) return old;
 					return old.map((project) =>
@@ -39,15 +39,13 @@ export const useUpdateProject = () => {
 			return {
 				previousProjects,
 				previousProject,
-				organizationId: previousProject.organizationId,
+				organizationId: previousProject.organization_id,
 			};
 		},
 		onSuccess: (_data, variables) => {
 			toast.success("Project updated successfully!");
-			// Invalidate and refetch related queries
 			utils.projects.getByOrganization.invalidate();
 			utils.projects.getById.invalidate({ id: variables.id });
-			utils.organizations.getAll.invalidate();
 		},
 		onError: (error, variables, context) => {
 			toast.error(error.message || "Failed to update project");
@@ -66,10 +64,8 @@ export const useUpdateProject = () => {
 			}
 		},
 		onSettled: (_data, _error, variables) => {
-			// Always refetch after error or success to ensure consistency
 			utils.projects.getByOrganization.invalidate();
 			utils.projects.getById.invalidate({ id: variables.id });
-			utils.organizations.getAll.invalidate();
 		},
 	});
 };

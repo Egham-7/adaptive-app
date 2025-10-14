@@ -7,6 +7,7 @@ import { env } from "@/env";
 export interface ApiClientConfig {
 	baseURL: string;
 	basePath?: string;
+	token: string;
 }
 
 /**
@@ -25,10 +26,22 @@ export interface RequestOptions<T = unknown> {
 export class BaseApiClient {
 	protected readonly baseURL: string;
 	protected readonly basePath: string;
+	protected readonly token?: string;
 
 	constructor(config?: Partial<ApiClientConfig>) {
 		this.baseURL = config?.baseURL ?? env.ADAPTIVE_API_BASE_URL;
 		this.basePath = config?.basePath ?? "";
+		this.token = config?.token;
+	}
+
+	protected getAuthHeaders(): Record<string, string> {
+		if (!this.token) {
+			return {};
+		}
+
+		return {
+			Authorization: `Bearer ${this.token}`,
+		};
 	}
 
 	/**
@@ -57,10 +70,11 @@ export class BaseApiClient {
 		options?: RequestOptions,
 	): Promise<TResponse> {
 		const url = this.buildUrl(path, options?.params);
+		const authHeaders = this.getAuthHeaders();
 
 		const response = await betterFetch<TResponse>(url, {
 			method: "GET",
-			headers: options?.headers,
+			headers: { ...authHeaders, ...options?.headers },
 		});
 
 		if (!response.data) {
@@ -78,10 +92,11 @@ export class BaseApiClient {
 		options?: RequestOptions<TBody>,
 	): Promise<TResponse> {
 		const url = this.buildUrl(path, options?.params);
+		const authHeaders = this.getAuthHeaders();
 
 		const response = await betterFetch<TResponse>(url, {
 			method: "POST",
-			headers: options?.headers,
+			headers: { ...authHeaders, ...options?.headers },
 			body: options?.body,
 		});
 
@@ -100,10 +115,11 @@ export class BaseApiClient {
 		options?: RequestOptions<TBody>,
 	): Promise<TResponse> {
 		const url = this.buildUrl(path, options?.params);
+		const authHeaders = this.getAuthHeaders();
 
 		const response = await betterFetch<TResponse>(url, {
 			method: "PATCH",
-			headers: options?.headers,
+			headers: { ...authHeaders, ...options?.headers },
 			body: options?.body,
 		});
 
@@ -122,10 +138,11 @@ export class BaseApiClient {
 		options?: RequestOptions,
 	): Promise<TResponse> {
 		const url = this.buildUrl(path, options?.params);
+		const authHeaders = this.getAuthHeaders();
 
 		const response = await betterFetch<TResponse>(url, {
 			method: "DELETE",
-			headers: options?.headers,
+			headers: { ...authHeaders, ...options?.headers },
 		});
 
 		if (response.error) {

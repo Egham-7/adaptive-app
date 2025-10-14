@@ -86,7 +86,7 @@ export default function Pricing() {
 								response cache hits: Free!
 							</CardDescription>
 							<SignedOut>
-								<SignUpButton signInForceRedirectUrl="/api-platform/organizations">
+								<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
 									<Button variant="outline" className="mt-4 w-full">
 										Get Started
 									</Button>
@@ -145,7 +145,7 @@ export default function Pricing() {
 								{isAnnual && " (20% savings vs monthly)"}
 							</CardDescription>
 							<SignedOut>
-								<SignUpButton signInForceRedirectUrl="/api-platform/organizations">
+								<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
 									<Button className="mt-4 w-full bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90">
 										<Zap className="relative mr-2 size-4" />
 										<span>Get Started</span>

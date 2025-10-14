@@ -142,7 +142,7 @@ export function MobileNavigation({
 								</SignInButton>
 							</DropdownMenuItem>
 							<DropdownMenuItem asChild>
-								<SignInButton signUpForceRedirectUrl="/api-platform/organizations">
+								<SignInButton signUpForceRedirectUrl="/api-platform/orgs">
 									<Button variant="ghost" className="w-full justify-start">
 										API Platform
 									</Button>
@@ -170,7 +170,7 @@ export function MobileNavigation({
 								</SignUpButton>
 							</DropdownMenuItem>
 							<DropdownMenuItem asChild>
-								<SignUpButton signInForceRedirectUrl="/api-platform/organizations">
+								<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
 									<Button variant="ghost" className="w-full justify-start">
 										API Platform
 									</Button>
@@ -191,7 +191,7 @@ export function MobileNavigation({
 								Chatbot App
 							</Button>
 						</LoadingLink>
-						<LoadingLink href={redirectPath || "/api-platform/organizations"}>
+						<LoadingLink href={redirectPath || "/api-platform/orgs"}>
 							<Button
 								variant="outline"
 								className="w-full"
