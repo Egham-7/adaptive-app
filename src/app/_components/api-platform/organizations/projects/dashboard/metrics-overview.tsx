@@ -24,7 +24,7 @@ interface MetricsOverviewProps {
 }
 
 export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
-	const params = useParams();
+	const _params = useParams();
 	const { organization } = useOrganization();
 	const orgId = organization?.id;
 

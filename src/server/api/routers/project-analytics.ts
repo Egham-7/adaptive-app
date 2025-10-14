@@ -50,7 +50,7 @@ export const projectAnalyticsRouter = createTRPCRouter({
 				const projectsClient = new ProjectsClient(token);
 				try {
 					await projectsClient.getById(input.projectId);
-				} catch (error) {
+				} catch (_error) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message: "You don't have access to this project",
@@ -58,9 +58,7 @@ export const projectAnalyticsRouter = createTRPCRouter({
 				}
 
 				const client = new ApiKeysClient(token);
-				const apiKeysResponse = await client.listByProjectId(
-					input.projectId,
-				);
+				const apiKeysResponse = await client.listByProjectId(input.projectId);
 				const apiKeys = apiKeysResponse.data;
 
 				if (!apiKeys?.length) {

@@ -19,7 +19,6 @@ import {
 	SidebarSeparator,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SocialLogo } from "@/components/ui/social-logo";
 import { api } from "@/trpc/react";
 

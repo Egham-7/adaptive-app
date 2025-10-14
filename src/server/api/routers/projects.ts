@@ -42,7 +42,7 @@ export const projectsRouter = createTRPCRouter({
 				try {
 					const token = await ctx.clerkAuth.getToken();
 					if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
-					
+
 					const client = new ProjectsClient(token);
 					const projects = await client.listByOrganization(
 						input.organizationId,
@@ -75,7 +75,7 @@ export const projectsRouter = createTRPCRouter({
 				try {
 					const token = await ctx.clerkAuth.getToken();
 					if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
-					
+
 					const client = new ProjectsClient(token);
 					const project = await client.getById(input.id);
 					return transformProjectResponse(project);
@@ -117,7 +117,7 @@ export const projectsRouter = createTRPCRouter({
 			try {
 				const token = await ctx.clerkAuth.getToken();
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
-				
+
 				const client = new ProjectsClient(token);
 				const project = await client.create({
 					name: input.name,
@@ -162,7 +162,7 @@ export const projectsRouter = createTRPCRouter({
 			try {
 				const token = await ctx.clerkAuth.getToken();
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
-				
+
 				const { id, ...updateData } = input;
 				const client = new ProjectsClient(token);
 				const project = await client.update(id, updateData);
@@ -200,7 +200,7 @@ export const projectsRouter = createTRPCRouter({
 			try {
 				const token = await ctx.clerkAuth.getToken();
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
-				
+
 				const client = new ProjectsClient(token);
 				await client.deleteProject(input.id);
 
@@ -243,7 +243,7 @@ export const projectsRouter = createTRPCRouter({
 			try {
 				const token = await ctx.clerkAuth.getToken();
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
-				
+
 				const client = new ProjectsClient(token);
 				const member = await client.addMember(input.projectId, {
 					user_id: input.userId,
@@ -283,7 +283,7 @@ export const projectsRouter = createTRPCRouter({
 			try {
 				const token = await ctx.clerkAuth.getToken();
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
-				
+
 				const client = new ProjectsClient(token);
 				await client.removeMember(input.projectId, input.userId);
 
