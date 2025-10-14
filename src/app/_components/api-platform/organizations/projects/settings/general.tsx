@@ -31,8 +31,6 @@ import { api } from "@/trpc/react";
 export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 	const router = useRouter();
 	const { organization } = useOrganization();
-	const [name, setName] = useState("");
-	const [description, setDescription] = useState("");
 
 	const utils = api.useUtils();
 
@@ -40,18 +38,17 @@ export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 		{ id: projectId },
 		{
 			enabled: !!projectId,
-			onSuccess: (data) => {
-				setName(data.name);
-				setDescription(data.description || "");
-			},
 		},
 	);
+
+	const [name, setName] = useState(project?.name ?? "");
+	const [description, setDescription] = useState(project?.description ?? "");
 
 	const updateProject = api.projects.update.useMutation({
 		onSuccess: () => {
 			void utils.projects.getById.invalidate({ id: projectId });
 			void utils.projects.getByOrganization.invalidate({
-				organizationId: project?.organizationId ?? "",
+				organizationId: project?.organization_id ?? "",
 			});
 		},
 	});

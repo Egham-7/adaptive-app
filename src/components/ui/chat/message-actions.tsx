@@ -40,6 +40,7 @@ export function MessageActions({
       <>
         {canEdit && (
           <Button
+            type="button"
             size="icon"
             variant="ghost"
             className="h-6 w-6"
@@ -51,6 +52,7 @@ export function MessageActions({
         )}
         {canRetry && (
           <Button
+            type="button"
             size="icon"
             variant="ghost"
             className="h-6 w-6"
@@ -61,6 +63,7 @@ export function MessageActions({
         )}
         {canDelete && (
           <Button
+            type="button"
             size="icon"
             variant="ghost"
             className="h-6 w-6 text-destructive hover:text-destructive"
@@ -110,6 +113,7 @@ export function MessageActions({
           {canRate && (
             <>
               <Button
+                type="button"
                 size="icon"
                 variant="ghost"
                 className="h-6 w-6"
@@ -118,6 +122,7 @@ export function MessageActions({
                 <ThumbsUp className="h-4 w-4" />
               </Button>
               <Button
+                type="button"
                 size="icon"
                 variant="ghost"
                 className="h-6 w-6"
