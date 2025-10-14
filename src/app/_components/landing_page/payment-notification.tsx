@@ -101,7 +101,7 @@ export default function PaymentNotificationWrapper({ children }: Props) {
 		} else if (canceled === "true") {
 			handleCancel();
 		}
-	}, [searchParams, verifySessionMutation.mutateAsync]);
+	}, [searchParams, verifySessionMutation.mutateAsync, verifySessionMutation]);
 
 	return (
 		<>
