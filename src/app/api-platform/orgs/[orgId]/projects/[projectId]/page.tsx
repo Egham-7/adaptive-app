@@ -12,7 +12,7 @@ import type { DashboardFilters } from "@/types/api-platform/dashboard";
 
 export default function DashboardPage() {
 	const params = useParams();
-	const _orgId = params.orgId as string;
+	const _slug = params.slug as string;
 	const projectId = params.projectId as string;
 	const { dateRange, setDateRange } = useDateRange();
 

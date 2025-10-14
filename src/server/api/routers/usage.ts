@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { apiKeysClient } from "@/lib/api/api-keys";
-import { usageClient } from "@/lib/api/usage";
+import { ApiKeysClient } from "@/lib/api/api-keys";
+import { UsageClient } from "@/lib/api/usage";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { recordUsageRequestSchema } from "@/types/usage";
 
@@ -17,9 +17,13 @@ export const usageRouter = createTRPCRouter({
 	 */
 	recordUsage: protectedProcedure
 		.input(recordUsageRequestSchema)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ ctx, input }) => {
 			try {
-				const record = await usageClient.recordUsage(input);
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new UsageClient(token);
+				const record = await client.recordUsage(input);
 				return {
 					success: true,
 					usage: record,
@@ -51,10 +55,14 @@ export const usageRouter = createTRPCRouter({
 				offset: z.number().optional(),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ ctx, input }) => {
 			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new UsageClient(token);
 				const { apiKeyId, ...params } = input;
-				return await usageClient.getUsageByAPIKey(apiKeyId, params);
+				return await client.getUsageByAPIKey(apiKeyId, params);
 			} catch (error) {
 				console.error("Failed to get usage records:", error);
 
@@ -80,10 +88,14 @@ export const usageRouter = createTRPCRouter({
 				endDate: z.string().optional(),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ ctx, input }) => {
 			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new UsageClient(token);
 				const { apiKeyId, ...params } = input;
-				return await usageClient.getUsageStats(apiKeyId, params);
+				return await client.getUsageStats(apiKeyId, params);
 			} catch (error) {
 				console.error("Failed to get usage stats:", error);
 
@@ -110,10 +122,14 @@ export const usageRouter = createTRPCRouter({
 				groupBy: z.enum(["day", "week", "month"]).optional(),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ ctx, input }) => {
 			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new ApiKeysClient(token);
 				const { apiKeyId, startDate, endDate } = input;
-				return await apiKeysClient.getUsage(apiKeyId, {
+				return await client.getUsage(apiKeyId, {
 					start_date: startDate,
 					end_date: endDate,
 				});

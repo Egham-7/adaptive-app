@@ -1,5 +1,6 @@
 "use client";
 
+import { useOrganization } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 import {
 	FaChartLine,
@@ -24,19 +25,20 @@ interface MetricsOverviewProps {
 
 export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
 	const params = useParams();
-	const orgId = params.orgId as string;
+	const { organization } = useOrganization();
+	const orgId = organization?.id;
 
 	// Fetch credit balance and transaction history for credit chart
 	const { data: creditBalance } = api.credits.getBalance.useQuery(
-		{ organizationId: orgId },
+		{ organizationId: orgId ?? "" },
 		{ enabled: !!orgId },
 	);
 
 	const { data: creditTransactions } =
 		api.credits.getTransactionHistory.useQuery(
 			{
-				organizationId: orgId,
-				limit: 30, // Last 30 transactions for chart data
+				organizationId: orgId ?? "",
+				limit: 30,
 			},
 			{ enabled: !!orgId },
 		);

@@ -13,8 +13,8 @@ import type {
  * Extends BaseApiClient to provide credit-specific operations
  */
 export class CreditsClient extends BaseApiClient {
-	constructor() {
-		super({ basePath: "/admin/credits" });
+	constructor(token: string) {
+		super({ basePath: "/admin/credits", token });
 	}
 
 	/**
@@ -61,13 +61,14 @@ export class CreditsClient extends BaseApiClient {
 		data: CreateCheckoutSessionRequest,
 	): Promise<CreateCheckoutSessionResponse> {
 		try {
-			// Use the Stripe-specific endpoint
 			const url = this.buildUrl("/admin/stripe/checkout-session");
+			const authHeaders = this.getAuthHeaders();
 
 			const response = await fetch(url, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					...authHeaders,
 				},
 				body: JSON.stringify(data),
 			});
@@ -91,13 +92,14 @@ export class CreditsClient extends BaseApiClient {
 	 */
 	async addCredits(data: AddCreditsRequest): Promise<AddCreditsResponse> {
 		try {
-			// Use the credits add endpoint
 			const url = this.buildUrl("/admin/credits/add");
+			const authHeaders = this.getAuthHeaders();
 
 			const response = await fetch(url, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					...authHeaders,
 				},
 				body: JSON.stringify(data),
 			});
@@ -142,4 +144,4 @@ export class CreditsClient extends BaseApiClient {
 /**
  * Singleton instance of the credits client
  */
-export const creditsClient = new CreditsClient();
+export const creditsClient = new CreditsClient("");

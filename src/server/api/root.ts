@@ -4,7 +4,6 @@ import { apiKeysRouter } from "./routers/api_keys";
 import { conversationRouter } from "./routers/conversations";
 import { creditsRouter } from "./routers/credits";
 import { messageRouter } from "./routers/message";
-import { organizationsRouter } from "./routers/organizations";
 import { projectAnalyticsRouter } from "./routers/project-analytics";
 import { projectsRouter } from "./routers/projects";
 import { selectModelRouter } from "./routers/select-model";
@@ -24,7 +23,6 @@ export const appRouter = createTRPCRouter({
 	messages: messageRouter,
 	api_keys: apiKeysRouter,
 	credits: creditsRouter,
-	organizations: organizationsRouter,
 	projectAnalytics: projectAnalyticsRouter,
 	projects: projectsRouter,
 	selectModel: selectModelRouter,

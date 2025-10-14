@@ -59,6 +59,7 @@ const formSchema = z.object({
 
 export default function ApiKeysPage() {
 	const params = useParams();
+	const _slug = params.slug as string;
 	const projectId = params.projectId as string;
 
 	const [showCreateDialog, setShowCreateDialog] = useState(false);

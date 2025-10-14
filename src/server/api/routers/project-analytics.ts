@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { apiKeysClient } from "@/lib/api/api-keys";
+import { ApiKeysClient } from "@/lib/api/api-keys";
+import { ProjectsClient } from "@/lib/api/projects";
 import { withCache } from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
@@ -43,25 +44,21 @@ export const projectAnalyticsRouter = createTRPCRouter({
 					});
 				}
 
-				const project = await ctx.db.project.findFirst({
-					where: {
-						id: input.projectId,
-						OR: [
-							{ members: { some: { userId } } },
-							{ organization: { ownerId: userId } },
-							{ organization: { members: { some: { userId } } } },
-						],
-					},
-				});
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-				if (!project) {
+				const projectsClient = new ProjectsClient(token);
+				try {
+					await projectsClient.getById(input.projectId);
+				} catch (error) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message: "You don't have access to this project",
 					});
 				}
 
-				const apiKeysResponse = await apiKeysClient.listByProjectId(
+				const client = new ApiKeysClient(token);
+				const apiKeysResponse = await client.listByProjectId(
 					input.projectId,
 				);
 				const apiKeys = apiKeysResponse.data;
@@ -81,11 +78,11 @@ export const projectAnalyticsRouter = createTRPCRouter({
 				const usageResults = await Promise.all(
 					apiKeys.map((apiKey) =>
 						Promise.all([
-							apiKeysClient.getStats(apiKey.id, {
+							client.getStats(apiKey.id, {
 								start_date: startDateStr,
 								end_date: endDateStr,
 							}),
-							apiKeysClient.getUsage(apiKey.id, {
+							client.getUsage(apiKey.id, {
 								start_date: startDateStr,
 								end_date: endDateStr,
 							}),
@@ -215,7 +212,11 @@ export const projectAnalyticsRouter = createTRPCRouter({
 				const startDateStr = startDate.toISOString();
 				const endDateStr = endDate.toISOString();
 
-				const apiKeysResponse = await apiKeysClient.listByUserId(userId);
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new ApiKeysClient(token);
+				const apiKeysResponse = await client.listByUserId(userId);
 				const apiKeys = apiKeysResponse.data;
 
 				if (!apiKeys?.length) {
@@ -224,7 +225,7 @@ export const projectAnalyticsRouter = createTRPCRouter({
 
 				const usageResults = await Promise.all(
 					apiKeys.map((apiKey) =>
-						apiKeysClient.getStats(apiKey.id, {
+						client.getStats(apiKey.id, {
 							start_date: startDateStr,
 							end_date: endDateStr,
 						}),

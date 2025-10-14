@@ -38,9 +38,7 @@ export const useDeleteProject = () => {
 		},
 		onSuccess: () => {
 			toast.success("Project deleted successfully!");
-			// Invalidate and refetch related queries
 			utils.projects.getByOrganization.invalidate();
-			utils.organizations.getAll.invalidate();
 		},
 		onError: (error, _variables, context) => {
 			toast.error(error.message || "Failed to delete project");
@@ -53,9 +51,7 @@ export const useDeleteProject = () => {
 			}
 		},
 		onSettled: (_data, _error, _variables) => {
-			// Always refetch after error or success to ensure consistency
 			utils.projects.getByOrganization.invalidate();
-			utils.organizations.getAll.invalidate();
 		},
 	});
 };

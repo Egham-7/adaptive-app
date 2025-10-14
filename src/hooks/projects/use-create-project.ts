@@ -7,9 +7,7 @@ export const useCreateProject = () => {
 	return api.projects.create.useMutation({
 		onSuccess: () => {
 			toast.success("Project created successfully!");
-			// Invalidate and refetch related queries
 			utils.projects.getByOrganization.invalidate();
-			utils.organizations.getAll.invalidate();
 		},
 		onError: (error) => {
 			toast.error(error.message || "Failed to create project");

@@ -44,10 +44,8 @@ export const useUpdateProject = () => {
 		},
 		onSuccess: (_data, variables) => {
 			toast.success("Project updated successfully!");
-			// Invalidate and refetch related queries
 			utils.projects.getByOrganization.invalidate();
 			utils.projects.getById.invalidate({ id: variables.id });
-			utils.organizations.getAll.invalidate();
 		},
 		onError: (error, variables, context) => {
 			toast.error(error.message || "Failed to update project");
@@ -66,10 +64,8 @@ export const useUpdateProject = () => {
 			}
 		},
 		onSettled: (_data, _error, variables) => {
-			// Always refetch after error or success to ensure consistency
 			utils.projects.getByOrganization.invalidate();
 			utils.projects.getById.invalidate({ id: variables.id });
-			utils.organizations.getAll.invalidate();
 		},
 	});
 };

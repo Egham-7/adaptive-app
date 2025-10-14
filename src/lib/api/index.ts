@@ -7,12 +7,19 @@
  *
  * Usage:
  * ```ts
- * import { apiKeysClient } from '@/lib/api/api-keys';
+ * import { ApiKeysClient } from '@/lib/api';
+ * import { useAuth } from '@clerk/nextjs';
  *
- * const keys = await apiKeysClient.list();
- * const key = await apiKeysClient.create({ name: 'My Key', ... });
+ * const { getToken } = useAuth();
+ * const token = await getToken();
+ * const client = new ApiKeysClient(token);
+ * const keys = await client.list();
  * ```
  */
 
+export { ApiKeysClient, apiKeysClient } from "./api-keys/client";
 export type { ApiClientConfig, RequestOptions } from "./base-client";
 export { BaseApiClient } from "./base-client";
+export { CreditsClient, creditsClient } from "./credits/client";
+export { ProjectsClient, projectsClient } from "./projects/client";
+export { UsageClient, usageClient } from "./usage/client";

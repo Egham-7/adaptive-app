@@ -60,8 +60,8 @@ const CustomCodeBlock = ({
 };
 
 export default function QuickstartPage() {
-	const { orgId, projectId } = useParams<{
-		orgId: string;
+	const { slug, projectId } = useParams<{
+		slug: string;
 		projectId: string;
 	}>();
 
@@ -221,7 +221,7 @@ print(completion.choices[0].message.content)`;
 								<div className="mt-3">
 									<Button size="sm" asChild>
 										<Link
-											href={`/api-platform/organizations/${orgId}/projects/${projectId}/api-keys`}
+											href={`/api-platform/orgs/${slug}/projects/${projectId}/api-keys`}
 										>
 											Create API Key
 										</Link>
@@ -520,7 +520,7 @@ print(message.content[0].text)`}
 					<CardContent>
 						<div className="grid gap-4 md:grid-cols-2">
 							<Link
-								href={`/api-platform/organizations/${orgId}/projects/${projectId}/api-keys`}
+								href={`/api-platform/orgs/${slug}/projects/${projectId}/api-keys`}
 							>
 								<div className="rounded-lg border p-4 transition-colors hover:bg-accent">
 									<div className="flex items-center gap-2">
@@ -532,9 +532,7 @@ print(message.content[0].text)`}
 									</p>
 								</div>
 							</Link>
-							<Link
-								href={`/api-platform/organizations/${orgId}/projects/${projectId}`}
-							>
+							<Link href={`/api-platform/orgs/${slug}/projects/${projectId}`}>
 								<div className="rounded-lg border p-4 transition-colors hover:bg-accent">
 									<div className="flex items-center gap-2">
 										<div className="h-2 w-2 rounded-full bg-green-500" />
@@ -560,7 +558,7 @@ print(message.content[0].text)`}
 								</p>
 							</div>
 							<Link
-								href={`/api-platform/organizations/${orgId}/projects/${projectId}/examples`}
+								href={`/api-platform/orgs/${slug}/projects/${projectId}/examples`}
 							>
 								<div className="rounded-lg border p-4 transition-colors hover:bg-accent">
 									<div className="flex items-center gap-2">

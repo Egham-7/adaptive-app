@@ -1,26 +1,21 @@
 "use client";
 
+import { useOrganization } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ApiKeyStep } from "@/app/_components/api-platform/onboarding/api-key-step";
 import { CompleteStep } from "@/app/_components/api-platform/onboarding/complete-step";
-import { OrganizationStep } from "@/app/_components/api-platform/onboarding/organization-step";
 import { ProjectStep } from "@/app/_components/api-platform/onboarding/project-step";
 import { QuickstartStep } from "@/app/_components/api-platform/onboarding/quickstart-step";
 import { WelcomeStep } from "@/app/_components/api-platform/onboarding/welcome-step";
 import { Progress } from "@/components/ui/progress";
 import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
-import { useCreateOrganization } from "@/hooks/organizations/use-create-organization";
 import { useCreateProject } from "@/hooks/projects/use-create-project";
-import type {
-	OrganizationCreateResponse,
-	ProjectCreateResponse,
-} from "@/types";
+import type { ProjectCreateResponse } from "@/types";
 
 type OnboardingStep =
 	| "welcome"
-	| "organization"
 	| "project"
 	| "api-key"
 	| "quickstart"
@@ -28,41 +23,25 @@ type OnboardingStep =
 
 export default function OnboardingPage() {
 	const [currentStep, setCurrentStep] = useState<OnboardingStep>("welcome");
-	const [createdOrganization, setCreatedOrganization] =
-		useState<OrganizationCreateResponse | null>(null);
-
 	const [createdProject, setCreatedProject] =
 		useState<ProjectCreateResponse | null>(null);
 	const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
 	const router = useRouter();
+	const { organization } = useOrganization();
 
-	const createOrganization = useCreateOrganization();
 	const createProject = useCreateProject();
 	const createApiKey = useCreateProjectApiKey();
 
-	const onOrganizationSubmit = (values: {
-		name: string;
-		description?: string;
-	}) => {
-		createOrganization.mutate(values, {
-			onSuccess: (data) => {
-				setCreatedOrganization(data);
-				setCurrentStep("project");
-			},
-			onError: (error) => {
-				console.error("Failed to create organization: ", error);
-				toast.error(`Failed to create organization: ${error.message}`);
-			},
-		});
-	};
-
 	const onProjectSubmit = (values: { name: string; description?: string }) => {
-		if (!createdOrganization) return;
+		if (!organization) {
+			toast.error("No organization found. Please create one first.");
+			return;
+		}
 
 		createProject.mutate(
 			{
 				...values,
-				organizationId: createdOrganization.id,
+				organizationId: organization.id,
 			},
 			{
 				onSuccess: (data) => {
@@ -111,42 +90,37 @@ export default function OnboardingPage() {
 		switch (step) {
 			case "welcome":
 				return 1;
-			case "organization":
-				return 2;
 			case "project":
-				return 3;
+				return 2;
 			case "api-key":
-				return 4;
+				return 3;
 			case "quickstart":
-				return 5;
+				return 4;
 			case "complete":
-				return 6;
+				return 5;
 			default:
 				return 1;
 		}
 	};
 
 	const getProgress = (): number => {
-		return ((getStepNumber(currentStep) - 1) / 5) * 100;
+		return ((getStepNumber(currentStep) - 1) / 4) * 100;
 	};
 
 	const handleComplete = () => {
-		if (createdOrganization && createdProject) {
+		if (organization && createdProject) {
 			router.push(
-				`/api-platform/organizations/${createdOrganization.id}/projects/${createdProject.id}`,
+				`/api-platform/orgs/${organization.slug}/projects/${createdProject.id}`,
 			);
 		} else {
-			router.push("/api-platform/organizations");
+			router.push("/api-platform/orgs");
 		}
 	};
 
 	const handleBack = () => {
 		switch (currentStep) {
-			case "organization":
-				setCurrentStep("welcome");
-				break;
 			case "project":
-				setCurrentStep("organization");
+				setCurrentStep("welcome");
 				break;
 			case "api-key":
 				setCurrentStep("project");
@@ -155,8 +129,6 @@ export default function OnboardingPage() {
 				setCurrentStep("api-key");
 				break;
 			case "complete":
-				// If user skipped API key, go back to api-key step
-				// If user created API key, go back to quickstart step
 				if (createdApiKey) {
 					setCurrentStep("quickstart");
 				} else {
@@ -177,7 +149,7 @@ export default function OnboardingPage() {
 						Welcome to Adaptive API Platform
 					</h1>
 					<p className="text-muted-foreground">
-						Let's get you set up with your first organization and project
+						Let's get you set up with your first project
 					</p>
 				</div>
 
@@ -185,22 +157,31 @@ export default function OnboardingPage() {
 				<div className="mb-8">
 					<Progress value={getProgress()} className="h-2" />
 					<div className="mt-2 flex justify-between text-muted-foreground text-sm">
-						<span>Step {getStepNumber(currentStep)} of 6</span>
+						<span>Step {getStepNumber(currentStep)} of 5</span>
 						<span>{Math.round(getProgress())}% complete</span>
 					</div>
 				</div>
 
 				{/* Welcome Step */}
 				{currentStep === "welcome" && (
-					<WelcomeStep onContinue={() => setCurrentStep("organization")} />
+					<WelcomeStep onContinue={() => setCurrentStep("project")} />
 				)}
 
-				{/* Organization Step */}
-				{currentStep === "organization" && (
-					<OrganizationStep
-						onSubmit={onOrganizationSubmit}
+				{/* Project Step */}
+				{currentStep === "project" && (
+					<ProjectStep
+						onSubmit={onProjectSubmit}
 						onBack={handleBack}
-						isLoading={createOrganization.isPending}
+						isLoading={createProject.isPending}
+					/>
+				)}
+
+				{/* Project Step */}
+				{currentStep === "project" && (
+					<ProjectStep
+						onSubmit={onProjectSubmit}
+						onBack={handleBack}
+						isLoading={createProject.isPending}
 					/>
 				)}
 
