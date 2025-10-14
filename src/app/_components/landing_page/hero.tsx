@@ -6,7 +6,6 @@ import { Rocket } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TextRotate } from "@/components/ui/text-rotate";
-import { useSmartRedirect } from "@/hooks/use-smart-redirect";
 import AnimatedBeamGraph from "./animated-beam-graph";
 
 export default function HeroSection() {
@@ -15,7 +14,6 @@ export default function HeroSection() {
 		"New Models Day One",
 		"60-90% Savings",
 	];
-	const redirectPath = useSmartRedirect();
 
 	return (
 		<section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white dark:bg-neutral-950">
@@ -95,27 +93,16 @@ export default function HeroSection() {
 						</SignUpButton>
 					</SignedOut>
 					<SignedIn>
-						{redirectPath ? (
-							<Button
-								size="lg"
-								className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
-								asChild
-							>
-								<Link href={redirectPath}>
-									<Rocket className="relative mr-2 size-4" aria-hidden="true" />
-									View Dashboard
-								</Link>
-							</Button>
-						) : (
-							<Button
-								size="lg"
-								className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
-								disabled
-							>
+						<Button
+							size="lg"
+							className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
+							asChild
+						>
+							<Link href="/api-platform/orgs">
 								<Rocket className="relative mr-2 size-4" aria-hidden="true" />
 								View Dashboard
-							</Button>
-						)}
+							</Link>
+						</Button>
 					</SignedIn>
 					<Button
 						variant="outline"
