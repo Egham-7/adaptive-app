@@ -61,7 +61,7 @@ export function UserActions() {
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem asChild>
-								<Link href="/sign-in?redirect_url=/api-platform/organizations">
+								<Link href="/sign-in?redirect_url=/api-platform/orgs">
 									<Button variant="ghost" className="w-full justify-start">
 										API Platform
 									</Button>
@@ -89,7 +89,7 @@ export function UserActions() {
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem asChild>
-								<Link href="/sign-up?redirect_url=/api-platform/organizations">
+								<Link href="/sign-up?redirect_url=/api-platform/orgs">
 									<Button variant="ghost" className="w-full justify-start">
 										API Platform
 									</Button>
@@ -127,7 +127,7 @@ export function UserActions() {
 										</Button>
 									</LoadingLink>
 								) : (
-									<LoadingLink href="/api-platform/organizations">
+									<LoadingLink href="/api-platform/orgs">
 										<Button variant="ghost" className="w-full justify-start">
 											API Platform
 										</Button>

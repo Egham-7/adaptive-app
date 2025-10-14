@@ -20,7 +20,7 @@ export interface UsageRecord {
 	currency: string;
 	status_code: number;
 	latency_ms: number;
-	metadata: Record<string, any>;
+	metadata: Record<string, unknown>;
 	request_id?: string;
 	user_agent?: string;
 	ip_address?: string;
@@ -68,7 +68,7 @@ export interface RecordUsageRequest {
 	currency?: string;
 	status_code: number;
 	latency_ms: number;
-	metadata?: Record<string, any>;
+	metadata?: Record<string, unknown>;
 	request_id?: string;
 	user_agent?: string;
 	ip_address?: string;

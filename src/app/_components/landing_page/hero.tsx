@@ -84,7 +84,7 @@ export default function HeroSection() {
 				<fieldset className="mt-8 flex flex-col justify-center gap-4 border-0 p-0 md:flex-row">
 					<legend className="sr-only">Hero actions</legend>
 					<SignedOut>
-						<SignUpButton signInForceRedirectUrl="/api-platform/organizations">
+						<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
 							<Button
 								size="lg"
 								className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"

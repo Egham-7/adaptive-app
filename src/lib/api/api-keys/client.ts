@@ -15,8 +15,8 @@ import { BaseApiClient } from "../base-client";
  * Extends BaseApiClient to provide API key-specific operations
  */
 export class ApiKeysClient extends BaseApiClient {
-	constructor() {
-		super({ basePath: "/admin/api-keys" });
+	constructor(token: string) {
+		super({ basePath: "/admin/api-keys", token });
 	}
 
 	/**
@@ -60,7 +60,7 @@ export class ApiKeysClient extends BaseApiClient {
 	 * List API keys by project ID with optional pagination
 	 */
 	async listByProjectId(
-		projectId: string,
+		projectId: number,
 		params?: {
 			limit?: number;
 			offset?: number;
@@ -209,4 +209,4 @@ export class ApiKeysClient extends BaseApiClient {
 /**
  * Singleton instance of the API keys client
  */
-export const apiKeysClient = new ApiKeysClient();
+export const apiKeysClient = new ApiKeysClient("");

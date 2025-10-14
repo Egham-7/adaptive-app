@@ -90,7 +90,10 @@ export const invalidateOrganizationCache = (
 	return invalidateUserCache(userId, patterns);
 };
 
-export const invalidateProjectCache = (userId: string, projectId?: string) => {
+export const invalidateProjectCache = (
+	userId: string,
+	projectId?: number | string,
+) => {
 	const patterns = projectId ? ["projects", "project"] : ["projects"];
 	return invalidateUserCache(userId, patterns);
 };

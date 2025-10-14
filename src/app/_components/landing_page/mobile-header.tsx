@@ -91,7 +91,7 @@ export function MobileHeader() {
 									</Button>
 								</Link>
 
-								<Link href="/sign-in?redirect_url=/api-platform/organizations">
+								<Link href="/sign-in?redirect_url=/api-platform/orgs">
 									<Button
 										variant="outline"
 										size="lg"
@@ -110,7 +110,7 @@ export function MobileHeader() {
 									</Button>
 								</Link>
 
-								<Link href="/sign-up?redirect_url=/api-platform/organizations">
+								<Link href="/sign-up?redirect_url=/api-platform/orgs">
 									<Button size="lg" className="w-full" onClick={closeMenu}>
 										Get Started - API Platform
 									</Button>
@@ -124,7 +124,7 @@ export function MobileHeader() {
 									</Button>
 								</Link>
 
-								<Link href="/api-platform/organizations" onClick={closeMenu}>
+								<Link href="/api-platform/orgs" onClick={closeMenu}>
 									<Button variant="outline" size="lg" className="w-full">
 										API Platform
 									</Button>

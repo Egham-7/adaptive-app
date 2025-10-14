@@ -5,9 +5,19 @@ const isProtectedRoute = createRouteMatcher([
 	"/api-platform(.*)",
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
-	if (isProtectedRoute(req)) await auth.protect();
-});
+export default clerkMiddleware(
+	async (auth, req) => {
+		if (isProtectedRoute(req)) await auth.protect();
+	},
+	{
+		organizationSyncOptions: {
+			organizationPatterns: [
+				"/api-platform/orgs/:slug",
+				"/api-platform/orgs/:slug/(.*)",
+			],
+		},
+	},
+);
 
 export const config = {
 	matcher: [

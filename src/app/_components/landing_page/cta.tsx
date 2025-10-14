@@ -28,7 +28,7 @@ export default function CallToAction() {
 						<SignedOut>
 							<SignUpButton
 								mode="modal"
-								signInForceRedirectUrl="/api-platform/organizations"
+								signInForceRedirectUrl="/api-platform/orgs"
 							>
 								<Button
 									size="lg"
@@ -46,7 +46,7 @@ export default function CallToAction() {
 								className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
 								asChild
 							>
-								<Link href={redirectPath || "/api-platform/organizations"}>
+								<Link href={redirectPath || "/api-platform/orgs"}>
 									<Rocket className="relative mr-2 size-4" />
 									View Dashboard
 								</Link>

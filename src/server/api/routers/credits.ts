@@ -1,60 +1,18 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { creditsClient } from "@/lib/api/credits";
+import { CreditsClient } from "@/lib/api/credits";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
-/**
- * Helper function to verify user has access to organization
- */
-async function verifyOrganizationAccess(
-	ctx: { clerkAuth: { userId: string | null }; db: any },
-	organizationId: string,
-): Promise<boolean> {
-	const userId = ctx.clerkAuth.userId;
-	if (!userId) return false;
-
-	const organization = await ctx.db.organization.findFirst({
-		where: {
-			id: organizationId,
-			OR: [{ ownerId: userId }, { members: { some: { userId } } }],
-		},
-	});
-
-	return !!organization;
-}
-
-/**
- * Credits router - proxies requests to Go backend (adaptive-proxy)
- * All credit operations are handled by the Go backend
- */
 export const creditsRouter = createTRPCRouter({
-	// Get organization's current credit balance
 	getBalance: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			const userId = ctx.clerkAuth.userId;
-
-			if (!userId) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "User not authenticated",
-				});
-			}
-
-			// Verify user has access to this organization
-			const hasAccess = await verifyOrganizationAccess(
-				ctx,
-				input.organizationId,
-			);
-			if (!hasAccess) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "You don't have access to this organization",
-				});
-			}
-
 			try {
-				const response = await creditsClient.getBalance(input.organizationId);
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new CreditsClient(token);
+				const response = await client.getBalance(input.organizationId);
 				return {
 					balance: response.balance,
 					formattedBalance: `$${response.balance.toFixed(2)}`,
@@ -70,33 +28,15 @@ export const creditsRouter = createTRPCRouter({
 			}
 		}),
 
-	// Get comprehensive credit statistics
 	getStats: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			const userId = ctx.clerkAuth.userId;
-
-			if (!userId) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "User not authenticated",
-				});
-			}
-
-			// Verify user has access to this organization
-			const hasAccess = await verifyOrganizationAccess(
-				ctx,
-				input.organizationId,
-			);
-			if (!hasAccess) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "You don't have access to this organization",
-				});
-			}
-
 			try {
-				const response = await creditsClient.getBalance(input.organizationId);
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new CreditsClient(token);
+				const response = await client.getBalance(input.organizationId);
 				return {
 					currentBalance: response.balance,
 					totalPurchased: response.total_purchased,
@@ -118,7 +58,6 @@ export const creditsRouter = createTRPCRouter({
 			}
 		}),
 
-	// Get transaction history with pagination and filtering
 	getTransactionHistory: protectedProcedure
 		.input(
 			z.object({
@@ -128,29 +67,12 @@ export const creditsRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const userId = ctx.clerkAuth.userId;
-
-			if (!userId) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "User not authenticated",
-				});
-			}
-
-			// Verify user has access to this organization
-			const hasAccess = await verifyOrganizationAccess(
-				ctx,
-				input.organizationId,
-			);
-			if (!hasAccess) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "You don't have access to this organization",
-				});
-			}
-
 			try {
-				const response = await creditsClient.getTransactionHistory(
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new CreditsClient(token);
+				const response = await client.getTransactionHistory(
 					input.organizationId,
 					{
 						limit: input.limit,
@@ -158,7 +80,6 @@ export const creditsRouter = createTRPCRouter({
 					},
 				);
 
-				// Format transactions for UI display
 				const formattedTransactions = response.transactions.map(
 					(transaction) => {
 						const amount = transaction.amount;
@@ -198,36 +119,18 @@ export const creditsRouter = createTRPCRouter({
 			}
 		}),
 
-	// Get low balance warning threshold (frontend-only logic)
 	getLowBalanceStatus: protectedProcedure
 		.input(z.object({ organizationId: z.string() }))
 		.query(async ({ ctx, input }) => {
-			const userId = ctx.clerkAuth.userId;
-
-			if (!userId) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "User not authenticated",
-				});
-			}
-
-			// Verify user has access to this organization
-			const hasAccess = await verifyOrganizationAccess(
-				ctx,
-				input.organizationId,
-			);
-			if (!hasAccess) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "You don't have access to this organization",
-				});
-			}
-
 			try {
-				const response = await creditsClient.getBalance(input.organizationId);
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new CreditsClient(token);
+				const response = await client.getBalance(input.organizationId);
 				const balance = response.balance;
-				const LOW_BALANCE_THRESHOLD = 1.0; // $1.00
-				const VERY_LOW_BALANCE_THRESHOLD = 0.1; // $0.10
+				const LOW_BALANCE_THRESHOLD = 1.0;
+				const VERY_LOW_BALANCE_THRESHOLD = 0.1;
 
 				let status: "good" | "low" | "very_low" | "empty" = "good";
 				let message = "";
@@ -268,12 +171,11 @@ export const creditsRouter = createTRPCRouter({
 			}
 		}),
 
-	// Create Stripe checkout session for credit purchase
 	createCheckoutSession: protectedProcedure
 		.input(
 			z.object({
 				organizationId: z.string(),
-				amount: z.number().min(1).max(10000), // $1 minimum, $10,000 maximum
+				amount: z.number().min(1).max(10000),
 				successUrl: z.string(),
 				cancelUrl: z.string(),
 			}),
@@ -281,30 +183,15 @@ export const creditsRouter = createTRPCRouter({
 		.mutation(async ({ ctx, input }) => {
 			const userId = ctx.clerkAuth.userId;
 
-			if (!userId) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "User not authenticated",
-				});
-			}
-
-			// Verify user has access to this organization
-			const hasAccess = await verifyOrganizationAccess(
-				ctx,
-				input.organizationId,
-			);
-			if (!hasAccess) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "You don't have access to this organization",
-				});
-			}
-
 			try {
-				const response = await creditsClient.createCheckoutSession({
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new CreditsClient(token);
+				const response = await client.createCheckoutSession({
 					organization_id: input.organizationId,
 					user_id: userId,
-					stripe_price_id: "", // Will be determined by amount
+					stripe_price_id: "",
 					credit_amount: input.amount,
 					success_url: input.successUrl,
 					cancel_url: input.cancelUrl,
