@@ -75,7 +75,7 @@ export default function QuickstartPage() {
 		? "your_api_key_here"
 		: EXAMPLE_API_KEY;
 
-	const curlExample = `curl -X POST "${API_BASE_URL}/api/v1/chat/completions" \\
+	const curlExample = `curl -X POST "${API_BASE_URL}/v1/chat/completions" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${exampleKey}" \\
   -d '{
@@ -270,11 +270,11 @@ print(completion.choices[0].message.content)`;
 
 									<TabsContent value="javascript" className="mt-4">
 										<div className="space-y-4">
-											<div className="rounded-lg border bg-blue-50 p-3 dark:bg-blue-950/20">
-												<p className="font-medium text-blue-900 text-sm dark:text-blue-100">
+											<div className="rounded-lg border bg-muted/50 p-3">
+												<p className="font-medium text-sm">
 													Install the OpenAI SDK:
 												</p>
-												<code className="mt-1 block text-blue-700 text-sm dark:text-blue-300">
+												<code className="mt-1 block text-muted-foreground text-sm">
 													npm install openai
 												</code>
 											</div>
@@ -288,11 +288,11 @@ print(completion.choices[0].message.content)`;
 
 									<TabsContent value="python" className="mt-4">
 										<div className="space-y-4">
-											<div className="rounded-lg border bg-blue-50 p-3 dark:bg-blue-950/20">
-												<p className="font-medium text-blue-900 text-sm dark:text-blue-100">
+											<div className="rounded-lg border bg-muted/50 p-3">
+												<p className="font-medium text-sm">
 													Install the OpenAI SDK:
 												</p>
-												<code className="mt-1 block text-blue-700 text-sm dark:text-blue-300">
+												<code className="mt-1 block text-muted-foreground text-sm">
 													pip install openai
 												</code>
 											</div>
@@ -336,11 +336,11 @@ print(completion.choices[0].message.content)`;
 
 									<TabsContent value="javascript" className="mt-4">
 										<div className="space-y-4">
-											<div className="rounded-lg border bg-blue-50 p-3 dark:bg-blue-950/20">
-												<p className="font-medium text-blue-900 text-sm dark:text-blue-100">
+											<div className="rounded-lg border bg-muted/50 p-3">
+												<p className="font-medium text-sm">
 													Install the Anthropic SDK:
 												</p>
-												<code className="mt-1 block text-blue-700 text-sm dark:text-blue-300">
+												<code className="mt-1 block text-muted-foreground text-sm">
 													npm install @anthropic-ai/sdk
 												</code>
 											</div>
@@ -376,11 +376,11 @@ main();`}
 
 									<TabsContent value="python" className="mt-4">
 										<div className="space-y-4">
-											<div className="rounded-lg border bg-blue-50 p-3 dark:bg-blue-950/20">
-												<p className="font-medium text-blue-900 text-sm dark:text-blue-100">
+											<div className="rounded-lg border bg-muted/50 p-3">
+												<p className="font-medium text-sm">
 													Install the Anthropic SDK:
 												</p>
-												<code className="mt-1 block text-blue-700 text-sm dark:text-blue-300">
+												<code className="mt-1 block text-muted-foreground text-sm">
 													pip install anthropic
 												</code>
 											</div>
@@ -439,11 +439,9 @@ print(message.content[0].text)`}
 
 							<TabsContent value="select-model" className="mt-4">
 								<div className="space-y-4">
-									<div className="rounded-lg border bg-blue-50 p-4 dark:bg-blue-950/20">
-										<h4 className="font-medium text-blue-900 text-sm dark:text-blue-100">
-											Model Selection API
-										</h4>
-										<p className="mt-1 text-blue-700 text-sm dark:text-blue-300">
+									<div className="rounded-lg border bg-muted/50 p-4">
+										<h4 className="font-medium text-sm">Model Selection API</h4>
+										<p className="mt-1 text-muted-foreground text-sm">
 											Let the AI service intelligently select the best model and
 											provider for your request without executing it.
 										</p>
