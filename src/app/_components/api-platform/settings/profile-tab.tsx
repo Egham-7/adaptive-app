@@ -70,7 +70,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 				(m) => m.organization.id !== organization.id,
 			);
 
-			if (remainingOrgs && remainingOrgs.length > 0 && setActive) {
+			if (remainingOrgs?.[0] && setActive) {
 				await setActive({ organization: remainingOrgs[0].organization.id });
 				router.push(`/api-platform/orgs/${remainingOrgs[0].organization.slug}`);
 			} else {
