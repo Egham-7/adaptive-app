@@ -213,4 +213,52 @@ export const creditsRouter = createTRPCRouter({
 				});
 			}
 		}),
+
+	addPromotionalCredits: protectedProcedure
+		.input(
+			z.object({
+				organizationId: z.string(),
+				amount: z.number().min(0).max(100),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			const userId = ctx.clerkAuth.userId;
+
+			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new CreditsClient(token);
+				const response = await client.addCredits({
+					organization_id: input.organizationId,
+					user_id: userId,
+					amount: input.amount,
+					type: "promotional",
+					description: "Welcome bonus for new organization",
+					metadata: {
+						source: "onboarding",
+						timestamp: new Date().toISOString(),
+					},
+				});
+
+				return {
+					success: true,
+					transaction: {
+						id: response.id,
+						amount: response.amount,
+						balanceAfter: response.balance_after,
+						formattedAmount: `+$${response.amount.toFixed(2)}`,
+						formattedBalance: `$${response.balance_after.toFixed(2)}`,
+					},
+				};
+			} catch (error) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to add promotional credits",
+				});
+			}
+		}),
 });
