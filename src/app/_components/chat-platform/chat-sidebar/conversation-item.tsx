@@ -1,5 +1,6 @@
 import { Pin } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import {
 	Tooltip,
@@ -57,12 +58,11 @@ export function ConversationItem({
 				<TooltipProvider>
 					<Tooltip>
 						<TooltipTrigger asChild>
-							<button
+							<Button
 								type="button"
-								className={cn(
-									"inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground",
-									conversation.pinned && "text-primary",
-								)}
+								variant="ghost"
+								size="icon"
+								className={cn("h-7 w-7", conversation.pinned && "text-primary")}
 								onClick={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
@@ -75,7 +75,7 @@ export function ConversationItem({
 										conversation.pinned && "fill-current",
 									)}
 								/>
-							</button>
+							</Button>
 						</TooltipTrigger>
 						<TooltipContent side="bottom">
 							{conversation.pinned ? "Unpin conversation" : "Pin conversation"}

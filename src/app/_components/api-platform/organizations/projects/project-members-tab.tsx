@@ -19,6 +19,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -34,7 +35,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
 	Select,
@@ -55,16 +55,18 @@ import { api } from "@/trpc/react";
 
 interface ProjectMembersTabProps {
 	projectId: number;
+	organizationId: string;
 	currentUserRole?: "owner" | "admin" | "member" | null;
 }
 
 export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 	projectId,
+	organizationId,
 	currentUserRole,
 }) => {
 	const utils = api.useUtils();
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-	const [newMemberUserId, setNewMemberUserId] = useState("");
+	const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 	const [newMemberRole, setNewMemberRole] = useState<"admin" | "member">(
 		"member",
 	);
@@ -79,13 +81,17 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 		projectId,
 	});
 
+	const { data: orgMembersData } = api.organizations.listMembers.useQuery({
+		organizationId,
+	});
+
 	const addMember = api.projects.addMember.useMutation({
 		onSuccess: () => {
 			toast.success("Member added to the project");
 			utils.projects.listMembers.invalidate({ projectId });
 			utils.projects.getById.invalidate({ id: projectId });
 			setIsAddDialogOpen(false);
-			setNewMemberUserId("");
+			setSelectedUserIds([]);
 			setNewMemberRole("member");
 		},
 		onError: (error) => {
@@ -116,17 +122,25 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 		},
 	});
 
-	const handleAddMember = () => {
-		if (!newMemberUserId.trim()) {
-			toast.error("Please enter a user ID");
+	const handleAddMember = async () => {
+		if (selectedUserIds.length === 0) {
+			toast.error("Please select at least one member");
 			return;
 		}
 
-		addMember.mutate({
-			projectId,
-			userId: newMemberUserId,
-			role: newMemberRole,
-		});
+		try {
+			await Promise.all(
+				selectedUserIds.map((userId) =>
+					addMember.mutateAsync({
+						projectId,
+						userId,
+						role: newMemberRole,
+					}),
+				),
+			);
+		} catch (error) {
+			console.error("Error adding members:", error);
+		}
 	};
 
 	const handleRemoveMember = (userId: string) => {
@@ -305,22 +319,83 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 			</Card>
 
 			<Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-				<DialogContent>
+				<DialogContent className="max-w-2xl">
 					<DialogHeader>
-						<DialogTitle>Add Member to Project</DialogTitle>
+						<DialogTitle>Add Members to Project</DialogTitle>
 						<DialogDescription>
-							Add a new member to this project by their user ID.
+							Select members from your organization to add to this project.
 						</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-4 py-4">
 						<div className="space-y-2">
-							<Label htmlFor="userId">User ID</Label>
-							<Input
-								id="userId"
-								placeholder="user_2a1b2c3d4e5f"
-								value={newMemberUserId}
-								onChange={(e) => setNewMemberUserId(e.target.value)}
-							/>
+							<Label>Organization Members</Label>
+							<div className="max-h-96 space-y-2 overflow-y-auto rounded-md border p-4">
+								{orgMembersData?.members
+									.filter(
+										(orgMember) =>
+											!members?.some((m) => m.user_id === orgMember.userId),
+									)
+									.map((orgMember) => {
+										const isSelected = selectedUserIds.includes(
+											orgMember.userId ?? "",
+										);
+										const memberId = `member-${orgMember.userId}`;
+										return (
+											<Label
+												key={orgMember.userId}
+												htmlFor={memberId}
+												className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 font-normal transition-colors ${
+													isSelected
+														? "border-primary bg-primary/10"
+														: "hover:bg-accent"
+												}`}
+											>
+												<Checkbox
+													id={memberId}
+													checked={isSelected}
+													onCheckedChange={() => {
+														if (!orgMember.userId) return;
+														setSelectedUserIds((prev) =>
+															isSelected
+																? prev.filter((id) => id !== orgMember.userId)
+																: [...prev, orgMember.userId!],
+														);
+													}}
+												/>
+												<Avatar className="h-10 w-10">
+													<AvatarImage src={orgMember.imageUrl ?? undefined} />
+													<AvatarFallback>
+														{getUserInitials(
+															`${orgMember.firstName ?? ""} ${orgMember.lastName ?? ""}`.trim() ||
+																orgMember.email,
+														)}
+													</AvatarFallback>
+												</Avatar>
+												<div className="flex-1">
+													<div className="font-medium">
+														{orgMember.firstName || orgMember.lastName
+															? `${orgMember.firstName ?? ""} ${orgMember.lastName ?? ""}`.trim()
+															: orgMember.email}
+													</div>
+													{orgMember.email &&
+														(orgMember.firstName || orgMember.lastName) && (
+															<div className="text-muted-foreground text-sm">
+																{orgMember.email}
+															</div>
+														)}
+												</div>
+											</Label>
+										);
+									})}
+								{orgMembersData?.members.filter(
+									(orgMember) =>
+										!members?.some((m) => m.user_id === orgMember.userId),
+								).length === 0 && (
+									<div className="py-8 text-center text-muted-foreground">
+										All organization members are already in this project
+									</div>
+								)}
+							</div>
 						</div>
 						<div className="space-y-2">
 							<Label htmlFor="role">Role</Label>
@@ -341,11 +416,19 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 						</div>
 					</div>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+						<Button
+							variant="outline"
+							onClick={() => {
+								setIsAddDialogOpen(false);
+								setSelectedUserIds([]);
+							}}
+						>
 							Cancel
 						</Button>
 						<Button onClick={handleAddMember} disabled={addMember.isPending}>
-							{addMember.isPending ? "Adding..." : "Add Member"}
+							{addMember.isPending
+								? "Adding..."
+								: `Add ${selectedUserIds.length > 0 ? selectedUserIds.length : ""} Member${selectedUserIds.length !== 1 ? "s" : ""}`}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

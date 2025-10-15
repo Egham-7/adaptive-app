@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ProjectMembersTab } from "@/app/_components/api-platform/organizations/projects/project-members-tab";
 import { ProjectSettingsGeneral } from "@/app/_components/api-platform/organizations/projects/settings/general";
+import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 
 export default function ProjectSettingsPage() {
@@ -29,29 +30,31 @@ export default function ProjectSettingsPage() {
 		<div className="flex min-h-screen bg-background">
 			<div className="w-64 bg-background p-6">
 				<nav className="space-y-1">
-					<button
+					<Button
 						type="button"
 						onClick={() => handleTabChange("general")}
-						className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+						variant="ghost"
+						className={`w-full justify-start ${
 							activeTab === "general"
 								? "bg-accent text-accent-foreground"
 								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 						}`}
 					>
 						General
-					</button>
+					</Button>
 
-					<button
+					<Button
 						type="button"
 						onClick={() => handleTabChange("members")}
-						className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+						variant="ghost"
+						className={`w-full justify-start ${
 							activeTab === "members"
 								? "bg-accent text-accent-foreground"
 								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 						}`}
 					>
 						Members
-					</button>
+					</Button>
 				</nav>
 			</div>
 
@@ -62,6 +65,7 @@ export default function ProjectSettingsPage() {
 				{activeTab === "members" && (
 					<ProjectMembersTab
 						projectId={Number(projectId)}
+						organizationId={project?.organization_id ?? orgSlug}
 						currentUserRole={project?.currentUserRole}
 					/>
 				)}
