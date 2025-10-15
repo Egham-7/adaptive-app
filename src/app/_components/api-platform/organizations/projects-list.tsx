@@ -107,6 +107,11 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 									placeholder="My Awesome Project"
 									value={projectName}
 									onChange={(e) => setProjectName(e.target.value)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter") {
+											handleCreateProject();
+										}
+									}}
 								/>
 							</div>
 							<div className="space-y-2">
@@ -165,6 +170,11 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 												placeholder="My Awesome Project"
 												value={projectName}
 												onChange={(e) => setProjectName(e.target.value)}
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														handleCreateProject();
+													}
+												}}
 											/>
 										</div>
 										<div className="space-y-2">
