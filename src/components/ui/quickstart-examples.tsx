@@ -17,7 +17,7 @@ interface QuickstartExamplesProps {
   description?: string;
 }
 
-const API_BASE_URL = "https://api.llmadaptive.uk";
+const API_BASE_URL = "https://api.llmadaptive.uk/v1";
 
 export function QuickstartExamples({
   apiKey,
@@ -58,7 +58,7 @@ export function QuickstartExamples({
                       bash
                     </Badge>
                     <CopyButton
-                      content={`curl -X POST "${API_BASE_URL}/api/v1/chat/completions" \\
+                      content={`curl -X POST "${API_BASE_URL}/chat/completions" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey}" \\
   -d '{
@@ -77,7 +77,7 @@ export function QuickstartExamples({
                   </div>
                 </CodeBlockGroup>
                 <CodeBlockCode
-                  code={`curl -X POST "${API_BASE_URL}/api/v1/chat/completions" \\
+                  code={`curl -X POST "${API_BASE_URL}/chat/completions" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey}" \\
   -d '{
@@ -98,11 +98,11 @@ export function QuickstartExamples({
 
             <TabsContent value="javascript" className="mt-4">
               <div className="space-y-4">
-                <div className="rounded-lg border bg-blue-50 p-3 dark:bg-blue-950/20">
-                  <p className="font-medium text-blue-900 text-sm dark:text-blue-100">
+                <div className="rounded-lg border bg-muted/50 p-3">
+                  <p className="text-sm font-medium">
                     Install the OpenAI SDK:
                   </p>
-                  <code className="mt-1 block text-blue-700 text-sm dark:text-blue-300">
+                  <code className="mt-1 block text-muted-foreground text-sm">
                     npm install openai
                   </code>
                 </div>
@@ -120,7 +120,7 @@ export function QuickstartExamples({
 
 const client = new OpenAI({
   apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}/api/v1',
+  baseURL: '${API_BASE_URL}',
 });
 
 async function main() {
@@ -149,7 +149,7 @@ main();`}
 
 const client = new OpenAI({
   apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}/api/v1',
+  baseURL: '${API_BASE_URL}',
 });
 
 async function main() {
@@ -177,11 +177,11 @@ main();`}
 
             <TabsContent value="python" className="mt-4">
               <div className="space-y-4">
-                <div className="rounded-lg border bg-blue-50 p-3 dark:bg-blue-950/20">
-                  <p className="font-medium text-blue-900 text-sm dark:text-blue-100">
+                <div className="rounded-lg border bg-muted/50 p-3">
+                  <p className="text-sm font-medium">
                     Install the OpenAI SDK:
                   </p>
-                  <code className="mt-1 block text-blue-700 text-sm dark:text-blue-300">
+                  <code className="mt-1 block text-muted-foreground text-sm">
                     pip install openai
                   </code>
                 </div>
@@ -197,7 +197,7 @@ main();`}
 
 client = OpenAI(
     api_key="${apiKey}",
-    base_url="${API_BASE_URL}/api/v1"
+    base_url="${API_BASE_URL}"
 )
 
 completion = client.chat.completions.create(
@@ -222,7 +222,7 @@ print(completion.choices[0].message.content)`}
 
 client = OpenAI(
     api_key="${apiKey}",
-    base_url="${API_BASE_URL}/api/v1"
+    base_url="${API_BASE_URL}"
 )
 
 completion = client.chat.completions.create(
@@ -265,7 +265,7 @@ print(completion.choices[0].message.content)`}
                       bash
                     </Badge>
                     <CopyButton
-                      content={`curl -X POST "${API_BASE_URL}/api/v1/messages" \\
+                      content={`curl -X POST "${API_BASE_URL}/messages" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey}" \\
   -d '{
@@ -283,7 +283,7 @@ print(completion.choices[0].message.content)`}
                   </div>
                 </CodeBlockGroup>
                 <CodeBlockCode
-                  code={`curl -X POST "${API_BASE_URL}/api/v1/messages" \\
+                  code={`curl -X POST "${API_BASE_URL}/messages" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey}" \\
   -d '{
@@ -303,11 +303,11 @@ print(completion.choices[0].message.content)`}
 
             <TabsContent value="javascript" className="mt-4">
               <div className="space-y-4">
-                <div className="rounded-lg border bg-blue-50 p-3 dark:bg-blue-950/20">
-                  <p className="font-medium text-blue-900 text-sm dark:text-blue-100">
+                <div className="rounded-lg border bg-muted/50 p-3">
+                  <p className="text-sm font-medium">
                     Install the Anthropic SDK:
                   </p>
-                  <code className="mt-1 block text-blue-700 text-sm dark:text-blue-300">
+                  <code className="mt-1 block text-muted-foreground text-sm">
                     npm install @anthropic-ai/sdk
                   </code>
                 </div>
@@ -325,7 +325,7 @@ print(completion.choices[0].message.content)`}
 
 const client = new Anthropic({
   apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}/api/v1',
+  baseURL: '${API_BASE_URL}',
 });
 
 async function main() {
@@ -353,7 +353,7 @@ main();`}
 
 const client = new Anthropic({
   apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}/api/v1',
+  baseURL: '${API_BASE_URL}',
 });
 
 async function main() {
@@ -380,11 +380,11 @@ main();`}
 
             <TabsContent value="python" className="mt-4">
               <div className="space-y-4">
-                <div className="rounded-lg border bg-blue-50 p-3 dark:bg-blue-950/20">
-                  <p className="font-medium text-blue-900 text-sm dark:text-blue-100">
+                <div className="rounded-lg border bg-muted/50 p-3">
+                  <p className="text-sm font-medium">
                     Install the Anthropic SDK:
                   </p>
-                  <code className="mt-1 block text-blue-700 text-sm dark:text-blue-300">
+                  <code className="mt-1 block text-muted-foreground text-sm">
                     pip install anthropic
                   </code>
                 </div>
@@ -400,7 +400,7 @@ main();`}
 
 client = anthropic.Anthropic(
     api_key="${apiKey}",
-    base_url="${API_BASE_URL}/api/v1"
+    base_url="${API_BASE_URL}"
 )
 
 message = client.messages.create(
@@ -424,7 +424,7 @@ print(message.content[0].text)`}
 
 client = anthropic.Anthropic(
     api_key="${apiKey}",
-    base_url="${API_BASE_URL}/api/v1"
+    base_url="${API_BASE_URL}"
 )
 
 message = client.messages.create(
