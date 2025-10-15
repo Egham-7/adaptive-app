@@ -65,6 +65,47 @@ export const apiKeysRouter = createTRPCRouter({
 		return response.data;
 	}),
 
+	getByOrganization: protectedProcedure
+		.input(z.object({ organizationId: z.string() }))
+		.query(async ({ ctx, input }) => {
+			const userId = ctx.clerkAuth.userId;
+			if (!userId) {
+				throw new TRPCError({ code: "UNAUTHORIZED" });
+			}
+
+			const token = await ctx.clerkAuth.getToken();
+			if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+			const projectsClient = new ProjectsClient(token);
+			const projects = await projectsClient.listByOrganization(
+				input.organizationId,
+			);
+
+			const client = new ApiKeysClient(token);
+
+			const keyPromises = projects.map(async (project) => {
+				try {
+					const response = await client.listByProjectId(project.id);
+					return response.data.map((key) => ({
+						...key,
+						projectName: project.name,
+						projectId: project.id,
+					}));
+				} catch (error) {
+					console.error(
+						`Failed to fetch API keys for project ${project.id}:`,
+						error,
+					);
+					return [];
+				}
+			});
+
+			const results = await Promise.all(keyPromises);
+			const allKeys = results.flat();
+
+			return allKeys;
+		}),
+
 	getById: protectedProcedure
 		.input(z.object({ id: z.number() }))
 		.query(async ({ ctx, input }) => {
