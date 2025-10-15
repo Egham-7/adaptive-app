@@ -25,8 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/trpc/react";
 
 const EXAMPLE_API_KEY = "your_api_key_here";
-const API_BASE_URL =
-	process.env.NEXT_PUBLIC_URL ?? "https://api.llmadaptive.uk";
+const API_BASE_URL = "https://api.llmadaptive.uk";
 
 const CustomCodeBlock = ({
 	code,
