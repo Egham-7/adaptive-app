@@ -15,7 +15,7 @@ const OrganizationSettingsPage: React.FC = () => {
 	const params = useParams();
 	const router = useRouter();
 	const orgId = params.orgId as string;
-	const activeTab = (params.tab as string[])?.[0] || "profile";
+	const activeTab = (params.tab as string[])?.[0] || "general";
 
 	const handleTabChange = (value: string) => {
 		router.push(`/api-platform/orgs/${orgId}/settings/${value}`);
@@ -35,15 +35,15 @@ const OrganizationSettingsPage: React.FC = () => {
 				<nav className="space-y-1">
 					<Button
 						type="button"
-						onClick={() => handleTabChange("profile")}
+						onClick={() => handleTabChange("general")}
 						variant="ghost"
 						className={`w-full justify-start ${
-							activeTab === "profile"
+							activeTab === "general"
 								? "bg-accent text-accent-foreground"
 								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 						}`}
 					>
-						Profile
+						General
 					</Button>
 
 					<Button
@@ -114,7 +114,7 @@ const OrganizationSettingsPage: React.FC = () => {
 			</div>
 
 			<div className="flex-1 p-8">
-				{activeTab === "profile" && <ProfileTab organization={organization} />}
+				{activeTab === "general" && <ProfileTab organization={organization} />}
 				{activeTab === "appearance" && <AppearanceTab />}
 				{activeTab === "members" && (
 					<MembersTab organizationId={organization.id} />
