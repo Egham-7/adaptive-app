@@ -1,8 +1,8 @@
 "use client";
 
-import { useOrganization } from "@clerk/nextjs";
+import { useOrganization, useOrganizationList } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ApiKeyStep } from "@/app/_components/api-platform/onboarding/api-key-step";
 import { CompleteStep } from "@/app/_components/api-platform/onboarding/complete-step";
@@ -12,6 +12,7 @@ import { WelcomeStep } from "@/app/_components/api-platform/onboarding/welcome-s
 import { Progress } from "@/components/ui/progress";
 import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
 import { useCreateProject } from "@/hooks/projects/use-create-project";
+import { api } from "@/trpc/react";
 import type { ProjectCreateResponse } from "@/types";
 
 type OnboardingStep =
@@ -26,11 +27,22 @@ export default function OnboardingPage() {
 	const [createdProject, setCreatedProject] =
 		useState<ProjectCreateResponse | null>(null);
 	const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
+	const [isFirstOrg, setIsFirstOrg] = useState(false);
 	const router = useRouter();
 	const { organization } = useOrganization();
+	const { userMemberships } = useOrganizationList({
+		userMemberships: { infinite: true },
+	});
 
 	const createProject = useCreateProject();
 	const createApiKey = useCreateProjectApiKey();
+	const addCreditsMutation = api.credits.addPromotionalCredits.useMutation();
+
+	useEffect(() => {
+		if (userMemberships.data && userMemberships.data.length === 1) {
+			setIsFirstOrg(true);
+		}
+	}, [userMemberships.data]);
 
 	const onProjectSubmit = (values: { name: string; description?: string }) => {
 		if (!organization) {
@@ -46,6 +58,24 @@ export default function OnboardingPage() {
 			{
 				onSuccess: (data) => {
 					setCreatedProject(data);
+
+					if (isFirstOrg) {
+						addCreditsMutation.mutate(
+							{
+								organizationId: organization.id,
+								amount: 5,
+							},
+							{
+								onSuccess: () => {
+									toast.success("Welcome! $5 in credits added to your account");
+								},
+								onError: (error) => {
+									console.error("Failed to add promotional credits:", error);
+								},
+							},
+						);
+					}
+
 					setCurrentStep("api-key");
 				},
 				onError: (error) => {
@@ -82,7 +112,15 @@ export default function OnboardingPage() {
 		);
 	};
 
+	const handleSkipProject = () => {
+		setCurrentStep("complete");
+	};
+
 	const handleSkipApiKey = () => {
+		setCurrentStep("complete");
+	};
+
+	const handleSkipQuickstart = () => {
 		setCurrentStep("complete");
 	};
 
@@ -149,7 +187,7 @@ export default function OnboardingPage() {
 						Welcome to Adaptive API Platform
 					</h1>
 					<p className="text-muted-foreground">
-						Let's get you set up with your first project
+						Let's set up your first project
 					</p>
 				</div>
 
@@ -172,6 +210,7 @@ export default function OnboardingPage() {
 					<ProjectStep
 						onSubmit={onProjectSubmit}
 						onBack={handleBack}
+						onSkip={handleSkipProject}
 						isLoading={createProject.isPending}
 					/>
 				)}
@@ -191,6 +230,7 @@ export default function OnboardingPage() {
 					<QuickstartStep
 						apiKey={createdApiKey}
 						onContinue={() => setCurrentStep("complete")}
+						onSkip={handleSkipQuickstart}
 						onBack={handleBack}
 					/>
 				)}

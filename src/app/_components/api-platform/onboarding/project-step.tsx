@@ -30,10 +30,16 @@ const projectSchema = z.object({
 interface ProjectStepProps {
 	onSubmit: (values: z.infer<typeof projectSchema>) => void;
 	onBack: () => void;
+	onSkip: () => void;
 	isLoading: boolean;
 }
 
-export function ProjectStep({ onSubmit, onBack, isLoading }: ProjectStepProps) {
+export function ProjectStep({
+	onSubmit,
+	onBack,
+	onSkip,
+	isLoading,
+}: ProjectStepProps) {
 	const form = useForm<z.infer<typeof projectSchema>>({
 		resolver: zodResolver(projectSchema),
 		defaultValues: {
@@ -98,14 +104,24 @@ export function ProjectStep({ onSubmit, onBack, isLoading }: ProjectStepProps) {
 								</FormItem>
 							)}
 						/>
-						<div className="flex justify-end gap-3">
+						<div className="flex justify-between gap-3">
 							<Button type="button" variant="outline" onClick={onBack}>
 								Back
 							</Button>
-							<Button type="submit" disabled={isLoading} className="min-w-32">
-								{isLoading ? "Creating..." : "Continue"}
-								<ChevronRight className="ml-2 h-4 w-4" />
-							</Button>
+							<div className="flex gap-3">
+								<Button
+									type="button"
+									variant="ghost"
+									onClick={onSkip}
+									disabled={isLoading}
+								>
+									Skip for now
+								</Button>
+								<Button type="submit" disabled={isLoading} className="min-w-32">
+									{isLoading ? "Creating..." : "Continue"}
+									<ChevronRight className="ml-2 h-4 w-4" />
+								</Button>
+							</div>
 						</div>
 					</form>
 				</Form>

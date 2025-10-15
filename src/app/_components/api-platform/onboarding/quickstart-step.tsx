@@ -15,12 +15,14 @@ interface QuickstartStepProps {
 	apiKey: string;
 	onContinue: () => void;
 	onBack: () => void;
+	onSkip: () => void;
 }
 
 export function QuickstartStep({
 	apiKey,
 	onContinue,
 	onBack,
+	onSkip,
 }: QuickstartStepProps) {
 	const [copiedApiKey, setCopiedApiKey] = useState(false);
 
@@ -98,14 +100,19 @@ export function QuickstartStep({
 					description="Try these examples to get started"
 				/>
 
-				<div className="flex justify-end gap-3">
+				<div className="flex justify-between gap-3">
 					<Button type="button" variant="outline" onClick={onBack}>
 						Back
 					</Button>
-					<Button onClick={onContinue} className="min-w-32">
-						Continue to Dashboard
-						<ChevronRight className="ml-2 h-4 w-4" />
-					</Button>
+					<div className="flex gap-3">
+						<Button type="button" variant="ghost" onClick={onSkip}>
+							Skip for now
+						</Button>
+						<Button onClick={onContinue} className="min-w-32">
+							Continue to Dashboard
+							<ChevronRight className="ml-2 h-4 w-4" />
+						</Button>
+					</div>
 				</div>
 			</CardContent>
 		</Card>
