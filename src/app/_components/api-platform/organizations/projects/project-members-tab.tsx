@@ -358,7 +358,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 														setSelectedUserIds((prev) =>
 															isSelected
 																? prev.filter((id) => id !== orgMember.userId)
-																: [...prev, orgMember.userId],
+																: [...prev, orgMember.userId!],
 														);
 													}}
 												/>

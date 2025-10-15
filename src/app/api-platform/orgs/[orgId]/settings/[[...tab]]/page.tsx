@@ -8,6 +8,7 @@ import { MembersTab } from "@/app/_components/api-platform/settings/members-tab"
 import { PrivacyTab } from "@/app/_components/api-platform/settings/privacy-tab";
 import { ProfileTab } from "@/app/_components/api-platform/settings/profile-tab";
 import { ProjectsTab } from "@/app/_components/api-platform/settings/projects-tab";
+import { Button } from "@/components/ui/button";
 
 const OrganizationSettingsPage: React.FC = () => {
 	const { organization, isLoaded } = useOrganization();
@@ -32,77 +33,83 @@ const OrganizationSettingsPage: React.FC = () => {
 		<div className="flex min-h-screen bg-background">
 			<div className="w-64 bg-background p-6">
 				<nav className="space-y-1">
-					<button
+					<Button
 						type="button"
 						onClick={() => handleTabChange("profile")}
-						className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+						variant="ghost"
+						className={`w-full justify-start ${
 							activeTab === "profile"
 								? "bg-accent text-accent-foreground"
 								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 						}`}
 					>
 						Profile
-					</button>
+					</Button>
 
-					<button
+					<Button
 						type="button"
 						onClick={() => handleTabChange("appearance")}
-						className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+						variant="ghost"
+						className={`w-full justify-start ${
 							activeTab === "appearance"
 								? "bg-accent text-accent-foreground"
 								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 						}`}
 					>
 						Appearance
-					</button>
+					</Button>
 
-					<button
+					<Button
 						type="button"
 						onClick={() => handleTabChange("members")}
-						className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+						variant="ghost"
+						className={`w-full justify-start ${
 							activeTab === "members"
 								? "bg-accent text-accent-foreground"
 								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 						}`}
 					>
 						Members
-					</button>
+					</Button>
 
-					<button
+					<Button
 						type="button"
 						onClick={() => handleTabChange("projects")}
-						className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+						variant="ghost"
+						className={`w-full justify-start ${
 							activeTab === "projects"
 								? "bg-accent text-accent-foreground"
 								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 						}`}
 					>
 						Projects
-					</button>
+					</Button>
 
-					<button
+					<Button
 						type="button"
 						onClick={() => handleTabChange("api-keys")}
-						className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+						variant="ghost"
+						className={`w-full justify-start ${
 							activeTab === "api-keys"
 								? "bg-accent text-accent-foreground"
 								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 						}`}
 					>
 						API keys
-					</button>
+					</Button>
 
-					<button
+					<Button
 						type="button"
 						onClick={() => handleTabChange("privacy")}
-						className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+						variant="ghost"
+						className={`w-full justify-start ${
 							activeTab === "privacy"
 								? "bg-accent text-accent-foreground"
 								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
 						}`}
 					>
 						Privacy controls
-					</button>
+					</Button>
 				</nav>
 			</div>
 

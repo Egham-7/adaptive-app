@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 type NotificationProps = {
 	type: "success" | "error" | "info" | "warning";
@@ -44,13 +45,15 @@ export default function Notification({
 		>
 			<div className="flex items-center justify-between">
 				<span>{message}</span>
-				<button
+				<Button
 					type="button"
 					onClick={onClose}
-					className="ml-4 text-white hover:text-gray-200"
+					variant="ghost"
+					size="icon"
+					className="ml-4 h-auto w-auto p-0 text-white hover:bg-transparent hover:text-gray-200"
 				>
 					✕
-				</button>
+				</Button>
 			</div>
 		</div>
 	);
