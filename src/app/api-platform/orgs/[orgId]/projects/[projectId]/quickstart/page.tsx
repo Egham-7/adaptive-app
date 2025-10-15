@@ -93,7 +93,7 @@ export default function QuickstartPage() {
 
 const client = new OpenAI({
   apiKey: '${exampleKey}',
-  baseURL: '${API_BASE_URL}/api/v1',
+  baseURL: '${API_BASE_URL}/v1',
 });
 
 async function main() {
@@ -117,7 +117,7 @@ main();`;
 
 client = OpenAI(
     api_key="${exampleKey}...",
-    base_url="${API_BASE_URL}/api/v1"
+    base_url="${API_BASE_URL}/v1"
 )
 
 completion = client.chat.completions.create(
@@ -316,7 +316,7 @@ print(completion.choices[0].message.content)`;
 
 									<TabsContent value="curl" className="mt-4">
 										<CustomCodeBlock
-											code={`curl -X POST "${API_BASE_URL}/api/v1/messages" \\
+											code={`curl -X POST "${API_BASE_URL}/v1/messages" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${exampleKey}" \\
   -d '{
@@ -349,7 +349,7 @@ print(completion.choices[0].message.content)`;
 
 const client = new Anthropic({
   apiKey: '${exampleKey}',
-  baseURL: '${API_BASE_URL}/api/v1',
+  baseURL: '${API_BASE_URL}/v1',
 });
 
 async function main() {
@@ -389,7 +389,7 @@ main();`}
 
 client = anthropic.Anthropic(
     api_key="${exampleKey}",
-    base_url="${API_BASE_URL}/api/v1"
+    base_url="${API_BASE_URL}/v1"
 )
 
 message = client.messages.create(
@@ -450,7 +450,7 @@ print(message.content[0].text)`}
 									</div>
 
 									<CustomCodeBlock
-										code={`curl -X POST "${API_BASE_URL}/api/v1/select-model" \\
+										code={`curl -X POST "${API_BASE_URL}/v1/select-model" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${exampleKey}" \\
   -d '{
