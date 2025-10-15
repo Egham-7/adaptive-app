@@ -27,15 +27,22 @@ import { api } from "@/trpc/react";
 
 interface InviteMemberDialogProps {
 	organizationId: string;
+	currentMemberCount: number;
+	pendingInvitationCount: number;
 }
 
 export const InviteMemberDialog: React.FC<InviteMemberDialogProps> = ({
 	organizationId,
+	currentMemberCount,
+	pendingInvitationCount,
 }) => {
 	const [open, setOpen] = useState(false);
 	const [email, setEmail] = useState("");
 	const [role, setRole] = useState<"org:admin" | "org:member">("org:member");
 	const utils = api.useUtils();
+
+	const totalCount = currentMemberCount + pendingInvitationCount;
+	const isAtLimit = totalCount >= 5;
 
 	const createInvitation = api.organizations.createInvitation.useMutation({
 		onSuccess: () => {
@@ -64,9 +71,9 @@ export const InviteMemberDialog: React.FC<InviteMemberDialogProps> = ({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button>
+				<Button disabled={isAtLimit}>
 					<Plus className="mr-2 h-4 w-4" />
-					Invite Member
+					{isAtLimit ? "Member Limit Reached (5/5)" : "Invite Member"}
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
@@ -74,7 +81,8 @@ export const InviteMemberDialog: React.FC<InviteMemberDialogProps> = ({
 					<DialogHeader>
 						<DialogTitle>Invite Team Member</DialogTitle>
 						<DialogDescription>
-							Send an invitation to join your organization
+							Send an invitation to join your organization. You can have up to 5
+							members (including admins and pending invitations).
 						</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-4 py-4">
