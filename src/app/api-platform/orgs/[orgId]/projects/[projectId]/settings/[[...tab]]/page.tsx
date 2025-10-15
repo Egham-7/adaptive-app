@@ -62,6 +62,7 @@ export default function ProjectSettingsPage() {
 				{activeTab === "members" && (
 					<ProjectMembersTab
 						projectId={Number(projectId)}
+						organizationId={project?.organization_id ?? orgSlug}
 						currentUserRole={project?.currentUserRole}
 					/>
 				)}
