@@ -4,6 +4,59 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const organizationsRouter = createTRPCRouter({
+	create: protectedProcedure
+		.input(
+			z.object({
+				name: z.string().min(1, "Organization name is required"),
+				slug: z.string().optional(),
+			}),
+		)
+		.mutation(async ({ input, ctx }) => {
+			try {
+				const organization = await (
+					await clerkClient()
+				).organizations.createOrganization({
+					name: input.name,
+					slug: input.slug,
+					createdBy: ctx.userId,
+				});
+
+				return {
+					id: organization.id,
+					name: organization.name,
+					slug: organization.slug,
+				};
+			} catch (error) {
+				console.error("Error creating organization:", error);
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to create organization",
+				});
+			}
+		}),
+
+	delete: protectedProcedure
+		.input(
+			z.object({
+				organizationId: z.string(),
+			}),
+		)
+		.mutation(async ({ input }) => {
+			try {
+				await (await clerkClient()).organizations.deleteOrganization(
+					input.organizationId,
+				);
+
+				return { success: true };
+			} catch (error) {
+				console.error("Error deleting organization:", error);
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to delete organization",
+				});
+			}
+		}),
+
 	createInvitation: protectedProcedure
 		.input(
 			z.object({
