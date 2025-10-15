@@ -9,6 +9,7 @@ interface LogoProps {
 	imageHeight?: number;
 	textSize?: "sm" | "base" | "lg" | "xl" | "2xl";
 	showText?: boolean;
+	className?: string;
 }
 
 const textSizeMap = {
@@ -24,6 +25,7 @@ export function Logo({
 	imageHeight = 100,
 	textSize = "xl",
 	showText = true,
+	className = "",
 }: LogoProps) {
 	const { resolvedTheme } = useTheme();
 	const [mounted, setMounted] = useState(false);
@@ -37,7 +39,7 @@ export function Logo({
 	}
 
 	return (
-		<div className="flex items-center">
+		<div className={`flex items-center ${className}`}>
 			<Image
 				src={
 					resolvedTheme === "dark"

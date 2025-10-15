@@ -10,18 +10,62 @@ export default function CallToAction() {
 		<section className="py-16 md:py-32">
 			<div className="mx-auto max-w-5xl px-6">
 				<div className="text-center">
-					<h2 className="text-balance font-display font-semibold text-4xl lg:text-5xl">
-						GPT-6 launches. Your router works. Your costs drop. Day one.
+					<h2 className="text-balance font-bold font-display text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+						GPT-6 Launches. <span className="text-primary">You're Ready.</span>{" "}
+						Costs Drop 60-90%.
 					</h2>
-					<p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-						The first router that works with tomorrow's models today - no
-						training data, no vendor lock-in, 60-90% savings across any
-						provider.
+					<p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground leading-relaxed sm:text-lg">
+						The first router ready for tomorrow's models today - no training, no
+						lock-in, instant savings across any provider.
 					</p>
-					<p className="mt-2 font-medium text-primary text-sm">
-						Free trial • $3.14 credit • No credit card required
-					</p>
-					<div className="mt-12 flex flex-wrap justify-center gap-4">
+					<div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm sm:text-base">
+						<div className="flex items-center gap-2">
+							<svg
+								className="h-5 w-5 text-green-500"
+								fill="currentColor"
+								viewBox="0 0 20 20"
+								aria-hidden="true"
+							>
+								<path
+									fillRule="evenodd"
+									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+									clipRule="evenodd"
+								/>
+							</svg>
+							<span className="text-muted-foreground">$3.14 free credit</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<svg
+								className="h-5 w-5 text-green-500"
+								fill="currentColor"
+								viewBox="0 0 20 20"
+								aria-hidden="true"
+							>
+								<path
+									fillRule="evenodd"
+									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+									clipRule="evenodd"
+								/>
+							</svg>
+							<span className="text-muted-foreground">No credit card</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<svg
+								className="h-5 w-5 text-green-500"
+								fill="currentColor"
+								viewBox="0 0 20 20"
+								aria-hidden="true"
+							>
+								<path
+									fillRule="evenodd"
+									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+									clipRule="evenodd"
+								/>
+							</svg>
+							<span className="text-muted-foreground">2-minute setup</span>
+						</div>
+					</div>
+					<div className="mt-10 flex flex-wrap justify-center gap-4">
 						<SignedOut>
 							<SignUpButton
 								mode="modal"
@@ -29,10 +73,10 @@ export default function CallToAction() {
 							>
 								<Button
 									size="lg"
-									className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
+									className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
 								>
-									<Rocket className="relative mr-2 size-4" />
-									<span>Start Saving 60-90%</span>
+									<Rocket className="relative mr-2 size-5" />
+									<span>Start Free Trial - Save 60-90%</span>
 								</Button>
 							</SignUpButton>
 						</SignedOut>
@@ -40,12 +84,12 @@ export default function CallToAction() {
 						<SignedIn>
 							<Button
 								size="lg"
-								className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
+								className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
 								asChild
 							>
 								<Link href="/api-platform/orgs">
-									<Rocket className="relative mr-2 size-4" />
-									View Dashboard
+									<Rocket className="relative mr-2 size-5" />
+									Go to Dashboard
 								</Link>
 							</Button>
 						</SignedIn>
@@ -54,10 +98,10 @@ export default function CallToAction() {
 							asChild
 							size="lg"
 							variant="outline"
-							className="border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20"
+							className="border-2 border-primary px-8 py-6 font-semibold text-base text-primary hover:bg-primary hover:text-primary-foreground sm:text-lg"
 						>
 							<Link href="/features">
-								<span>See Technical Details</span>
+								<span>View Documentation</span>
 							</Link>
 						</Button>
 					</div>
