@@ -42,6 +42,10 @@ export const MembersTab: React.FC<MembersTabProps> = ({ organizationId }) => {
 		organizationId,
 	});
 
+	const { data: invitations } = api.organizations.listInvitations.useQuery({
+		organizationId,
+	});
+
 	const removeMember = api.organizations.removeMember.useMutation({
 		onSuccess: () => {
 			toast.success("Member removed from the organization");
@@ -89,6 +93,8 @@ export const MembersTab: React.FC<MembersTabProps> = ({ organizationId }) => {
 	}
 
 	const currentMembers = members?.members || [];
+	const pendingInvitations = invitations?.invitations || [];
+	const totalCount = currentMembers.length + pendingInvitations.length;
 
 	return (
 		<div className="space-y-6">
@@ -102,10 +108,15 @@ export const MembersTab: React.FC<MembersTabProps> = ({ organizationId }) => {
 							</CardTitle>
 							<CardDescription>
 								{currentMembers.length} member
-								{currentMembers.length !== 1 ? "s" : ""}
+								{currentMembers.length !== 1 ? "s" : ""} · {totalCount}/5 total
+								slots used
 							</CardDescription>
 						</div>
-						<InviteMemberDialog organizationId={organizationId} />
+						<InviteMemberDialog
+							organizationId={organizationId}
+							currentMemberCount={currentMembers.length}
+							pendingInvitationCount={pendingInvitations.length}
+						/>
 					</div>
 				</CardHeader>
 				<CardContent>
