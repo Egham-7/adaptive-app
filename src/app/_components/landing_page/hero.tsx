@@ -4,23 +4,34 @@ import { SignedIn, SignedOut, SignUpButton } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { Rocket } from "lucide-react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TextRotate } from "@/components/ui/text-rotate";
 import AnimatedBeamGraph from "./animated-beam-graph";
 
 export default function HeroSection() {
 	const rotatingTexts = [
-		"Intelligent Inference",
+		"60-90% Cost Savings",
 		"New Models Day One",
-		"60-90% Savings",
+		"Zero Setup Required",
 	];
 
 	return (
 		<section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white dark:bg-neutral-950">
 			<div className="relative z-10 mx-auto max-w-4xl px-6 py-12 text-center">
-				<h1 className="mt-8 text-balance text-center font-display font-semibold text-3xl sm:text-4xl md:text-5xl xl:text-7xl xl:[line-height:1.125]">
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.5 }}
+				>
+					<Badge variant="secondary" className="mb-6">
+						All Latest Models Available
+					</Badge>
+				</motion.div>
+
+				<h1 className="mt-4 text-balance text-center font-bold font-display text-3xl leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
 					<span className="inline-flex flex-wrap items-center justify-center gap-x-2">
-						{"AI Infrastructure for ".split(" ").map((word, wordIndex) => (
+						{"Cut AI Costs by ".split(" ").map((word, wordIndex) => (
 							<span key={word} className="inline-block whitespace-nowrap">
 								{word.split("").map((letter, letterIndex) => (
 									<motion.span
@@ -64,54 +75,97 @@ export default function HeroSection() {
 					</span>
 				</h1>
 
-				<p className="mx-auto mt-8 max-w-3xl text-balance text-muted-foreground text-sm sm:text-base">
-					The first AI router that works with any model instantly - no training
-					data, no onboarding, no setup. Our{" "}
-					<span className="font-medium text-foreground">
-						sub-2ms prompt complexity classifier
-					</span>{" "}
-					maps requests to optimal models in real-time, delivering 60-90% cost
-					savings across OpenAI, Anthropic, and any future provider.
+				<p className="mx-auto mt-6 max-w-2xl text-balance text-base text-muted-foreground leading-relaxed sm:text-lg">
+					The AI router that instantly works with any model - no training, no
+					setup, no waiting. Route requests to the optimal model in under 2ms
+					and{" "}
+					<span className="font-semibold text-foreground">
+						save 60-90% on every API call.
+					</span>
 				</p>
-				<p className="mx-auto mt-4 max-w-2xl font-medium text-primary text-xs sm:text-sm">
-					⚡ Be ready for the next model launch while competitors scramble for
-					weeks
-				</p>
+
+				<div className="mx-auto mt-6 flex flex-wrap items-center justify-center gap-4 text-sm sm:text-base">
+					<div className="flex items-center gap-2">
+						<svg
+							className="h-5 w-5 text-green-500"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+							aria-hidden="true"
+						>
+							<path
+								fillRule="evenodd"
+								d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+								clipRule="evenodd"
+							/>
+						</svg>
+						<span className="text-muted-foreground">$3.14 free credit</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<svg
+							className="h-5 w-5 text-green-500"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+							aria-hidden="true"
+						>
+							<path
+								fillRule="evenodd"
+								d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+								clipRule="evenodd"
+							/>
+						</svg>
+						<span className="text-muted-foreground">No credit card</span>
+					</div>
+					<div className="flex items-center gap-2">
+						<svg
+							className="h-5 w-5 text-green-500"
+							fill="currentColor"
+							viewBox="0 0 20 20"
+							aria-hidden="true"
+						>
+							<path
+								fillRule="evenodd"
+								d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+								clipRule="evenodd"
+							/>
+						</svg>
+						<span className="text-muted-foreground">2-minute setup</span>
+					</div>
+				</div>
 
 				<AnimatedBeamGraph />
 
-				<fieldset className="mt-8 flex flex-col justify-center gap-4 border-0 p-0 md:flex-row">
+				<fieldset className="mt-10 flex flex-col justify-center gap-4 border-0 p-0 sm:flex-row">
 					<legend className="sr-only">Hero actions</legend>
 					<SignedOut>
 						<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
 							<Button
 								size="lg"
-								className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
+								className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
 							>
-								<Rocket className="relative mr-2 size-4" aria-hidden="true" />
-								Start Saving 60-90%
+								<Rocket className="relative mr-2 size-5" aria-hidden="true" />
+								Start Free Trial - Save 60-90%
 							</Button>
 						</SignUpButton>
 					</SignedOut>
 					<SignedIn>
 						<Button
 							size="lg"
-							className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
+							className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
 							asChild
 						>
 							<Link href="/api-platform/orgs">
-								<Rocket className="relative mr-2 size-4" aria-hidden="true" />
-								View Dashboard
+								<Rocket className="relative mr-2 size-5" aria-hidden="true" />
+								Go to Dashboard
 							</Link>
 						</Button>
 					</SignedIn>
 					<Button
 						variant="outline"
 						size="lg"
-						className="border-primary text-primary hover:bg-primary/10 dark:hover:bg-primary/20"
+						className="border-2 border-primary px-8 py-6 font-semibold text-base text-primary hover:bg-primary hover:text-primary-foreground sm:text-lg"
 						asChild
 					>
-						<Link href="/features">See How It Works</Link>
+						<Link href="/features">Watch Demo</Link>
 					</Button>
 				</fieldset>
 			</div>

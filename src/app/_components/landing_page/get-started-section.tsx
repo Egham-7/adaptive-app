@@ -18,16 +18,16 @@ export default function GetStartedSection() {
 						transition={{ duration: 0.6 }}
 						className="text-center"
 					>
-						<h2 className="font-semibold text-4xl lg:text-5xl">
-							See How{" "}
+						<h2 className="font-bold text-3xl tracking-tight sm:text-4xl lg:text-5xl">
+							See{" "}
 							<span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-								Adaptive Works
-							</span>
+								Adaptive
+							</span>{" "}
+							in Action
 						</h2>
-						<p className="mx-auto mt-6 max-w-3xl text-balance text-lg text-muted-foreground">
-							Watch how Adaptive reduces your AI costs by 60-90% with
-							intelligent model routing and automatic optimization - no setup
-							required.
+						<p className="mx-auto mt-6 max-w-3xl text-balance text-base text-muted-foreground leading-relaxed sm:text-lg">
+							Watch how Adaptive cuts your AI costs by 60-90% with intelligent
+							routing - no setup, no training data, ready in 2 minutes.
 						</p>
 					</motion.div>
 
@@ -47,12 +47,12 @@ export default function GetStartedSection() {
 						whileInView={{ opacity: 1, y: 0 }}
 						viewport={{ once: true }}
 						transition={{ duration: 0.6, delay: 0.4 }}
-						className="mt-16 space-y-6 text-center"
+						className="mt-12 space-y-6 text-center"
 					>
-						<p className="text-muted-foreground">
-							Ready to start saving 60-90% on your AI costs?{" "}
-							<span className="font-medium text-primary">
-								Free trial • $3.14 credit • No credit card required
+						<p className="text-base text-muted-foreground sm:text-lg">
+							Ready to slash your AI costs?{" "}
+							<span className="font-semibold text-foreground">
+								Join teams saving thousands monthly
 							</span>
 						</p>
 
@@ -60,13 +60,17 @@ export default function GetStartedSection() {
 							<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
 								<Button
 									size="lg"
-									className="bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90"
+									className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
 								>
-									<Rocket className="relative mr-2 size-4" aria-hidden="true" />
-									Start Saving Now
+									<Rocket className="relative mr-2 size-5" aria-hidden="true" />
+									Start Free - Get $3.14 Credit
 								</Button>
 							</SignUpButton>
 						</div>
+
+						<p className="text-muted-foreground text-sm">
+							No credit card • 2-minute setup • Cancel anytime
+						</p>
 					</motion.div>
 				</div>
 			</section>

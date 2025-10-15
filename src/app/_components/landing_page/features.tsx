@@ -10,12 +10,12 @@ export default function FeaturesSection() {
 		>
 			<div className="mx-auto max-w-3xl px-6 lg:max-w-5xl">
 				<header className="mb-12 text-center">
-					<h2 className="font-display font-semibold text-4xl lg:text-5xl">
-						New Models Day One. Any Provider. Maximum Savings.
+					<h2 className="font-bold font-display text-3xl tracking-tight sm:text-4xl lg:text-5xl">
+						New Models. Any Provider. Maximum Savings.
 					</h2>
-					<p className="mt-4 text-muted-foreground">
-						The only router that works with tomorrow's models today - no
-						training data, no vendor lock-in, 60-90% savings from day one
+					<p className="mx-auto mt-6 max-w-3xl text-base text-muted-foreground leading-relaxed sm:text-lg">
+						The only router ready for tomorrow's models today - no training, no
+						lock-in, instant 60-90% savings
 					</p>
 				</header>
 				<div className="grid gap-8 md:grid-cols-3">
@@ -25,17 +25,16 @@ export default function FeaturesSection() {
 							<div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
 								<Zap className="h-10 w-10 text-primary" aria-hidden="true" />
 							</div>
-							<h3 className="mb-4 font-semibold text-2xl">
+							<h3 className="mb-4 font-bold text-xl sm:text-2xl">
 								New Models Day One
 							</h3>
-							<p className="text-muted-foreground text-sm leading-relaxed">
-								Works with GPT-6, Claude Opus 5, or any new model the day it
+							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
+								Works with GPT-6, Claude Opus 5, or any model the day it
 								launches. Our{" "}
-								<span className="font-medium text-foreground">
-									sub-2ms classifier
+								<span className="font-semibold text-foreground">
+									sub-2ms routing
 								</span>{" "}
-								instantly maps model definitions - no training data, no weeks of
-								setup.
+								instantly adapts - no training, no waiting.
 							</p>
 							<div className="mt-6 rounded-lg bg-muted/50 p-3">
 								<p className="font-mono text-muted-foreground text-xs">
@@ -51,11 +50,12 @@ export default function FeaturesSection() {
 							<div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
 								<TrendingDown className="h-10 w-10 text-primary" />
 							</div>
-							<h3 className="mb-4 font-semibold text-2xl">Any Provider</h3>
-							<p className="text-muted-foreground text-sm leading-relaxed">
-								Provider-agnostic optimization across OpenAI, Anthropic, Google,
-								and any future provider. Never locked into expensive routing
-								decisions. Switch providers seamlessly.
+							<h3 className="mb-4 font-bold text-xl sm:text-2xl">
+								Any Provider
+							</h3>
+							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
+								Optimize across OpenAI, Anthropic, Google, and any future
+								provider. Never locked in. Switch seamlessly.
 							</p>
 							<div className="mt-4">
 								<ProviderDownloadChart />
@@ -69,11 +69,13 @@ export default function FeaturesSection() {
 							<div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
 								<Shield className="h-10 w-10 text-primary" />
 							</div>
-							<h3 className="mb-4 font-semibold text-2xl">Maximum Savings</h3>
-							<p className="text-muted-foreground text-sm leading-relaxed">
-								Achieve 60-90% cost reduction through intelligent routing and
-								real-time optimization. Sub-millisecond decisions with automatic
-								failover ensure 99.9% uptime.
+							<h3 className="mb-4 font-bold text-xl sm:text-2xl">
+								Maximum Savings
+							</h3>
+							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
+								Cut costs by 60-90% through intelligent routing and real-time
+								optimization. Sub-millisecond decisions, 99.9% uptime
+								guaranteed.
 							</p>
 							<div className="mt-6 space-y-2">
 								<div className="flex justify-between text-xs">

@@ -19,38 +19,36 @@ export default function ContentSection() {
 	return (
 		<section id="solution" className="py-16 md:py-32">
 			<div className="mx-auto max-w-5xl space-y-8 px-6 md:space-y-16">
-				<h2 className="relative z-10 max-w-4xl font-medium text-4xl lg:text-5xl">
-					For Developers & CTOs: Stop overpaying while waiting weeks for new
-					model support.
+				<h2 className="relative z-10 max-w-4xl font-bold text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+					For Developers & CTOs:{" "}
+					<span className="text-primary">Stop Overpaying</span> for New Models
 				</h2>
 
 				<div className="grid gap-6 md:grid-cols-2 md:gap-12 lg:gap-24">
 					<div className="relative space-y-4">
-						<p className="text-muted-foreground">
-							Every other router requires weeks of training data and model
-							profiling before they work. We work with GPT-6 the day it launches
-							- and save you 60-90% on costs across any provider.
+						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
+							Every other router needs weeks of training before supporting new
+							models. We work with GPT-6 the day it launches - and save you
+							60-90% across any provider.
 						</p>
 
-						<p className="text-muted-foreground">
-							New model support without retraining. Provider-agnostic cost
-							optimization. Turn your biggest expense into your competitive
-							advantage.
+						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
+							New model support without retraining. Provider-agnostic
+							optimization. Turn your biggest expense into your advantage.
 						</p>
 
-						<div className="mt-6 rounded-lg border bg-muted/30 p-4">
-							<h3 className="mb-2 font-medium text-foreground text-sm">
+						<div className="mt-6 rounded-lg border bg-muted/30 p-4 md:p-6">
+							<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
 								How It Works:
 							</h3>
-							<p className="text-muted-foreground text-sm">
+							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
 								Our{" "}
-								<span className="font-medium text-foreground">
-									sub-2ms prompt complexity classifier
+								<span className="font-semibold text-foreground">
+									sub-2ms routing engine
 								</span>{" "}
-								analyzes task complexity, tool calling needs, and model
-								capabilities in real-time. When new models launch, we instantly
-								map their definitions (tasks, complexity, tools) to our routing
-								system - no weeks of training data required.
+								analyzes task complexity and model capabilities in real-time.
+								When new models launch, we instantly integrate them - no
+								training data needed.
 							</p>
 						</div>
 
@@ -58,29 +56,28 @@ export default function ContentSection() {
 							{/* Developer Benefits */}
 							<div className="rounded-lg border bg-primary/5 p-4 dark:bg-primary/10">
 								<div className="mb-2 flex items-center gap-2">
-									<Zap className="size-4 text-primary" />
-									<h3 className="font-medium text-foreground text-sm">
+									<Zap className="size-5 flex-shrink-0 text-primary" />
+									<h3 className="font-semibold text-foreground text-sm sm:text-base">
 										For Developers
 									</h3>
 								</div>
-								<p className="text-muted-foreground text-sm">
-									Skip weeks of integration work. Use new models day-one with
-									existing code. OpenAI-compatible API means zero code changes.
+								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
+									Skip weeks of integration. Use new models day-one with
+									existing code. OpenAI-compatible API - zero code changes.
 								</p>
 							</div>
 
 							{/* CTO Benefits */}
 							<div className="rounded-lg border bg-secondary/30 p-4 dark:bg-secondary/20">
 								<div className="mb-2 flex items-center gap-2">
-									<Cpu className="size-4 text-secondary-foreground" />
-									<h3 className="font-medium text-foreground text-sm">
+									<Cpu className="size-5 flex-shrink-0 text-secondary-foreground" />
+									<h3 className="font-semibold text-foreground text-sm sm:text-base">
 										For CTOs
 									</h3>
 								</div>
-								<p className="text-muted-foreground text-sm">
-									Reduce AI spend by 60-90% without vendor lock-in. Get
-									competitive advantage while other companies wait for router
-									updates.
+								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
+									Cut AI spend by 60-90% without vendor lock-in. Get competitive
+									advantage while others wait for updates.
 								</p>
 							</div>
 						</div>
