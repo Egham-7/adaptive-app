@@ -112,7 +112,15 @@ export default function OnboardingPage() {
 		);
 	};
 
+	const handleSkipProject = () => {
+		setCurrentStep("complete");
+	};
+
 	const handleSkipApiKey = () => {
+		setCurrentStep("complete");
+	};
+
+	const handleSkipQuickstart = () => {
 		setCurrentStep("complete");
 	};
 
@@ -202,6 +210,7 @@ export default function OnboardingPage() {
 					<ProjectStep
 						onSubmit={onProjectSubmit}
 						onBack={handleBack}
+						onSkip={handleSkipProject}
 						isLoading={createProject.isPending}
 					/>
 				)}
@@ -221,6 +230,7 @@ export default function OnboardingPage() {
 					<QuickstartStep
 						apiKey={createdApiKey}
 						onContinue={() => setCurrentStep("complete")}
+						onSkip={handleSkipQuickstart}
 						onBack={handleBack}
 					/>
 				)}
