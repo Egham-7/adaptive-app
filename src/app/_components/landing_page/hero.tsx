@@ -18,52 +18,53 @@ export default function HeroSection() {
 	return (
 		<section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white dark:bg-neutral-950">
 			<div className="relative z-10 mx-auto max-w-4xl px-6 py-12 text-center">
-				<h1 className="mt-8 text-balance text-center font-display font-semibold text-4xl md:text-5xl xl:text-7xl xl:[line-height:1.125]">
-					{"AI Infrastructure for ".split(" ").map((word, wordIndex) => (
-						<span
-							key={word}
-							className="mr-2 inline-block flex-nowrap last:mr-0"
-						>
-							{word.split("").map((letter, letterIndex) => (
-								<motion.span
-									key={word.slice(0, letterIndex + 1)}
-									initial={{ y: 100, opacity: 0 }}
-									animate={{ y: 0, opacity: 1 }}
-									transition={{
-										delay: (wordIndex * 3 + letterIndex) * 0.03,
-										type: "spring",
-										stiffness: 150,
-										damping: 25,
-									}}
-									className="inline-block bg-gradient-to-r from-neutral-900 to-neutral-700/80 bg-clip-text text-transparent dark:from-white dark:to-white/80"
-								>
-									{letter}
-								</motion.span>
-							))}
-						</span>
-					))}
+				<h1 className="mt-8 text-balance text-center font-display font-semibold text-3xl sm:text-4xl md:text-5xl xl:text-7xl xl:[line-height:1.125]">
+					<span className="inline-flex flex-wrap items-center justify-center gap-x-2">
+						{"AI Infrastructure for ".split(" ").map((word, wordIndex) => (
+							<span key={word} className="inline-block whitespace-nowrap">
+								{word.split("").map((letter, letterIndex) => (
+									<motion.span
+										key={word.slice(0, letterIndex + 1)}
+										initial={{ y: 100, opacity: 0 }}
+										animate={{ y: 0, opacity: 1 }}
+										transition={{
+											delay: (wordIndex * 3 + letterIndex) * 0.03,
+											type: "spring",
+											stiffness: 150,
+											damping: 25,
+										}}
+										className="inline-block bg-gradient-to-r from-neutral-900 to-neutral-700/80 bg-clip-text text-transparent dark:from-white dark:to-white/80"
+									>
+										{letter}
+									</motion.span>
+								))}
+							</span>
+						))}
+					</span>
 
-					<TextRotate
-						texts={rotatingTexts}
-						rotationInterval={3000}
-						staggerDuration={0.02}
-						staggerFrom="first"
-						splitBy="characters"
-						splitLevelClassName="inline-block flex-nowrap whitespace-nowrap"
-						mainClassName="bg-gradient-to-r flex-nowwrap whitespace-nowrap flex items-center justify-center from-primary to-primary/80 bg-clip-text text-transparent whitespace-nowrap"
-						elementLevelClassName="inline-block flex-nowrap whitespace-nowrap"
-						initial={{ y: 100, opacity: 0 }}
-						animate={{ y: 0, opacity: 1 }}
-						exit={{ y: -100, opacity: 0 }}
-						transition={{
-							type: "spring",
-							stiffness: 150,
-							damping: 25,
-						}}
-					/>
+					<span className="inline-flex items-center justify-center">
+						<TextRotate
+							texts={rotatingTexts}
+							rotationInterval={3000}
+							staggerDuration={0.02}
+							staggerFrom="first"
+							splitBy="characters"
+							splitLevelClassName="inline-block whitespace-nowrap"
+							mainClassName="bg-gradient-to-r whitespace-nowrap inline-flex items-center justify-center from-primary to-primary/80 bg-clip-text text-transparent"
+							elementLevelClassName="inline-block whitespace-nowrap"
+							initial={{ y: 100, opacity: 0 }}
+							animate={{ y: 0, opacity: 1 }}
+							exit={{ y: -100, opacity: 0 }}
+							transition={{
+								type: "spring",
+								stiffness: 150,
+								damping: 25,
+							}}
+						/>
+					</span>
 				</h1>
 
-				<p className="mx-auto mt-8 max-w-3xl text-balance text-muted-foreground">
+				<p className="mx-auto mt-8 max-w-3xl text-balance text-muted-foreground text-sm sm:text-base">
 					The first AI router that works with any model instantly - no training
 					data, no onboarding, no setup. Our{" "}
 					<span className="font-medium text-foreground">
@@ -72,7 +73,7 @@ export default function HeroSection() {
 					maps requests to optimal models in real-time, delivering 60-90% cost
 					savings across OpenAI, Anthropic, and any future provider.
 				</p>
-				<p className="mx-auto mt-4 max-w-2xl font-medium text-primary text-sm">
+				<p className="mx-auto mt-4 max-w-2xl font-medium text-primary text-xs sm:text-sm">
 					⚡ Be ready for the next model launch while competitors scramble for
 					weeks
 				</p>

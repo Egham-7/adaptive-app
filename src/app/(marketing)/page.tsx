@@ -11,7 +11,7 @@ import Pricing from "@/app/_components/landing_page/pricing";
 export default function LandingPage() {
 	return (
 		<Suspense>
-			<main>
+			<main className="pt-[60px] lg:pt-0">
 				<HeroSection />
 				<ChartsSection />
 				<GetStartedSection />
