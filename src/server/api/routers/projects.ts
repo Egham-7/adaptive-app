@@ -57,7 +57,28 @@ export const projectsRouter = createTRPCRouter({
 					const currentUserMember = project.members?.find(
 						(m) => m.user_id === userId,
 					);
-					const currentUserRole = currentUserMember?.role ?? null;
+					let currentUserRole = currentUserMember?.role ?? null;
+
+					// If not an explicit project member, check if user is org admin
+					if (!currentUserRole && project.organization_id) {
+						try {
+							const membership = await (
+								await clerkClient()
+							).users.getOrganizationMembershipList({
+								userId: userId,
+							});
+
+							const orgMembership = membership.data.find(
+								(m) => m.organization.id === project.organization_id,
+							);
+
+							if (orgMembership?.role === "org:admin") {
+								currentUserRole = "owner";
+							}
+						} catch (error) {
+							console.error("Error checking org admin status:", error);
+						}
+					}
 
 					return {
 						...project,

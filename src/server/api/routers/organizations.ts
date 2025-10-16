@@ -131,6 +131,7 @@ export const organizationsRouter = createTRPCRouter({
 							role: inv.role,
 							status: inv.status,
 							createdAt: inv.createdAt,
+							updatedAt: inv.updatedAt,
 						})),
 					};
 				} catch (error) {

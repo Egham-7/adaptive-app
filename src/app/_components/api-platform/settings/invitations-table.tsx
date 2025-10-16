@@ -19,7 +19,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { useOrganizationInvitations } from "@/hooks/organizations/use-organization-invitations";
+import { usePendingOrganizationInvitations } from "@/hooks/organizations/use-pending-organization-invitations";
 import { useRevokeOrganizationInvitation } from "@/hooks/organizations/use-revoke-organization-invitation";
 
 interface InvitationsTableProps {
@@ -30,7 +30,7 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
 	organizationId,
 }) => {
 	const { data: invitations, isLoading } =
-		useOrganizationInvitations(organizationId);
+		usePendingOrganizationInvitations(organizationId);
 
 	const { mutate: revokeInvitation, isPending } =
 		useRevokeOrganizationInvitation();
@@ -92,7 +92,6 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
 						<TableRow>
 							<TableHead>Email</TableHead>
 							<TableHead>Role</TableHead>
-							<TableHead>Status</TableHead>
 							<TableHead>Invited</TableHead>
 							<TableHead className="text-right">Actions</TableHead>
 						</TableRow>
@@ -106,15 +105,6 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
 								<TableCell>
 									<Badge variant="outline">
 										{invitation.role === "org:admin" ? "Admin" : "Member"}
-									</Badge>
-								</TableCell>
-								<TableCell>
-									<Badge
-										variant={
-											invitation.status === "pending" ? "secondary" : "default"
-										}
-									>
-										{invitation.status}
 									</Badge>
 								</TableCell>
 								<TableCell>
