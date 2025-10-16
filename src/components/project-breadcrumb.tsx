@@ -4,7 +4,7 @@ import { useOrganization } from "@clerk/nextjs";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import { api } from "@/trpc/react";
+import { useProject } from "@/hooks/projects/use-project";
 
 interface ProjectBreadcrumbProps {
 	className?: string;
@@ -18,16 +18,9 @@ export function ProjectBreadcrumb({ className }: ProjectBreadcrumbProps) {
 	const projectId = params?.projectId as string | undefined;
 	const { organization, isLoaded: orgLoaded } = useOrganization();
 
-	const { data: project, isLoading: projectLoading } =
-		api.projects.getById.useQuery(
-			{ id: projectId ? Number(projectId) : 0 },
-			{
-				enabled:
-					!!projectId &&
-					typeof projectId === "string" &&
-					!Number.isNaN(Number(projectId)),
-			},
-		);
+	const { data: project, isLoading: projectLoading } = useProject(
+		projectId ? Number(projectId) : 0,
+	);
 
 	if (!orgLoaded || projectLoading) {
 		return <Skeleton className="h-6 w-80" />;

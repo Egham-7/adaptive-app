@@ -2,7 +2,6 @@
 
 import { Mail, Trash2 } from "lucide-react";
 import type React from "react";
-import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +19,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { api } from "@/trpc/react";
+import { useOrganizationInvitations } from "@/hooks/organizations/use-organization-invitations";
+import { useRevokeOrganizationInvitation } from "@/hooks/organizations/use-revoke-organization-invitation";
 
 interface InvitationsTableProps {
 	organizationId: string;
@@ -29,26 +29,15 @@ interface InvitationsTableProps {
 export const InvitationsTable: React.FC<InvitationsTableProps> = ({
 	organizationId,
 }) => {
-	const utils = api.useUtils();
-
 	const { data: invitations, isLoading } =
-		api.organizations.listInvitations.useQuery({
-			organizationId,
-		});
+		useOrganizationInvitations(organizationId);
 
-	const revokeInvitation = api.organizations.revokeInvitation.useMutation({
-		onSuccess: () => {
-			toast.success("Invitation revoked successfully");
-			utils.organizations.listInvitations.invalidate({ organizationId });
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to revoke invitation");
-		},
-	});
+	const { mutate: revokeInvitation, isPending } =
+		useRevokeOrganizationInvitation();
 
 	const handleRevoke = (invitationId: string) => {
 		if (confirm("Are you sure you want to revoke this invitation?")) {
-			revokeInvitation.mutate({
+			revokeInvitation({
 				organizationId,
 				invitationId,
 			});
@@ -136,7 +125,7 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
 										variant="ghost"
 										size="sm"
 										onClick={() => handleRevoke(invitation.id)}
-										disabled={revokeInvitation.isPending}
+										disabled={isPending}
 									>
 										<Trash2 className="h-4 w-4" />
 									</Button>

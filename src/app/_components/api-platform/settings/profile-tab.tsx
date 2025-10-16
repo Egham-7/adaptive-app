@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/trpc/react";
+import { useDeleteOrganization } from "@/hooks/organizations/use-delete-organization";
 
 interface ProfileTabProps {
 	organization: OrganizationResource | null | undefined;
@@ -43,7 +43,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 	const { userMemberships, setActive } = useOrganizationList({
 		userMemberships: { infinite: true },
 	});
-	const deleteOrgMutation = api.organizations.delete.useMutation();
+	const { mutate: deleteOrg, isPending } = useDeleteOrganization();
 
 	const handleSave = async () => {
 		if (!organization) return;
@@ -61,28 +61,32 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 	const handleDelete = async () => {
 		if (!organization) return;
 
-		try {
-			await deleteOrgMutation.mutateAsync({
-				organizationId: organization.id,
-			});
+		deleteOrg(
+			{ organizationId: organization.id },
+			{
+				onSuccess: async () => {
+					const remainingOrgs = userMemberships.data?.filter(
+						(m) => m.organization.id !== organization.id,
+					);
 
-			const remainingOrgs = userMemberships.data?.filter(
-				(m) => m.organization.id !== organization.id,
-			);
+					if (remainingOrgs?.[0] && setActive) {
+						await setActive({ organization: remainingOrgs[0].organization.id });
+						router.push(
+							`/api-platform/orgs/${remainingOrgs[0].organization.slug}`,
+						);
+					} else {
+						router.push("/api-platform/orgs");
+					}
 
-			if (remainingOrgs?.[0] && setActive) {
-				await setActive({ organization: remainingOrgs[0].organization.id });
-				router.push(`/api-platform/orgs/${remainingOrgs[0].organization.slug}`);
-			} else {
-				router.push("/api-platform/orgs");
-			}
-
-			toast.success("Organization deleted successfully");
-			setShowDeleteDialog(false);
-		} catch (error) {
-			toast.error("Failed to delete organization");
-			console.error(error);
-		}
+					toast.success("Organization deleted successfully");
+					setShowDeleteDialog(false);
+				},
+				onError: (error) => {
+					toast.error("Failed to delete organization");
+					console.error(error);
+				},
+			},
+		);
 	};
 
 	return (
@@ -222,13 +226,10 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
-							disabled={
-								confirmText !== organization?.name ||
-								deleteOrgMutation.isPending
-							}
+							disabled={confirmText !== organization?.name || isPending}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							{deleteOrgMutation.isPending ? "Deleting..." : "Delete"}
+							{isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

@@ -3,7 +3,6 @@
 import { Plus } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -23,7 +22,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { api } from "@/trpc/react";
+import { useCreateOrganizationInvitation } from "@/hooks/organizations/use-create-organization-invitation";
 
 interface InviteMemberDialogProps {
 	organizationId: string;
@@ -39,33 +38,30 @@ export const InviteMemberDialog: React.FC<InviteMemberDialogProps> = ({
 	const [open, setOpen] = useState(false);
 	const [email, setEmail] = useState("");
 	const [role, setRole] = useState<"org:admin" | "org:member">("org:member");
-	const utils = api.useUtils();
 
 	const totalCount = currentMemberCount + pendingInvitationCount;
 	const isAtLimit = totalCount >= 5;
 
-	const createInvitation = api.organizations.createInvitation.useMutation({
-		onSuccess: () => {
-			toast.success("Invitation sent successfully");
-			setOpen(false);
-			setEmail("");
-			setRole("org:member");
-			utils.organizations.listInvitations.invalidate({ organizationId });
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to send invitation");
-		},
-	});
+	const createInvitation = useCreateOrganizationInvitation();
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!email) return;
 
-		createInvitation.mutate({
-			organizationId,
-			emailAddress: email,
-			role,
-		});
+		createInvitation.mutate(
+			{
+				organizationId,
+				emailAddress: email,
+				role,
+			},
+			{
+				onSuccess: () => {
+					setOpen(false);
+					setEmail("");
+					setRole("org:member");
+				},
+			},
+		);
 	};
 
 	return (

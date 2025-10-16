@@ -20,18 +20,14 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { api } from "@/trpc/react";
+import { useProjects } from "@/hooks/projects/use-projects";
 
 interface ProjectsTabProps {
 	organizationId: string;
 }
 
 export const ProjectsTab: React.FC<ProjectsTabProps> = ({ organizationId }) => {
-	const { data: projects, isLoading } = api.projects.getByOrganization.useQuery(
-		{
-			organizationId,
-		},
-	);
+	const { data: projects, isLoading } = useProjects(organizationId);
 
 	if (isLoading) {
 		return (

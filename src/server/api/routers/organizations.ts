@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { invalidateOrganizationCache, withCache } from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 
 export const organizationsRouter = createTRPCRouter({
@@ -20,6 +21,9 @@ export const organizationsRouter = createTRPCRouter({
 					slug: input.slug,
 					createdBy: ctx.userId,
 				});
+
+				// Note: No cache invalidation needed - organization creation doesn't affect existing queries
+				// The user will be redirected to the new organization page
 
 				return {
 					id: organization.id,
@@ -41,11 +45,14 @@ export const organizationsRouter = createTRPCRouter({
 				organizationId: z.string(),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx }) => {
 			try {
 				await (await clerkClient()).organizations.deleteOrganization(
 					input.organizationId,
 				);
+
+				// Note: No cache invalidation needed - organization deletion will redirect user away
+				// All cached data for this organization will no longer be accessible
 
 				return { success: true };
 			} catch (error) {
@@ -65,7 +72,9 @@ export const organizationsRouter = createTRPCRouter({
 				role: z.enum(["org:admin", "org:member"]),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx }) => {
+			const userId = ctx.userId;
+
 			try {
 				const invitation = await (
 					await clerkClient()
@@ -75,6 +84,8 @@ export const organizationsRouter = createTRPCRouter({
 					role: input.role,
 					inviterUserId: undefined,
 				});
+
+				await invalidateOrganizationCache(userId, input.organizationId);
 
 				return {
 					success: true,
@@ -101,30 +112,35 @@ export const organizationsRouter = createTRPCRouter({
 				organizationId: z.string(),
 			}),
 		)
-		.query(async ({ input }) => {
-			try {
-				const invitations = await (
-					await clerkClient()
-				).organizations.getOrganizationInvitationList({
-					organizationId: input.organizationId,
-				});
+		.query(async ({ input, ctx }) => {
+			const userId = ctx.userId;
+			const cacheKey = `org-invitations:${userId}:${input.organizationId}`;
 
-				return {
-					invitations: invitations.data.map((inv) => ({
-						id: inv.id,
-						emailAddress: inv.emailAddress,
-						role: inv.role,
-						status: inv.status,
-						createdAt: inv.createdAt,
-					})),
-				};
-			} catch (error) {
-				console.error("Error listing organization invitations:", error);
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to list organization invitations",
-				});
-			}
+			return withCache(cacheKey, async () => {
+				try {
+					const invitations = await (
+						await clerkClient()
+					).organizations.getOrganizationInvitationList({
+						organizationId: input.organizationId,
+					});
+
+					return {
+						invitations: invitations.data.map((inv) => ({
+							id: inv.id,
+							emailAddress: inv.emailAddress,
+							role: inv.role,
+							status: inv.status,
+							createdAt: inv.createdAt,
+						})),
+					};
+				} catch (error) {
+					console.error("Error listing organization invitations:", error);
+					throw new TRPCError({
+						code: "INTERNAL_SERVER_ERROR",
+						message: "Failed to list organization invitations",
+					});
+				}
+			});
 		}),
 
 	revokeInvitation: protectedProcedure
@@ -134,12 +150,16 @@ export const organizationsRouter = createTRPCRouter({
 				invitationId: z.string(),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx }) => {
+			const userId = ctx.userId;
+
 			try {
 				await (await clerkClient()).organizations.revokeOrganizationInvitation({
 					organizationId: input.organizationId,
 					invitationId: input.invitationId,
 				});
+
+				await invalidateOrganizationCache(userId, input.organizationId);
 
 				return { success: true };
 			} catch (error) {
@@ -191,33 +211,38 @@ export const organizationsRouter = createTRPCRouter({
 				organizationId: z.string(),
 			}),
 		)
-		.query(async ({ input }) => {
-			try {
-				const memberships = await (
-					await clerkClient()
-				).organizations.getOrganizationMembershipList({
-					organizationId: input.organizationId,
-				});
+		.query(async ({ input, ctx }) => {
+			const userId = ctx.userId;
+			const cacheKey = `org-members:${userId}:${input.organizationId}`;
 
-				return {
-					members: memberships.data.map((membership) => ({
-						id: membership.id,
-						userId: membership.publicUserData?.userId,
-						email: membership.publicUserData?.identifier,
-						firstName: membership.publicUserData?.firstName,
-						lastName: membership.publicUserData?.lastName,
-						imageUrl: membership.publicUserData?.imageUrl,
-						role: membership.role,
-						createdAt: membership.createdAt,
-					})),
-				};
-			} catch (error) {
-				console.error("Error listing organization members:", error);
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to list organization members",
-				});
-			}
+			return withCache(cacheKey, async () => {
+				try {
+					const memberships = await (
+						await clerkClient()
+					).organizations.getOrganizationMembershipList({
+						organizationId: input.organizationId,
+					});
+
+					return {
+						members: memberships.data.map((membership) => ({
+							id: membership.id,
+							userId: membership.publicUserData?.userId,
+							email: membership.publicUserData?.identifier,
+							firstName: membership.publicUserData?.firstName,
+							lastName: membership.publicUserData?.lastName,
+							imageUrl: membership.publicUserData?.imageUrl,
+							role: membership.role,
+							createdAt: membership.createdAt,
+						})),
+					};
+				} catch (error) {
+					console.error("Error listing organization members:", error);
+					throw new TRPCError({
+						code: "INTERNAL_SERVER_ERROR",
+						message: "Failed to list organization members",
+					});
+				}
+			});
 		}),
 
 	updateMemberRole: protectedProcedure
@@ -228,13 +253,17 @@ export const organizationsRouter = createTRPCRouter({
 				role: z.enum(["org:admin", "org:member"]),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx }) => {
+			const currentUserId = ctx.userId;
+
 			try {
 				await (await clerkClient()).organizations.updateOrganizationMembership({
 					organizationId: input.organizationId,
 					userId: input.userId,
 					role: input.role,
 				});
+
+				await invalidateOrganizationCache(currentUserId, input.organizationId);
 
 				return { success: true };
 			} catch (error) {
@@ -253,12 +282,16 @@ export const organizationsRouter = createTRPCRouter({
 				userId: z.string(),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx }) => {
+			const currentUserId = ctx.userId;
+
 			try {
 				await (await clerkClient()).organizations.deleteOrganizationMembership({
 					organizationId: input.organizationId,
 					userId: input.userId,
 				});
+
+				await invalidateOrganizationCache(currentUserId, input.organizationId);
 
 				return { success: true };
 			} catch (error) {
