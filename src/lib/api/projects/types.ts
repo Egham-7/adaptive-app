@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const projectStatusSchema = z.enum(["active", "inactive", "paused"]);
 
-export const projectMemberRoleSchema = z.enum(["owner", "admin", "member"]);
+export const projectMemberRoleSchema = z.enum(["admin", "member", "owner"]);
 
 export const projectMemberSchema = z.object({
 	id: z.number(),

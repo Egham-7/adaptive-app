@@ -8,7 +8,6 @@ import {
 	protectedProcedure,
 	publicProcedure,
 } from "@/server/api/trpc";
-import type { ApiKeyResponse } from "@/types/api-keys";
 import { createApiKeySchema, updateApiKeySchema } from "@/types/api-keys";
 
 async function verifyProjectAccess(
@@ -28,7 +27,6 @@ async function verifyProjectAccess(
 	const projectsClient = new ProjectsClient(token);
 
 	try {
-		const _project = await projectsClient.getById(projectId);
 		const members = await projectsClient.listMembers(projectId);
 
 		const userMember = members.find((m) => m.user_id === userId);
@@ -43,13 +41,6 @@ async function verifyProjectAccess(
 	} catch {
 		return false;
 	}
-}
-
-function _filterKeysByUser(
-	keys: ApiKeyResponse[],
-	userId: string,
-): ApiKeyResponse[] {
-	return keys.filter((key) => key.user_id === userId);
 }
 
 export const apiKeysRouter = createTRPCRouter({
