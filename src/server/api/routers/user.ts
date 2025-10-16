@@ -76,6 +76,20 @@ const defaultProviders = [
 ];
 
 export const userRouter = createTRPCRouter({
+	getUserCount: protectedProcedure.query(async () => {
+		try {
+			const client = await clerkClient();
+			const { totalCount } = await client.users.getUserList({ limit: 1 });
+			return { totalCount };
+		} catch (error) {
+			console.error("Error fetching user count:", error);
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "Failed to fetch user count",
+			});
+		}
+	}),
+
 	getPreferences: protectedProcedure.query(async ({ ctx }) => {
 		const userId = ctx.clerkAuth.userId;
 		if (!userId) {

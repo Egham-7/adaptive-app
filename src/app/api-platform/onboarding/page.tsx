@@ -37,6 +37,7 @@ export default function OnboardingPage() {
 	const createProject = useCreateProject();
 	const createApiKey = useCreateProjectApiKey();
 	const addCreditsMutation = api.credits.addPromotionalCredits.useMutation();
+	const { data: userCountData } = api.user.getUserCount.useQuery();
 
 	useEffect(() => {
 		if (userMemberships.data && userMemberships.data.length === 1) {
@@ -60,14 +61,19 @@ export default function OnboardingPage() {
 					setCreatedProject(data);
 
 					if (isFirstOrg) {
+						const totalUserCount = userCountData?.totalCount ?? 0;
+						const creditAmount = totalUserCount < 1000 ? 20 : 1;
+
 						addCreditsMutation.mutate(
 							{
 								organizationId: organization.id,
-								amount: 5,
+								amount: creditAmount,
 							},
 							{
 								onSuccess: () => {
-									toast.success("Welcome! $5 in credits added to your account");
+									toast.success(
+										`Welcome! $${creditAmount} in credits added to your account`,
+									);
 								},
 								onError: (error) => {
 									console.error("Failed to add promotional credits:", error);

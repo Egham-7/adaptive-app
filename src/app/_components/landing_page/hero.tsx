@@ -98,7 +98,7 @@ export default function HeroSection() {
 								clipRule="evenodd"
 							/>
 						</svg>
-						<span className="text-muted-foreground">$3.14 free credit</span>
+						<span className="text-muted-foreground">$20 free credit</span>
 					</div>
 					<div className="flex items-center gap-2">
 						<svg
