@@ -26,8 +26,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { useOrganizationInvitations } from "@/hooks/organizations/use-organization-invitations";
 import { useOrganizationMembers } from "@/hooks/organizations/use-organization-members";
+import { usePendingOrganizationInvitations } from "@/hooks/organizations/use-pending-organization-invitations";
 import { useRemoveOrganizationMember } from "@/hooks/organizations/use-remove-organization-member";
 import { useUpdateOrganizationMemberRole } from "@/hooks/organizations/use-update-organization-member-role";
 import { InvitationsTable } from "./invitations-table";
@@ -40,7 +40,8 @@ interface MembersTabProps {
 export const MembersTab: React.FC<MembersTabProps> = ({ organizationId }) => {
 	const { data: members, isLoading } = useOrganizationMembers(organizationId);
 
-	const { data: invitations } = useOrganizationInvitations(organizationId);
+	const { data: invitations } =
+		usePendingOrganizationInvitations(organizationId);
 
 	const removeMember = useRemoveOrganizationMember();
 
