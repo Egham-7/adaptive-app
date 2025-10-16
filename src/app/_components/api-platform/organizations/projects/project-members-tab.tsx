@@ -1,11 +1,6 @@
 "use client";
 
-import {
-	Crown,
-	MoreVertical,
-	UserPlus,
-	Users as UsersIcon,
-} from "lucide-react";
+import { MoreVertical, UserPlus, Users as UsersIcon } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -176,7 +171,8 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 		return <div>Loading members...</div>;
 	}
 
-	const currentMembers = members || [];
+	// Filter out owners from the members list - owners are managed separately
+	const currentMembers = (members || []).filter((m) => m.role !== "owner");
 
 	return (
 		<div className="space-y-6">
@@ -249,16 +245,9 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 										<TableCell>
 											<Badge
 												variant={
-													member.role === "owner"
-														? "default"
-														: member.role === "admin"
-															? "secondary"
-															: "outline"
+													member.role === "admin" ? "secondary" : "outline"
 												}
 											>
-												{member.role === "owner" && (
-													<Crown className="mr-1 h-3 w-3" />
-												)}
 												{member.role.charAt(0).toUpperCase() +
 													member.role.slice(1)}
 											</Badge>
@@ -275,37 +264,24 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 														</Button>
 													</DropdownMenuTrigger>
 													<DropdownMenuContent align="end">
-														{member.role !== "owner" && (
-															<>
-																<DropdownMenuItem
-																	onClick={() => {
-																		const newRole =
-																			member.role === "admin"
-																				? "member"
-																				: "admin";
-																		handleUpdateRole(member.user_id, newRole);
-																	}}
-																>
-																	{member.role === "admin"
-																		? "Change to Member"
-																		: "Change to Admin"}
-																</DropdownMenuItem>
-																<DropdownMenuSeparator />
-																<DropdownMenuItem
-																	className="text-destructive"
-																	onClick={() =>
-																		handleRemoveMember(member.user_id)
-																	}
-																>
-																	Remove from Project
-																</DropdownMenuItem>
-															</>
-														)}
-														{member.role === "owner" && (
-															<DropdownMenuItem disabled>
-																Cannot modify owner
-															</DropdownMenuItem>
-														)}
+														<DropdownMenuItem
+															onClick={() => {
+																const newRole =
+																	member.role === "admin" ? "member" : "admin";
+																handleUpdateRole(member.user_id, newRole);
+															}}
+														>
+															{member.role === "admin"
+																? "Change to Member"
+																: "Change to Admin"}
+														</DropdownMenuItem>
+														<DropdownMenuSeparator />
+														<DropdownMenuItem
+															className="text-destructive"
+															onClick={() => handleRemoveMember(member.user_id)}
+														>
+															Remove from Project
+														</DropdownMenuItem>
 													</DropdownMenuContent>
 												</DropdownMenu>
 											)}
