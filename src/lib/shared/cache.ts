@@ -85,8 +85,8 @@ export const invalidateOrganizationCache = (
 	organizationId?: string,
 ) => {
 	const patterns = organizationId
-		? ["organizations", "organization"]
-		: ["organizations"];
+		? ["org-members", "org-invitations"]
+		: ["org-members", "org-invitations"];
 	return invalidateUserCache(userId, patterns);
 };
 
@@ -94,7 +94,9 @@ export const invalidateProjectCache = (
 	userId: string,
 	projectId?: number | string,
 ) => {
-	const patterns = projectId ? ["projects", "project"] : ["projects"];
+	const patterns = projectId
+		? ["projects", "project", "project-members"]
+		: ["projects", "project", "project-members"];
 	return invalidateUserCache(userId, patterns);
 };
 

@@ -24,7 +24,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/trpc/react";
+import { useCreateProject } from "@/hooks/projects/use-create-project";
+import { useProjects } from "@/hooks/projects/use-projects";
 
 export function ProjectsList({ organizationId }: { organizationId: string }) {
 	const router = useRouter();
@@ -32,13 +33,11 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 	const [projectName, setProjectName] = useState("");
 	const [projectDescription, setProjectDescription] = useState("");
 
-	const { data: projects, isLoading } = api.projects.getByOrganization.useQuery(
-		{ organizationId },
-	);
+	const { data: projects, isLoading } = useProjects(organizationId);
 
 	console.log("Projects:", projects);
 
-	const createProject = api.projects.create.useMutation({
+	const createProject = useCreateProject({
 		onSuccess: (project) => {
 			setProjectName("");
 			setProjectDescription("");

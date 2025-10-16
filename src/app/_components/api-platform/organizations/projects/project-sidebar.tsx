@@ -19,7 +19,7 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import { SocialLogo } from "@/components/ui/social-logo";
-import { api } from "@/trpc/react";
+import { useProject } from "@/hooks/projects/use-project";
 
 interface NavLink {
 	label: string;
@@ -36,16 +36,9 @@ export function ProjectSidebar() {
 	const { state } = useSidebar();
 	const orgSlug = orgId ?? organization?.slug;
 
-	const { data: project, isLoading: projectLoading } =
-		api.projects.getById.useQuery(
-			{ id: projectId ? Number(projectId) : 0 },
-			{
-				enabled:
-					!!projectId &&
-					typeof projectId === "string" &&
-					!Number.isNaN(Number(projectId)),
-			},
-		);
+	const { data: project, isLoading: projectLoading } = useProject(
+		projectId ? Number(projectId) : 0,
+	);
 
 	const projectLinks: NavLink[] = [
 		{

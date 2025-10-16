@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ProjectMembersTab } from "@/app/_components/api-platform/organizations/projects/project-members-tab";
 import { ProjectSettingsGeneral } from "@/app/_components/api-platform/organizations/projects/settings/general";
 import { Button } from "@/components/ui/button";
-import { api } from "@/trpc/react";
+import { useProject } from "@/hooks/projects/use-project";
 
 export default function ProjectSettingsPage() {
 	const params = useParams();
@@ -13,10 +13,7 @@ export default function ProjectSettingsPage() {
 	const orgSlug = params.orgId as string;
 	const activeTab = (params.tab as string[] | undefined)?.[0] ?? "general";
 
-	const { data: project } = api.projects.getById.useQuery(
-		{ id: Number(projectId) },
-		{ enabled: !!projectId && !Number.isNaN(Number(projectId)) },
-	);
+	const { data: project } = useProject(Number(projectId));
 
 	const handleTabChange = (value: string) => {
 		if (orgSlug) {

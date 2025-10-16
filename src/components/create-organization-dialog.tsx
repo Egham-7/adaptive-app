@@ -24,7 +24,7 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { api } from "@/trpc/react";
+import { useCreateOrganization } from "@/hooks/organizations/use-create-organization";
 
 const formSchema = z.object({
 	name: z.string().min(1, "Organization name is required"),
@@ -54,7 +54,7 @@ export function CreateOrganizationDialog({
 			infinite: true,
 		},
 	});
-	const createOrgMutation = api.organizations.create.useMutation();
+	const createOrgMutation = useCreateOrganization();
 
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),

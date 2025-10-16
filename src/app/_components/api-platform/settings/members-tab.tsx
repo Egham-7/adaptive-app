@@ -2,7 +2,6 @@
 
 import { Crown, MoreVertical, Users as UsersIcon } from "lucide-react";
 import type React from "react";
-import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,10 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { api } from "@/trpc/react";
+import { useOrganizationInvitations } from "@/hooks/organizations/use-organization-invitations";
+import { useOrganizationMembers } from "@/hooks/organizations/use-organization-members";
+import { useRemoveOrganizationMember } from "@/hooks/organizations/use-remove-organization-member";
+import { useUpdateOrganizationMemberRole } from "@/hooks/organizations/use-update-organization-member-role";
 import { InvitationsTable } from "./invitations-table";
 import { InviteMemberDialog } from "./invite-member-dialog";
 
@@ -36,35 +38,13 @@ interface MembersTabProps {
 }
 
 export const MembersTab: React.FC<MembersTabProps> = ({ organizationId }) => {
-	const utils = api.useUtils();
+	const { data: members, isLoading } = useOrganizationMembers(organizationId);
 
-	const { data: members, isLoading } = api.organizations.listMembers.useQuery({
-		organizationId,
-	});
+	const { data: invitations } = useOrganizationInvitations(organizationId);
 
-	const { data: invitations } = api.organizations.listInvitations.useQuery({
-		organizationId,
-	});
+	const removeMember = useRemoveOrganizationMember();
 
-	const removeMember = api.organizations.removeMember.useMutation({
-		onSuccess: () => {
-			toast.success("Member removed from the organization");
-			utils.organizations.listMembers.invalidate({ organizationId });
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to remove member");
-		},
-	});
-
-	const updateMemberRole = api.organizations.updateMemberRole.useMutation({
-		onSuccess: () => {
-			toast.success("Member role updated successfully");
-			utils.organizations.listMembers.invalidate({ organizationId });
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to update member role");
-		},
-	});
+	const updateMemberRole = useUpdateOrganizationMemberRole();
 
 	const handleRemoveMember = (userId: string, email: string) => {
 		if (

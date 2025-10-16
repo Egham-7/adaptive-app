@@ -51,6 +51,10 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { useOrganizationMembers } from "@/hooks/organizations/use-organization-members";
+import { useAddProjectMember } from "@/hooks/projects/use-add-project-member";
+import { useRemoveProjectMember } from "@/hooks/projects/use-remove-project-member";
+import { useUpdateProjectMemberRole } from "@/hooks/projects/use-update-project-member-role";
 import { api } from "@/trpc/react";
 
 interface ProjectMembersTabProps {
@@ -64,7 +68,6 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 	organizationId,
 	currentUserRole,
 }) => {
-	const utils = api.useUtils();
 	const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 	const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 	const [newMemberRole, setNewMemberRole] = useState<"admin" | "member">(
@@ -81,46 +84,14 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 		projectId,
 	});
 
-	const { data: orgMembersData } = api.organizations.listMembers.useQuery({
-		organizationId,
-	});
+	const { data: orgMembersData } = useOrganizationMembers(organizationId);
 
-	const addMember = api.projects.addMember.useMutation({
-		onSuccess: () => {
-			toast.success("Member added to the project");
-			utils.projects.listMembers.invalidate({ projectId });
-			utils.projects.getById.invalidate({ id: projectId });
-			setIsAddDialogOpen(false);
-			setSelectedUserIds([]);
-			setNewMemberRole("member");
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to add member");
-		},
-	});
+	const { mutate: addMemberMutate, isPending: isAddingMember } =
+		useAddProjectMember();
 
-	const removeMember = api.projects.removeMember.useMutation({
-		onSuccess: () => {
-			toast.success("Member removed from the project");
-			utils.projects.listMembers.invalidate({ projectId });
-			utils.projects.getById.invalidate({ id: projectId });
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to remove member");
-		},
-	});
+	const { mutate: removeMemberMutate } = useRemoveProjectMember();
 
-	const updateMemberRole = api.projects.updateMemberRole.useMutation({
-		onSuccess: () => {
-			toast.success("Member role updated successfully");
-			utils.projects.listMembers.invalidate({ projectId });
-			utils.projects.getById.invalidate({ id: projectId });
-			setEditingRoleUserId(null);
-		},
-		onError: (error) => {
-			toast.error(error.message || "Failed to update member role");
-		},
-	});
+	const { mutate: updateMemberRoleMutate } = useUpdateProjectMemberRole();
 
 	const handleAddMember = async () => {
 		if (selectedUserIds.length === 0) {
@@ -130,14 +101,26 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 
 		try {
 			await Promise.all(
-				selectedUserIds.map((userId) =>
-					addMember.mutateAsync({
-						projectId,
-						userId,
-						role: newMemberRole,
-					}),
+				selectedUserIds.map(
+					(userId) =>
+						new Promise<void>((resolve, reject) => {
+							addMemberMutate(
+								{
+									projectId,
+									userId,
+									role: newMemberRole,
+								},
+								{
+									onSuccess: () => resolve(),
+									onError: (error) => reject(error),
+								},
+							);
+						}),
 				),
 			);
+			setIsAddDialogOpen(false);
+			setSelectedUserIds([]);
+			setNewMemberRole("member");
 		} catch (error) {
 			console.error("Error adding members:", error);
 		}
@@ -147,7 +130,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 		if (
 			confirm("Are you sure you want to remove this member from the project?")
 		) {
-			removeMember.mutate({
+			removeMemberMutate({
 				projectId,
 				userId,
 			});
@@ -155,11 +138,12 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 	};
 
 	const handleUpdateRole = (userId: string, newRole: "admin" | "member") => {
-		updateMemberRole.mutate({
+		updateMemberRoleMutate({
 			projectId,
 			userId,
 			role: newRole,
 		});
+		setEditingRoleUserId(null);
 	};
 
 	const getUserInitials = (name?: string) => {
@@ -425,8 +409,8 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 						>
 							Cancel
 						</Button>
-						<Button onClick={handleAddMember} disabled={addMember.isPending}>
-							{addMember.isPending
+						<Button onClick={handleAddMember} disabled={isAddingMember}>
+							{isAddingMember
 								? "Adding..."
 								: `Add ${selectedUserIds.length > 0 ? selectedUserIds.length : ""} Member${selectedUserIds.length !== 1 ? "s" : ""}`}
 						</Button>

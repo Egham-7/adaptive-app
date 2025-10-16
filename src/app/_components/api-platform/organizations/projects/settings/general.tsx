@@ -26,45 +26,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/trpc/react";
+import { useDeleteProject } from "@/hooks/projects/use-delete-project";
+import { useProject } from "@/hooks/projects/use-project";
+import { useUpdateProject } from "@/hooks/projects/use-update-project";
 
 export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 	const router = useRouter();
 	const { organization } = useOrganization();
 
-	const utils = api.useUtils();
-
-	const { data: project, isLoading } = api.projects.getById.useQuery(
-		{ id: projectId },
-		{
-			enabled: !!projectId,
-		},
-	);
+	const { data: project, isLoading } = useProject(projectId);
 
 	const [name, setName] = useState(project?.name ?? "");
 	const [description, setDescription] = useState(project?.description ?? "");
 
-	const updateProject = api.projects.update.useMutation({
-		onSuccess: () => {
-			void utils.projects.getById.invalidate({ id: projectId });
-			void utils.projects.getByOrganization.invalidate({
-				organizationId: project?.organization_id ?? "",
-			});
-		},
-	});
+	const { mutate: updateProjectMutate, isPending: isUpdating } =
+		useUpdateProject();
 
-	const deleteProject = api.projects.delete.useMutation({
-		onSuccess: () => {
-			if (organization?.slug) {
-				router.push(`/api-platform/orgs/${organization.slug}`);
-			}
-		},
-	});
+	const { mutate: deleteProjectMutate, isPending: isDeleting } =
+		useDeleteProject();
 
 	const handleSave = () => {
 		if (!name.trim()) return;
 
-		updateProject.mutate({
+		updateProjectMutate({
 			id: projectId,
 			name: name.trim(),
 			description: description.trim(),
@@ -72,7 +56,16 @@ export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 	};
 
 	const handleDelete = () => {
-		deleteProject.mutate({ id: projectId });
+		deleteProjectMutate(
+			{ id: projectId },
+			{
+				onSuccess: () => {
+					if (organization?.slug) {
+						router.push(`/api-platform/orgs/${organization.slug}`);
+					}
+				},
+			},
+		);
 	};
 
 	if (isLoading) {
@@ -123,11 +116,8 @@ export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 							rows={4}
 						/>
 					</div>
-					<Button
-						onClick={handleSave}
-						disabled={!name.trim() || updateProject.isPending}
-					>
-						{updateProject.isPending ? "Saving..." : "Save Changes"}
+					<Button onClick={handleSave} disabled={!name.trim() || isUpdating}>
+						{isUpdating ? "Saving..." : "Save Changes"}
 					</Button>
 				</CardContent>
 			</Card>
@@ -161,7 +151,7 @@ export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 									onClick={handleDelete}
 									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 								>
-									{deleteProject.isPending ? "Deleting..." : "Delete Project"}
+									{isDeleting ? "Deleting..." : "Delete Project"}
 								</AlertDialogAction>
 							</AlertDialogFooter>
 						</AlertDialogContent>
