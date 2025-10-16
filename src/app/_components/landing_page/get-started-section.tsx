@@ -63,7 +63,7 @@ export default function GetStartedSection() {
 									className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
 								>
 									<Rocket className="relative mr-2 size-5" aria-hidden="true" />
-									Start Free - Get $3.14 Credit
+									Start Free - Get $20 Credit
 								</Button>
 							</SignUpButton>
 						</div>

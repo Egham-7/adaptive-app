@@ -1,12 +1,5 @@
-import { OrganizationList } from "@clerk/nextjs";
+import { OrganizationListView } from "@/app/_components/api-platform/organizations/organization-list-view";
 
 export default function OrganizationListPage() {
-	return (
-		<div className="flex min-h-screen items-center justify-center">
-			<OrganizationList
-				afterCreateOrganizationUrl="/api-platform/onboarding"
-				afterSelectOrganizationUrl="/api-platform/orgs/:slug"
-			/>
-		</div>
-	);
+	return <OrganizationListView />;
 }
