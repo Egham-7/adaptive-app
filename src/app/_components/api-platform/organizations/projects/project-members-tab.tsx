@@ -1,6 +1,11 @@
 "use client";
 
-import { MoreVertical, UserPlus, Users as UsersIcon } from "lucide-react";
+import {
+	Crown,
+	MoreVertical,
+	UserPlus,
+	Users as UsersIcon,
+} from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -51,7 +56,7 @@ import { api } from "@/trpc/react";
 interface ProjectMembersTabProps {
 	projectId: number;
 	organizationId: string;
-	currentUserRole?: "admin" | "member" | null;
+	currentUserRole?: "owner" | "admin" | "member" | null;
 }
 
 export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
@@ -69,7 +74,8 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 		null,
 	);
 
-	const isAdmin = currentUserRole === "admin";
+	const isAdminOrOwner =
+		currentUserRole === "admin" || currentUserRole === "owner";
 
 	const { data: members, isLoading } = api.projects.listMembers.useQuery({
 		projectId,
@@ -187,7 +193,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 								{currentMembers.length !== 1 ? "s" : ""}
 							</CardDescription>
 						</div>
-						{isAdmin && (
+						{isAdminOrOwner && (
 							<Button onClick={() => setIsAddDialogOpen(true)}>
 								<UserPlus className="mr-2 h-4 w-4" />
 								Add Member
@@ -243,9 +249,16 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 										<TableCell>
 											<Badge
 												variant={
-													member.role === "admin" ? "secondary" : "outline"
+													member.role === "owner"
+														? "default"
+														: member.role === "admin"
+															? "secondary"
+															: "outline"
 												}
 											>
+												{member.role === "owner" && (
+													<Crown className="mr-1 h-3 w-3" />
+												)}
 												{member.role.charAt(0).toUpperCase() +
 													member.role.slice(1)}
 											</Badge>
@@ -254,7 +267,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 											{new Date(member.created_at).toLocaleDateString()}
 										</TableCell>
 										<TableCell className="text-right">
-											{isAdmin && (
+											{isAdminOrOwner && (
 												<DropdownMenu>
 													<DropdownMenuTrigger asChild>
 														<Button variant="ghost" size="sm">
@@ -262,24 +275,37 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 														</Button>
 													</DropdownMenuTrigger>
 													<DropdownMenuContent align="end">
-														<DropdownMenuItem
-															onClick={() => {
-																const newRole =
-																	member.role === "admin" ? "member" : "admin";
-																handleUpdateRole(member.user_id, newRole);
-															}}
-														>
-															{member.role === "admin"
-																? "Change to Member"
-																: "Change to Admin"}
-														</DropdownMenuItem>
-														<DropdownMenuSeparator />
-														<DropdownMenuItem
-															className="text-destructive"
-															onClick={() => handleRemoveMember(member.user_id)}
-														>
-															Remove from Project
-														</DropdownMenuItem>
+														{member.role !== "owner" && (
+															<>
+																<DropdownMenuItem
+																	onClick={() => {
+																		const newRole =
+																			member.role === "admin"
+																				? "member"
+																				: "admin";
+																		handleUpdateRole(member.user_id, newRole);
+																	}}
+																>
+																	{member.role === "admin"
+																		? "Change to Member"
+																		: "Change to Admin"}
+																</DropdownMenuItem>
+																<DropdownMenuSeparator />
+																<DropdownMenuItem
+																	className="text-destructive"
+																	onClick={() =>
+																		handleRemoveMember(member.user_id)
+																	}
+																>
+																	Remove from Project
+																</DropdownMenuItem>
+															</>
+														)}
+														{member.role === "owner" && (
+															<DropdownMenuItem disabled>
+																Cannot modify owner
+															</DropdownMenuItem>
+														)}
 													</DropdownMenuContent>
 												</DropdownMenu>
 											)}
