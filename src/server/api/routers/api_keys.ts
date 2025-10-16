@@ -34,7 +34,7 @@ async function verifyProjectAccess(
 		const userMember = members.find((m) => m.user_id === userId);
 
 		if (requireAdmin) {
-			return userMember ? ["owner", "admin"].includes(userMember.role) : false;
+			return userMember ? userMember.role === "admin" : false;
 		}
 
 		return !!userMember;
