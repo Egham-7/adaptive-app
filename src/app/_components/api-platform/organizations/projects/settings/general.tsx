@@ -56,7 +56,7 @@ export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 	const deleteProject = api.projects.delete.useMutation({
 		onSuccess: () => {
 			if (organization?.slug) {
-				router.push(`/api-platform/orgs/${organization.slug}/projects`);
+				router.push(`/api-platform/orgs/${organization.slug}`);
 			}
 		},
 	});
