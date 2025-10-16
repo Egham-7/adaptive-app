@@ -51,7 +51,7 @@ import { api } from "@/trpc/react";
 interface ProjectMembersTabProps {
 	projectId: number;
 	organizationId: string;
-	currentUserRole?: "owner" | "admin" | "member" | null;
+	currentUserRole?: "admin" | "member" | null;
 }
 
 export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
@@ -69,8 +69,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 		null,
 	);
 
-	const isAdminOrOwner =
-		currentUserRole === "admin" || currentUserRole === "owner";
+	const isAdmin = currentUserRole === "admin";
 
 	const { data: members, isLoading } = api.projects.listMembers.useQuery({
 		projectId,
@@ -171,8 +170,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 		return <div>Loading members...</div>;
 	}
 
-	// Filter out owners from the members list - owners are managed separately
-	const currentMembers = (members || []).filter((m) => m.role !== "owner");
+	const currentMembers = members || [];
 
 	return (
 		<div className="space-y-6">
@@ -189,7 +187,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 								{currentMembers.length !== 1 ? "s" : ""}
 							</CardDescription>
 						</div>
-						{isAdminOrOwner && (
+						{isAdmin && (
 							<Button onClick={() => setIsAddDialogOpen(true)}>
 								<UserPlus className="mr-2 h-4 w-4" />
 								Add Member
@@ -256,7 +254,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 											{new Date(member.created_at).toLocaleDateString()}
 										</TableCell>
 										<TableCell className="text-right">
-											{isAdminOrOwner && (
+											{isAdmin && (
 												<DropdownMenu>
 													<DropdownMenuTrigger asChild>
 														<Button variant="ghost" size="sm">
