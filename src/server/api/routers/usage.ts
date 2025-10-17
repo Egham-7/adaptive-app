@@ -3,7 +3,6 @@ import { z } from "zod";
 import { ApiKeysClient } from "@/lib/api/api-keys";
 import { UsageClient } from "@/lib/api/usage";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { recordUsageRequestSchema } from "@/types/usage";
 
 /**
  * Usage router - Proxies usage tracking to adaptive-proxy
