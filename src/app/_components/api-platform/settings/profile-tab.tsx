@@ -215,6 +215,16 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 									id="confirm"
 									value={confirmText}
 									onChange={(e) => setConfirmText(e.target.value)}
+									onKeyDown={(e) => {
+										if (
+											e.key === "Enter" &&
+											confirmText === organization?.name &&
+											!isPending
+										) {
+											e.preventDefault();
+											handleDelete();
+										}
+									}}
 									placeholder={organization?.name}
 								/>
 							</div>

@@ -3,7 +3,6 @@ import { z } from "zod";
 import { ApiKeysClient } from "@/lib/api/api-keys";
 import { UsageClient } from "@/lib/api/usage";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { recordUsageRequestSchema } from "@/types/usage";
 
 /**
  * Usage router - Proxies usage tracking to adaptive-proxy
@@ -12,38 +11,6 @@ import { recordUsageRequestSchema } from "@/types/usage";
  * This router provides tRPC procedures that call the usage API.
  */
 export const usageRouter = createTRPCRouter({
-	/**
-	 * Record API usage - proxies to adaptive-proxy
-	 */
-	recordUsage: protectedProcedure
-		.input(recordUsageRequestSchema)
-		.mutation(async ({ ctx, input }) => {
-			try {
-				const token = await ctx.clerkAuth.getToken();
-				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
-
-				const client = new UsageClient(token);
-				const record = await client.recordUsage(input);
-				return {
-					success: true,
-					usage: record,
-				};
-			} catch (error) {
-				console.error("Failed to record usage:", error);
-
-				if (error instanceof TRPCError) {
-					throw error;
-				}
-
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message:
-						error instanceof Error ? error.message : "Failed to record usage",
-					cause: error,
-				});
-			}
-		}),
-
 	/**
 	 * Get usage records by API key ID
 	 */
