@@ -120,55 +120,61 @@ export const PROVIDER_METADATA = {
 		name: "openai",
 		displayName: "OpenAI",
 		logo: "/logos/openai.webp",
-		description: "GPT-4, GPT-3.5, and other OpenAI models",
+		description:
+			"GPT-4o, o1, o3-mini and other flagship models for reasoning and generation",
 	},
 	anthropic: {
 		name: "anthropic",
 		displayName: "Anthropic",
 		logo: "/logos/anthropic.jpeg",
-		description: "Claude 3.5 Sonnet, Claude 3 Opus, and other Anthropic models",
+		description:
+			"Claude Sonnet 4.5, Haiku 4.5, Opus 4.1 with extended thinking and vision",
 	},
 	gemini: {
 		name: "gemini",
 		displayName: "Google Gemini",
 		logo: "/logos/google.svg",
-		description: "Gemini Pro, Gemini Ultra models",
+		description: "Gemini 2.0 Flash, Pro models with multimodal capabilities",
 	},
 	deepseek: {
 		name: "deepseek",
 		displayName: "DeepSeek",
 		logo: "/logos/deepseek.svg",
-		description: "DeepSeek models for code and reasoning",
+		description:
+			"DeepSeek-V3, DeepSeek-R1 for advanced reasoning and code generation",
 	},
 	groq: {
 		name: "groq",
 		displayName: "Groq",
 		logo: "/logos/groq.png",
-		description: "Ultra-fast LLM inference with GroqChip",
+		description:
+			"Ultra-fast inference with Llama 3.3 70B, GPT-OSS 120B via GroqChip",
 	},
 	grok: {
 		name: "grok",
 		displayName: "Grok",
 		logo: "/logos/grok.svg",
-		description: "xAI's Grok models",
+		description: "xAI's Grok models with real-time information access",
 	},
 	huggingface: {
 		name: "huggingface",
 		displayName: "Hugging Face",
 		logo: "/logos/huggingface.png",
-		description: "Open-source models via Hugging Face Inference API",
+		description: "Access to thousands of open-source models via Inference API",
 	},
 	cohere: {
 		name: "cohere",
 		displayName: "Cohere",
 		logo: "/logos/cohere.png",
-		description: "Command and Embed models",
+		description:
+			"Command R+, Command R models for enterprise RAG and generation",
 	},
 	mistral: {
 		name: "mistral",
 		displayName: "Mistral AI",
 		logo: "/logos/mistral.png",
-		description: "Mistral Large, Medium, and Small models",
+		description:
+			"Magistral Medium 1.2, Mistral Small 3.2, Codestral for code and reasoning",
 	},
 } as const;
 
