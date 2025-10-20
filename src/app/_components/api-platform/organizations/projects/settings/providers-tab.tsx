@@ -112,6 +112,7 @@ export const ProjectProvidersTab: React.FC<ProjectProvidersTabProps> = ({
 							hasApiKey={config?.has_api_key}
 							baseUrl={config?.base_url}
 							authorizationHeader={config?.authorization_header}
+							isPreset={config?.is_preset}
 							level="project"
 							onConfigure={() => handleConfigureProvider(providerName)}
 							onEdit={

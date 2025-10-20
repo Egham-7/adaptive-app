@@ -113,6 +113,7 @@ export const OrganizationProvidersTab: React.FC<
 							hasApiKey={config?.has_api_key}
 							baseUrl={config?.base_url}
 							authorizationHeader={config?.authorization_header}
+							isPreset={config?.is_preset}
 							level="organization"
 							onConfigure={() => handleConfigureProvider(providerName)}
 							onEdit={

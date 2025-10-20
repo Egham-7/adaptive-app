@@ -19,6 +19,7 @@ interface ProviderCardProps {
 	baseUrl?: string;
 	authorizationHeader?: boolean;
 	isInherited?: boolean;
+	isPreset?: boolean;
 	onConfigure: () => void;
 	onEdit?: () => void;
 	onDelete?: () => void;
@@ -32,6 +33,7 @@ export function ProviderCard({
 	baseUrl,
 	authorizationHeader,
 	isInherited = false,
+	isPreset = false,
 	onConfigure,
 	onEdit,
 	onDelete,
@@ -138,7 +140,7 @@ export function ProviderCard({
 										Edit
 									</Button>
 								)}
-								{!isInherited && onDelete && (
+								{!isInherited && !isPreset && onDelete && (
 									<Button
 										variant="outline"
 										size="sm"

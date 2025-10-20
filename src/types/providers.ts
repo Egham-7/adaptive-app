@@ -92,6 +92,7 @@ export interface ProviderConfigListResponse {
 			has_api_key: boolean;
 			base_url?: string;
 			authorization_header: boolean;
+			is_preset?: boolean;
 		}
 	>;
 }
