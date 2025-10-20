@@ -8,10 +8,11 @@ import { MembersTab } from "@/app/_components/api-platform/settings/members-tab"
 import { PrivacyTab } from "@/app/_components/api-platform/settings/privacy-tab";
 import { ProfileTab } from "@/app/_components/api-platform/settings/profile-tab";
 import { ProjectsTab } from "@/app/_components/api-platform/settings/projects-tab";
+import { OrganizationProvidersTab } from "@/app/_components/api-platform/settings/providers-tab";
 import { Button } from "@/components/ui/button";
 
 const OrganizationSettingsPage: React.FC = () => {
-	const { organization, isLoaded } = useOrganization();
+	const { organization, membership, isLoaded } = useOrganization();
 	const params = useParams();
 	const router = useRouter();
 	const orgId = params.orgId as string;
@@ -100,6 +101,19 @@ const OrganizationSettingsPage: React.FC = () => {
 
 					<Button
 						type="button"
+						onClick={() => handleTabChange("providers")}
+						variant="ghost"
+						className={`w-full justify-start ${
+							activeTab === "providers"
+								? "bg-accent text-accent-foreground"
+								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+						}`}
+					>
+						Providers
+					</Button>
+
+					<Button
+						type="button"
 						onClick={() => handleTabChange("privacy")}
 						variant="ghost"
 						className={`w-full justify-start ${
@@ -124,6 +138,12 @@ const OrganizationSettingsPage: React.FC = () => {
 				)}
 				{activeTab === "api-keys" && (
 					<ApiKeysTab organizationId={organization.id} />
+				)}
+				{activeTab === "providers" && (
+					<OrganizationProvidersTab
+						organizationId={organization.id}
+						isAdmin={membership?.role === "org:admin"}
+					/>
 				)}
 				{activeTab === "privacy" && <PrivacyTab />}
 			</div>
