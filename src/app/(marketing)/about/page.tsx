@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Customers from "@/app/_components/landing_page/customers";
 
 export const metadata: Metadata = {
 	title: "About | Adaptive - Trusted by Leading Companies",
 	description:
 		"Learn about Adaptive's mission to optimize AI infrastructure. Trusted by leading companies for reliable, cost-effective AI model routing and optimization.",
-	keywords: ["about Adaptive", "AI company", "customers", "mission"],
+	keywords: ["about Adaptive", "AI company", "mission"],
 	openGraph: {
 		title: "About Adaptive - Trusted AI Infrastructure",
 		description:
@@ -27,7 +26,6 @@ export default function AboutPage() {
 						model routing accessible to every developer and organization.
 					</p>
 				</header>
-				<Customers />
 			</article>
 		</main>
 	);
