@@ -96,9 +96,9 @@ export default function SupportPage() {
 									<p>
 										We charge the original model cost plus overhead: $0.10 per
 										million input tokens + $0.20 per million output tokens for
-										the Developer plan. With custom API keys (Bring Your Own Key),
-										you only pay the overhead without model costs. Team and
-										Enterprise plans have monthly fees plus usage costs.
+										the Developer plan. With custom API keys (Bring Your Own
+										Key), you only pay the overhead without model costs. Team
+										and Enterprise plans have monthly fees plus usage costs.
 									</p>
 								</div>
 							</details>

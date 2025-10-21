@@ -6,8 +6,8 @@
 
 export const TOKEN_PRICING = {
 	// Base pricing per 1M tokens (in USD)
-	INPUT_TOKEN_PRICE_PER_MILLION: 0.10,
-	OUTPUT_TOKEN_PRICE_PER_MILLION: 0.20,
+	INPUT_TOKEN_PRICE_PER_MILLION: 0.1,
+	OUTPUT_TOKEN_PRICE_PER_MILLION: 0.2,
 
 	// Helper functions for calculations
 	calculateInputCost: (tokens: number): number => {
