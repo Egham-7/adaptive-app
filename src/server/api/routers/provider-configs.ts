@@ -4,6 +4,7 @@ import { ProviderConfigsClient } from "@/lib/api/provider-configs";
 import {
 	invalidateOrganizationProviderCache,
 	invalidateProjectCache,
+	invalidateProviderConfigCache,
 	withCache,
 } from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
@@ -81,8 +82,14 @@ export const providerConfigsRouter = createTRPCRouter({
 					input.data,
 				);
 
-				// Invalidate cache
-				await invalidateProjectCache(userId, input.projectId.toString());
+				// Invalidate both project cache and provider-specific cache
+				await Promise.all([
+					invalidateProjectCache(userId, input.projectId.toString()),
+					invalidateProviderConfigCache(
+						input.projectId.toString(),
+						input.provider,
+					),
+				]);
 
 				return config;
 			} catch (error) {
@@ -134,8 +141,14 @@ export const providerConfigsRouter = createTRPCRouter({
 					input.data,
 				);
 
-				// Invalidate cache
-				await invalidateProjectCache(userId, input.projectId.toString());
+				// Invalidate both project cache and provider-specific cache
+				await Promise.all([
+					invalidateProjectCache(userId, input.projectId.toString()),
+					invalidateProviderConfigCache(
+						input.projectId.toString(),
+						input.provider,
+					),
+				]);
 
 				return config;
 			} catch (error) {
@@ -179,8 +192,14 @@ export const providerConfigsRouter = createTRPCRouter({
 				const client = new ProviderConfigsClient(token);
 				await client.deleteProjectProvider(input.projectId, input.provider);
 
-				// Invalidate cache
-				await invalidateProjectCache(userId, input.projectId.toString());
+				// Invalidate both project cache and provider-specific cache
+				await Promise.all([
+					invalidateProjectCache(userId, input.projectId.toString()),
+					invalidateProviderConfigCache(
+						input.projectId.toString(),
+						input.provider,
+					),
+				]);
 
 				return { success: true };
 			} catch (error) {
