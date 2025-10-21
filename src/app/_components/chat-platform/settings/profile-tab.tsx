@@ -1,9 +1,12 @@
 "use client";
 
 import type { UserResource } from "@clerk/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "lucide-react";
 import type React from "react";
-import { useId } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	Card,
@@ -12,12 +15,41 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/trpc/react";
-import type { UserMetadata, UserPreferences } from "@/types/settings";
+import type { UserMetadata } from "@/types/settings";
+
+const userProfileFormSchema = z.object({
+	fullName: z
+		.string()
+		.max(100, "Full name must be less than 100 characters")
+		.optional(),
+	preferredName: z
+		.string()
+		.max(50, "Preferred name must be less than 50 characters")
+		.optional(),
+	jobRole: z
+		.string()
+		.max(100, "Job role must be less than 100 characters")
+		.optional(),
+	personalPreferences: z
+		.string()
+		.max(1000, "Personal preferences must be less than 1000 characters")
+		.optional(),
+});
+
+type UserProfileFormValues = z.infer<typeof userProfileFormSchema>;
 
 interface ProfileTabProps {
 	user: UserResource | null | undefined;
@@ -25,17 +57,6 @@ interface ProfileTabProps {
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({ user }) => {
 	const { data: preferences } = api.user.getPreferences.useQuery();
-
-	const fullName = preferences?.fullName || user?.fullName || "";
-	const preferredName = preferences?.preferredName || user?.firstName || "";
-	const jobRole = preferences?.jobRole || "";
-	const personalPreferences = preferences?.personalPreferences || "";
-
-	const fullNameId = useId();
-	const preferredNameId = useId();
-	const jobRoleId = useId();
-	const emailId = useId();
-	const personalPreferencesId = useId();
 
 	const utils = api.useUtils();
 	const updateMetadataMutation = api.user.updateMetadata.useMutation({
@@ -45,16 +66,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ user }) => {
 			const previousData = utils.user.getPreferences.getData();
 
 			if (previousData) {
-				utils.user.getPreferences.setData(
-					undefined,
-					(old: UserPreferences | undefined) => {
-						if (!old) return old;
-						return {
-							...old,
-							...newMetadata,
-						};
-					},
-				);
+				utils.user.getPreferences.setData(undefined, (old) => {
+					if (!old) return old;
+					return {
+						...old,
+						...newMetadata,
+					};
+				});
 			}
 
 			return { previousData };
@@ -69,9 +87,30 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ user }) => {
 		},
 	});
 
-	const updateMetadata = async (metadata: UserMetadata) => {
+	const form = useForm<UserProfileFormValues>({
+		resolver: zodResolver(userProfileFormSchema),
+		defaultValues: {
+			fullName: preferences?.fullName ?? user?.fullName ?? "",
+			preferredName: preferences?.preferredName ?? user?.firstName ?? "",
+			jobRole: preferences?.jobRole ?? "",
+			personalPreferences: preferences?.personalPreferences ?? "",
+		},
+	});
+
+	useEffect(() => {
+		if (preferences || user) {
+			form.reset({
+				fullName: preferences?.fullName ?? user?.fullName ?? "",
+				preferredName: preferences?.preferredName ?? user?.firstName ?? "",
+				jobRole: preferences?.jobRole ?? "",
+				personalPreferences: preferences?.personalPreferences ?? "",
+			});
+		}
+	}, [preferences, user, form]);
+
+	const updateMetadata = async (field: keyof UserMetadata, value: string) => {
 		try {
-			await updateMetadataMutation.mutateAsync(metadata);
+			await updateMetadataMutation.mutateAsync({ [field]: value });
 		} catch (error) {
 			console.error("Error updating metadata:", error);
 		}
@@ -108,71 +147,116 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ user }) => {
 						</div>
 					</div>
 
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor={fullNameId}>Full Name</Label>
-							<Input
-								id={fullNameId}
-								value={fullName as string}
-								onChange={(e) => updateMetadata({ fullName: e.target.value })}
-								placeholder="Enter your full name"
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor={preferredNameId}>What should we call you?</Label>
-							<Input
-								id={preferredNameId}
-								value={preferredName as string}
-								onChange={(e) =>
-									updateMetadata({ preferredName: e.target.value })
-								}
-								placeholder="Enter your preferred name"
-							/>
-						</div>
-					</div>
+					<Form {...form}>
+						<div className="space-y-4">
+							<div className="grid grid-cols-2 gap-4">
+								<FormField
+									control={form.control}
+									name="fullName"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Full Name</FormLabel>
+											<FormControl>
+												<Input
+													placeholder="Enter your full name"
+													{...field}
+													onBlur={(e) => {
+														field.onBlur();
+														updateMetadata("fullName", e.target.value);
+													}}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor={jobRoleId}>Job Role</Label>
-							<Input
-								id={jobRoleId}
-								value={jobRole as string}
-								onChange={(e) => updateMetadata({ jobRole: e.target.value })}
-								placeholder="e.g., Software Engineer, Designer, Manager"
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor={emailId}>Email (Read-only)</Label>
-							<Input
-								id={emailId}
-								type="email"
-								value={user?.primaryEmailAddress?.emailAddress || ""}
-								disabled
-								className="bg-muted"
-							/>
-							<p className="text-muted-foreground text-xs">
-								Manage email in Account settings
-							</p>
-						</div>
-					</div>
+								<FormField
+									control={form.control}
+									name="preferredName"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>What should we call you?</FormLabel>
+											<FormControl>
+												<Input
+													placeholder="Enter your preferred name"
+													{...field}
+													onBlur={(e) => {
+														field.onBlur();
+														updateMetadata("preferredName", e.target.value);
+													}}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
 
-					<div className="space-y-2">
-						<Label htmlFor={personalPreferencesId}>
-							Personal Preferences for Adaptive
-						</Label>
-						<Textarea
-							id={personalPreferencesId}
-							value={personalPreferences as string}
-							onChange={(e) =>
-								updateMetadata({ personalPreferences: e.target.value })
-							}
-							placeholder="Tell Adaptive about your work style, communication preferences, or anything else that would help personalize your experience..."
-							rows={4}
-						/>
-						<p className="text-muted-foreground text-xs">
-							This helps Adaptive understand how to best assist you
-						</p>
-					</div>
+							<div className="grid grid-cols-2 gap-4">
+								<FormField
+									control={form.control}
+									name="jobRole"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>Job Role</FormLabel>
+											<FormControl>
+												<Input
+													placeholder="e.g., Software Engineer, Designer, Manager"
+													{...field}
+													onBlur={(e) => {
+														field.onBlur();
+														updateMetadata("jobRole", e.target.value);
+													}}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+
+								<FormItem>
+									<FormLabel>Email (Read-only)</FormLabel>
+									<FormControl>
+										<Input
+											type="email"
+											value={user?.primaryEmailAddress?.emailAddress || ""}
+											disabled
+											className="bg-muted"
+										/>
+									</FormControl>
+									<FormDescription>
+										Manage email in Account settings
+									</FormDescription>
+								</FormItem>
+							</div>
+
+							<FormField
+								control={form.control}
+								name="personalPreferences"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Personal Preferences for Adaptive</FormLabel>
+										<FormControl>
+											<Textarea
+												placeholder="Tell Adaptive about your work style, communication preferences, or anything else that would help personalize your experience..."
+												rows={4}
+												{...field}
+												onBlur={(e) => {
+													field.onBlur();
+													updateMetadata("personalPreferences", e.target.value);
+												}}
+											/>
+										</FormControl>
+										<FormDescription>
+											This helps Adaptive understand how to best assist you
+										</FormDescription>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						</div>
+					</Form>
 
 					<Separator />
 				</CardContent>

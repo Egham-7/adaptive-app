@@ -2,11 +2,14 @@
 
 import { useOrganizationList } from "@clerk/nextjs";
 import type { OrganizationResource } from "@clerk/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Building2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -26,9 +29,35 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDeleteOrganization } from "@/hooks/organizations/use-delete-organization";
+
+const organizationFormSchema = z.object({
+	name: z
+		.string()
+		.min(1, "Organization name is required")
+		.max(100, "Organization name must be less than 100 characters"),
+	slug: z
+		.string()
+		.min(1, "Display name is required")
+		.max(50, "Display name must be less than 50 characters")
+		.regex(
+			/^[a-z0-9-]+$/,
+			"Display name can only contain lowercase letters, numbers, and hyphens",
+		),
+});
+
+type OrganizationFormValues = z.infer<typeof organizationFormSchema>;
 
 interface ProfileTabProps {
 	organization: OrganizationResource | null | undefined;
@@ -36,8 +65,6 @@ interface ProfileTabProps {
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 	const router = useRouter();
-	const [fullName, setFullName] = useState(organization?.name || "");
-	const [displayName, setDisplayName] = useState(organization?.slug || "");
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [confirmText, setConfirmText] = useState("");
 	const { userMemberships, setActive } = useOrganizationList({
@@ -45,15 +72,34 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 	});
 	const { mutate: deleteOrg, isPending } = useDeleteOrganization();
 
-	const handleSave = async () => {
+	const form = useForm<OrganizationFormValues>({
+		resolver: zodResolver(organizationFormSchema),
+		defaultValues: {
+			name: organization?.name || "",
+			slug: organization?.slug || "",
+		},
+	});
+
+	useEffect(() => {
+		if (organization) {
+			form.reset({
+				name: organization.name || "",
+				slug: organization.slug || "",
+			});
+		}
+	}, [organization, form]);
+
+	const handleSave = async (values: OrganizationFormValues) => {
 		if (!organization) return;
 
 		try {
 			await organization.update({
-				name: fullName,
-				slug: displayName,
+				name: values.name,
+				slug: values.slug,
 			});
+			toast.success("Organization updated successfully");
 		} catch (error) {
+			toast.error("Failed to update organization");
 			console.error("Error updating organization:", error);
 		}
 	};
@@ -122,37 +168,52 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 						</div>
 					</div>
 
-					<div className="space-y-4">
-						<div className="space-y-2">
-							<Label htmlFor="fullName">Full Name</Label>
-							<Input
-								id="fullName"
-								value={fullName}
-								onChange={(e) => setFullName(e.target.value)}
-								placeholder="Enter organization name"
+					<Form {...form}>
+						<form
+							onSubmit={form.handleSubmit(handleSave)}
+							className="space-y-4"
+						>
+							<FormField
+								control={form.control}
+								name="name"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Full Name</FormLabel>
+										<FormControl>
+											<Input placeholder="Enter organization name" {...field} />
+										</FormControl>
+										<FormDescription>
+											This is the display name for your organization
+										</FormDescription>
+										<FormMessage />
+									</FormItem>
+								)}
 							/>
-							<p className="text-muted-foreground text-xs">
-								This is the display name for your organization
-							</p>
-						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="displayName">Display Name (slug)</Label>
-							<Input
-								id="displayName"
-								value={displayName}
-								onChange={(e) => setDisplayName(e.target.value)}
-								placeholder="organization-slug"
+							<FormField
+								control={form.control}
+								name="slug"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Display Name (slug)</FormLabel>
+										<FormControl>
+											<Input placeholder="organization-slug" {...field} />
+										</FormControl>
+										<FormDescription>
+											Used in URLs and for identification
+										</FormDescription>
+										<FormMessage />
+									</FormItem>
+								)}
 							/>
-							<p className="text-muted-foreground text-xs">
-								Used in URLs and for identification
-							</p>
-						</div>
-					</div>
 
-					<div className="flex justify-end">
-						<Button onClick={handleSave}>Save Changes</Button>
-					</div>
+							<div className="flex justify-end">
+								<Button type="submit" disabled={form.formState.isSubmitting}>
+									{form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+								</Button>
+							</div>
+						</form>
+					</Form>
 				</CardContent>
 			</Card>
 

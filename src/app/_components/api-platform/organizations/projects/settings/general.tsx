@@ -1,9 +1,12 @@
 "use client";
 
 import { useOrganization } from "@clerk/nextjs";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -23,12 +26,32 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useDeleteProject } from "@/hooks/projects/use-delete-project";
 import { useProject } from "@/hooks/projects/use-project";
 import { useUpdateProject } from "@/hooks/projects/use-update-project";
+
+const projectFormSchema = z.object({
+	name: z
+		.string()
+		.min(1, "Project name is required")
+		.max(100, "Project name must be less than 100 characters"),
+	description: z
+		.string()
+		.max(500, "Description must be less than 500 characters")
+		.optional(),
+});
+
+type ProjectFormValues = z.infer<typeof projectFormSchema>;
 
 export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 	const router = useRouter();
@@ -36,22 +59,34 @@ export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 
 	const { data: project, isLoading } = useProject(projectId);
 
-	const [name, setName] = useState(project?.name ?? "");
-	const [description, setDescription] = useState(project?.description ?? "");
-
 	const { mutate: updateProjectMutate, isPending: isUpdating } =
 		useUpdateProject();
 
 	const { mutate: deleteProjectMutate, isPending: isDeleting } =
 		useDeleteProject();
 
-	const handleSave = () => {
-		if (!name.trim()) return;
+	const form = useForm<ProjectFormValues>({
+		resolver: zodResolver(projectFormSchema),
+		defaultValues: {
+			name: project?.name ?? "",
+			description: project?.description ?? "",
+		},
+	});
 
+	useEffect(() => {
+		if (project) {
+			form.reset({
+				name: project.name ?? "",
+				description: project.description ?? "",
+			});
+		}
+	}, [project, form]);
+
+	const handleSave = (values: ProjectFormValues) => {
 		updateProjectMutate({
 			id: projectId,
-			name: name.trim(),
-			description: description.trim(),
+			name: values.name.trim(),
+			description: values.description?.trim() ?? "",
 		});
 	};
 
@@ -96,29 +131,49 @@ export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 						Update your project's name and description
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="space-y-2">
-						<Label htmlFor="name">Project Name</Label>
-						<Input
-							id="name"
-							placeholder="My Awesome Project"
-							value={name}
-							onChange={(e) => setName(e.target.value)}
-						/>
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="description">Description</Label>
-						<Textarea
-							id="description"
-							placeholder="Describe your project..."
-							value={description}
-							onChange={(e) => setDescription(e.target.value)}
-							rows={4}
-						/>
-					</div>
-					<Button onClick={handleSave} disabled={!name.trim() || isUpdating}>
-						{isUpdating ? "Saving..." : "Save Changes"}
-					</Button>
+				<CardContent>
+					<Form {...form}>
+						<form
+							onSubmit={form.handleSubmit(handleSave)}
+							className="space-y-4"
+						>
+							<FormField
+								control={form.control}
+								name="name"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Project Name</FormLabel>
+										<FormControl>
+											<Input placeholder="My Awesome Project" {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<FormField
+								control={form.control}
+								name="description"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Description</FormLabel>
+										<FormControl>
+											<Textarea
+												placeholder="Describe your project..."
+												rows={4}
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+
+							<Button type="submit" disabled={isUpdating}>
+								{isUpdating ? "Saving..." : "Save Changes"}
+							</Button>
+						</form>
+					</Form>
 				</CardContent>
 			</Card>
 
