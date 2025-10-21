@@ -1,7 +1,9 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
+import { CustomProviderDialog } from "@/app/_components/api-platform/custom-provider-dialog";
 import { ProviderCard } from "@/app/_components/api-platform/provider-card";
 import { ProviderConfigDialog } from "@/app/_components/api-platform/provider-config-dialog";
 import {
@@ -14,6 +16,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
 	useDeleteOrganizationProvider,
 	useOrganizationProviders,
@@ -30,6 +33,8 @@ export const OrganizationProvidersTab: React.FC<
 > = ({ organizationId, isAdmin }) => {
 	const [configDialogOpen, setConfigDialogOpen] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [customProviderDialogOpen, setCustomProviderDialogOpen] =
+		useState(false);
 	const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
 	const [configMode, setConfigMode] = useState<"create" | "edit">("create");
 
@@ -86,17 +91,25 @@ export const OrganizationProvidersTab: React.FC<
 	return (
 		<div className="space-y-6">
 			{/* Header */}
-			<div>
-				<h3 className="font-semibold text-lg">Provider Configurations</h3>
-				<p className="text-muted-foreground text-sm">
-					Configure API credentials for LLM providers at the organization level.
-					These settings apply to all projects unless overridden at the project
-					level.
-				</p>
-				{!isAdmin && (
-					<p className="mt-2 text-sm text-yellow-600 dark:text-yellow-500">
-						Only organization admins can manage provider configurations.
+			<div className="flex items-start justify-between">
+				<div>
+					<h3 className="font-semibold text-lg">Provider Configurations</h3>
+					<p className="text-muted-foreground text-sm">
+						Configure API credentials for LLM providers at the organization
+						level. These settings apply to all projects unless overridden at the
+						project level.
 					</p>
+					{!isAdmin && (
+						<p className="mt-2 text-sm text-yellow-600 dark:text-yellow-500">
+							Only organization admins can manage provider configurations.
+						</p>
+					)}
+				</div>
+				{isAdmin && (
+					<Button onClick={() => setCustomProviderDialogOpen(true)} size="sm">
+						<Plus className="mr-2 h-4 w-4" />
+						Add Custom Provider
+					</Button>
 				)}
 			</div>
 
@@ -168,6 +181,14 @@ export const OrganizationProvidersTab: React.FC<
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			{/* Custom Provider Dialog */}
+			<CustomProviderDialog
+				open={customProviderDialogOpen}
+				onOpenChange={setCustomProviderDialogOpen}
+				level="organization"
+				organizationId={organizationId}
+			/>
 		</div>
 	);
 };
