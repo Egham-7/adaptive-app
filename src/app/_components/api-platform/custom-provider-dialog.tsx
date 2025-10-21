@@ -1,8 +1,10 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
-import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -12,13 +14,36 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	Form,
+	FormControl,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	useCreateOrganizationProvider,
 	useCreateProjectProvider,
 } from "@/hooks/provider-configs";
+
+const customProviderSchema = z.object({
+	providerName: z
+		.string()
+		.min(1, "Provider name is required")
+		.regex(
+			/^[a-z0-9-]+$/,
+			"Only lowercase letters, numbers, and hyphens are allowed",
+		),
+	apiKey: z.string().min(1, "API key is required"),
+	baseUrl: z.string().url("Must be a valid URL"),
+	authorizationHeader: z.string().optional(),
+});
+
+type CustomProviderFormValues = z.infer<typeof customProviderSchema>;
 
 interface CustomProviderDialogProps {
 	open: boolean;
@@ -35,176 +60,188 @@ export function CustomProviderDialog({
 	projectId,
 	organizationId,
 }: CustomProviderDialogProps) {
-	const [providerName, setProviderName] = useState("");
-	const [apiKey, setApiKey] = useState("");
-	const [baseUrl, setBaseUrl] = useState("");
-	const [authHeader, setAuthHeader] = useState("");
 	const [showApiKey, setShowApiKey] = useState(false);
+
+	const form = useForm<CustomProviderFormValues>({
+		resolver: zodResolver(customProviderSchema),
+		defaultValues: {
+			providerName: "",
+			apiKey: "",
+			baseUrl: "",
+			authorizationHeader: "",
+		},
+	});
 
 	const createProjectProvider = useCreateProjectProvider();
 	const createOrgProvider = useCreateOrganizationProvider();
 
-	const handleSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
+	const isLoading =
+		createProjectProvider.isPending || createOrgProvider.isPending;
 
+	useEffect(() => {
+		if (!open) {
+			form.reset();
+			setShowApiKey(false);
+		}
+	}, [open, form]);
+
+	const onSubmit = (values: CustomProviderFormValues) => {
 		const data = {
-			provider_name: providerName.trim(),
-			api_key: apiKey.trim(),
-			...(baseUrl.trim() && { base_url: baseUrl.trim() }),
-			...(authHeader.trim() && { authorization_header: authHeader.trim() }),
+			provider_name: values.providerName,
+			api_key: values.apiKey,
+			base_url: values.baseUrl,
+			...(values.authorizationHeader && {
+				authorization_header: values.authorizationHeader,
+			}),
 		};
 
 		if (level === "project" && projectId) {
 			createProjectProvider.mutate(
-				{ projectId, provider: providerName.trim(), data },
+				{ projectId, provider: values.providerName, data },
 				{
 					onSuccess: () => {
 						onOpenChange(false);
-						resetForm();
 					},
 				},
 			);
 		} else if (level === "organization" && organizationId) {
 			createOrgProvider.mutate(
-				{ organizationId, provider: providerName.trim(), data },
+				{ organizationId, provider: values.providerName, data },
 				{
 					onSuccess: () => {
 						onOpenChange(false);
-						resetForm();
 					},
 				},
 			);
 		}
 	};
 
-	const resetForm = () => {
-		setProviderName("");
-		setApiKey("");
-		setBaseUrl("");
-		setAuthHeader("");
-		setShowApiKey(false);
-	};
-
-	const isLoading =
-		createProjectProvider.isPending || createOrgProvider.isPending;
-
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[500px]">
-				<form onSubmit={handleSubmit}>
-					<DialogHeader>
-						<DialogTitle>Add Custom Provider</DialogTitle>
-						<DialogDescription>
-							{level === "project"
-								? "Add a custom LLM provider for this project"
-								: "Add a custom LLM provider for this organization"}
-						</DialogDescription>
-					</DialogHeader>
+				<DialogHeader>
+					<DialogTitle>Add Custom Provider</DialogTitle>
+					<DialogDescription>
+						{level === "project"
+							? "Add a custom LLM provider for this project"
+							: "Add a custom LLM provider for this organization"}
+					</DialogDescription>
+				</DialogHeader>
 
-					<div className="space-y-4 py-4">
-						<div className="space-y-2">
-							<Label htmlFor="providerName">
-								Provider Name <span className="text-red-500">*</span>
-							</Label>
-							<Input
-								id="providerName"
-								type="text"
-								value={providerName}
-								onChange={(e) => setProviderName(e.target.value)}
-								placeholder="my-custom-provider"
-								required
-								pattern="[a-z0-9-]+"
-								title="Only lowercase letters, numbers, and hyphens"
-							/>
-							<p className="text-muted-foreground text-xs">
-								Use lowercase letters, numbers, and hyphens only
-							</p>
-						</div>
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+						<FormField
+							control={form.control}
+							name="providerName"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Provider Name</FormLabel>
+									<FormControl>
+										<Input placeholder="my-custom-provider" {...field} />
+									</FormControl>
+									<FormDescription>
+										Use lowercase letters, numbers, and hyphens only
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-						<div className="space-y-2">
-							<Label htmlFor="apiKey">
-								API Key <span className="text-red-500">*</span>
-							</Label>
-							<div className="relative">
-								<Input
-									id="apiKey"
-									type={showApiKey ? "text" : "password"}
-									value={apiKey}
-									onChange={(e) => setApiKey(e.target.value)}
-									placeholder="Enter API key"
-									required
-									className="pr-10"
-								/>
-								<Button
-									type="button"
-									variant="ghost"
-									size="sm"
-									className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
-									onClick={() => setShowApiKey(!showApiKey)}
-								>
-									{showApiKey ? (
-										<EyeOff className="h-4 w-4" />
-									) : (
-										<Eye className="h-4 w-4" />
-									)}
-								</Button>
-							</div>
-							<p className="text-muted-foreground text-xs">
-								Your API key will be stored securely and never displayed in full
-							</p>
-						</div>
+						<FormField
+							control={form.control}
+							name="apiKey"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>API Key</FormLabel>
+									<FormControl>
+										<div className="relative">
+											<Input
+												type={showApiKey ? "text" : "password"}
+												placeholder="Enter API key"
+												className="pr-10"
+												{...field}
+											/>
+											<Button
+												type="button"
+												variant="ghost"
+												size="sm"
+												className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+												onClick={() => setShowApiKey(!showApiKey)}
+											>
+												{showApiKey ? (
+													<EyeOff className="h-4 w-4" />
+												) : (
+													<Eye className="h-4 w-4" />
+												)}
+											</Button>
+										</div>
+									</FormControl>
+									<FormDescription>
+										Your API key will be stored securely and never displayed in
+										full
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-						<div className="space-y-2">
-							<Label htmlFor="baseUrl">
-								Base URL <span className="text-red-500">*</span>
-							</Label>
-							<Input
-								id="baseUrl"
-								type="url"
-								value={baseUrl}
-								onChange={(e) => setBaseUrl(e.target.value)}
-								placeholder="https://api.example.com"
-								required
-							/>
-							<p className="text-muted-foreground text-xs">
-								The base URL for your custom provider's API
-							</p>
-						</div>
+						<FormField
+							control={form.control}
+							name="baseUrl"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Base URL</FormLabel>
+									<FormControl>
+										<Input
+											type="url"
+											placeholder="https://api.example.com"
+											{...field}
+										/>
+									</FormControl>
+									<FormDescription>
+										The base URL for your custom provider's API
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-						<div className="space-y-2">
-							<Label htmlFor="authHeader">
-								Authorization Header (Optional)
-							</Label>
-							<Textarea
-								id="authHeader"
-								value={authHeader}
-								onChange={(e) => setAuthHeader(e.target.value)}
-								placeholder="Bearer your-token"
-								rows={3}
-							/>
-							<p className="text-muted-foreground text-xs">
-								Custom authorization header if different from API key
-							</p>
-						</div>
-					</div>
+						<FormField
+							control={form.control}
+							name="authorizationHeader"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Authorization Header (Optional)</FormLabel>
+									<FormControl>
+										<Textarea
+											placeholder="Bearer your-token"
+											rows={3}
+											{...field}
+										/>
+									</FormControl>
+									<FormDescription>
+										Custom authorization header if different from API key
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => {
-								onOpenChange(false);
-								resetForm();
-							}}
-							disabled={isLoading}
-						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={isLoading}>
-							{isLoading ? "Creating..." : "Create Provider"}
-						</Button>
-					</DialogFooter>
-				</form>
+						<DialogFooter>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => onOpenChange(false)}
+								disabled={isLoading}
+							>
+								Cancel
+							</Button>
+							<Button type="submit" disabled={isLoading}>
+								{isLoading ? "Creating..." : "Create Provider"}
+							</Button>
+						</DialogFooter>
+					</form>
+				</Form>
 			</DialogContent>
 		</Dialog>
 	);
