@@ -53,7 +53,11 @@ export const useCreateOrganizationProvider = (
 		},
 		onSuccess: async (data) => {
 			toast.success("Provider configuration created successfully!");
-			await utils.providerConfigs.listOrganizationProviders.invalidate();
+			await Promise.all([
+				utils.providerConfigs.listOrganizationProviders.invalidate(),
+				// Invalidate all project provider lists since they inherit from org configs
+				utils.providerConfigs.listProjectProviders.invalidate(),
+			]);
 			options?.onSuccess?.(data);
 		},
 		onError: (error, variables, context) => {
