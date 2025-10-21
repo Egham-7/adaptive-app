@@ -50,9 +50,13 @@ export const useCreateProjectProvider = (
 
 			return { previousData };
 		},
-		onSuccess: async (data) => {
+		onSuccess: async (data, variables) => {
 			toast.success("Provider configuration created successfully!");
-			await utils.providerConfigs.listProjectProviders.invalidate();
+			await Promise.all([
+				utils.providerConfigs.listProjectProviders.invalidate(),
+				utils.projects.getById.invalidate({ id: variables.projectId }),
+				utils.projects.getByOrganization.invalidate(),
+			]);
 			options?.onSuccess?.(data);
 		},
 		onError: (error, variables, context) => {
