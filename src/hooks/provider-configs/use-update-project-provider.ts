@@ -12,9 +12,9 @@ export const useUpdateProjectProvider = (
 	const utils = api.useUtils();
 
 	return api.providerConfigs.updateProjectProvider.useMutation({
-		onSuccess: (data) => {
+		onSuccess: async (data) => {
 			toast.success("Provider configuration updated successfully!");
-			utils.providerConfigs.listProjectProviders.invalidate();
+			await utils.providerConfigs.listProjectProviders.refetch();
 			options?.onSuccess?.(data);
 		},
 		onError: (error) => {

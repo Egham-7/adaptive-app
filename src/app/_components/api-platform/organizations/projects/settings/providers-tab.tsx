@@ -91,7 +91,11 @@ export const ProjectProvidersTab: React.FC<ProjectProvidersTabProps> = ({
 	}
 
 	const providers = providersData?.providers || {};
-	const providerNames = Object.keys(PROVIDER_METADATA);
+	const builtInProviders = Object.keys(PROVIDER_METADATA);
+	const customProviders = Object.keys(providers).filter(
+		(name) => !PROVIDER_METADATA[name as ProviderName],
+	);
+	const providerNames = [...builtInProviders, ...customProviders];
 
 	return (
 		<div className="space-y-6">

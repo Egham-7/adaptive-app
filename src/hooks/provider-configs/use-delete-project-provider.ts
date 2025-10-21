@@ -11,9 +11,9 @@ export const useDeleteProjectProvider = (
 	const utils = api.useUtils();
 
 	return api.providerConfigs.deleteProjectProvider.useMutation({
-		onSuccess: () => {
+		onSuccess: async () => {
 			toast.success("Provider configuration deleted successfully!");
-			utils.providerConfigs.listProjectProviders.invalidate();
+			await utils.providerConfigs.listProjectProviders.refetch();
 			options?.onSuccess?.();
 		},
 		onError: (error) => {

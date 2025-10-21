@@ -11,9 +11,9 @@ export const useDeleteOrganizationProvider = (
 	const utils = api.useUtils();
 
 	return api.providerConfigs.deleteOrganizationProvider.useMutation({
-		onSuccess: () => {
+		onSuccess: async () => {
 			toast.success("Provider configuration deleted successfully!");
-			utils.providerConfigs.listOrganizationProviders.invalidate();
+			await utils.providerConfigs.listOrganizationProviders.refetch();
 			options?.onSuccess?.();
 		},
 		onError: (error) => {

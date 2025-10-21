@@ -12,9 +12,9 @@ export const useCreateProjectProvider = (
 	const utils = api.useUtils();
 
 	return api.providerConfigs.createProjectProvider.useMutation({
-		onSuccess: (data) => {
+		onSuccess: async (data) => {
 			toast.success("Provider configuration created successfully!");
-			utils.providerConfigs.listProjectProviders.invalidate();
+			await utils.providerConfigs.listProjectProviders.refetch();
 			options?.onSuccess?.(data);
 		},
 		onError: (error) => {

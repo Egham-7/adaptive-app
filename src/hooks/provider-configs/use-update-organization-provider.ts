@@ -12,9 +12,9 @@ export const useUpdateOrganizationProvider = (
 	const utils = api.useUtils();
 
 	return api.providerConfigs.updateOrganizationProvider.useMutation({
-		onSuccess: (data) => {
+		onSuccess: async (data) => {
 			toast.success("Provider configuration updated successfully!");
-			utils.providerConfigs.listOrganizationProviders.invalidate();
+			await utils.providerConfigs.listOrganizationProviders.refetch();
 			options?.onSuccess?.(data);
 		},
 		onError: (error) => {

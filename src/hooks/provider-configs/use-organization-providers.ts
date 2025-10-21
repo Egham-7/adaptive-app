@@ -7,7 +7,7 @@ export const useOrganizationProviders = (
 	return api.providerConfigs.listOrganizationProviders.useQuery(
 		{ organizationId, endpoint },
 		{
-			staleTime: 5 * 60 * 1000, // 5 minutes
+			staleTime: 30 * 1000, // 30 seconds
 			refetchOnWindowFocus: false,
 			enabled: !!organizationId,
 		},
