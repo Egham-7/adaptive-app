@@ -68,19 +68,19 @@ export default function Pricing() {
 							<CardTitle className="font-medium">Developer</CardTitle>
 							<div className="my-3 space-y-2">
 								<div className="flex items-baseline">
-									<span className="font-semibold text-2xl">+$0.10</span>
+									<span className="font-semibold text-2xl">+$0.10 / +$0.20</span>
 									<span className="ml-1 text-muted-foreground text-sm">
 										per 1M tokens
 									</span>
 								</div>
 								<div className="text-muted-foreground text-xs">
-									Added to original model pricing (input + output)
+									Input / Output overhead on top of model costs
 								</div>
 							</div>
 							<CardDescription className="text-sm">
-								Simple markup pricing - pay original model cost + $0.10 per
-								million tokens. Semantic cache hits: +$0.05/1M tokens. Prompt
-								response cache hits: Free!
+								Pay original model cost + $0.10/1M input + $0.20/1M output tokens overhead.
+								With custom API keys (BYOK): only pay overhead, no model costs.
+								Semantic cache: 50% off. Prompt cache: Free!
 							</CardDescription>
 							<SignedOut>
 								<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
