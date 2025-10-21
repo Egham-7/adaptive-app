@@ -11,12 +11,41 @@ export const useDeleteProjectProvider = (
 	const utils = api.useUtils();
 
 	return api.providerConfigs.deleteProjectProvider.useMutation({
+		onMutate: async (variables) => {
+			await utils.providerConfigs.listProjectProviders.cancel();
+
+			const previousData = utils.providerConfigs.listProjectProviders.getData({
+				projectId: variables.projectId,
+			});
+
+			utils.providerConfigs.listProjectProviders.setData(
+				{ projectId: variables.projectId },
+				(old) => {
+					if (!old) return old;
+
+					return {
+						...old,
+						providers: old.providers.filter(
+							(provider) => provider.provider_name !== variables.provider,
+						),
+					};
+				},
+			);
+
+			return { previousData };
+		},
 		onSuccess: async () => {
 			toast.success("Provider configuration deleted successfully!");
-			await utils.providerConfigs.listProjectProviders.refetch();
+			await utils.providerConfigs.listProjectProviders.invalidate();
 			options?.onSuccess?.();
 		},
-		onError: (error) => {
+		onError: (error, variables, context) => {
+			if (context?.previousData) {
+				utils.providerConfigs.listProjectProviders.setData(
+					{ projectId: variables.projectId },
+					context.previousData,
+				);
+			}
 			toast.error(error.message || "Failed to delete provider configuration");
 		},
 	});
