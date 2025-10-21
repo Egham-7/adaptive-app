@@ -1,7 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { ProviderConfigsClient } from "@/lib/api/provider-configs";
-import { invalidateProjectCache, withCache } from "@/lib/shared/cache";
+import {
+	invalidateOrganizationProviderCache,
+	invalidateProjectCache,
+	withCache,
+} from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
 	providerConfigCreateRequestSchema,
@@ -268,6 +272,8 @@ export const providerConfigsRouter = createTRPCRouter({
 					input.data,
 				);
 
+				await invalidateOrganizationProviderCache(input.organizationId);
+
 				return config;
 			} catch (error) {
 				console.error("Error creating organization provider config:", error);
@@ -319,6 +325,8 @@ export const providerConfigsRouter = createTRPCRouter({
 					input.data,
 				);
 
+				await invalidateOrganizationProviderCache(input.organizationId);
+
 				return config;
 			} catch (error) {
 				console.error("Error updating organization provider config:", error);
@@ -364,6 +372,8 @@ export const providerConfigsRouter = createTRPCRouter({
 					input.organizationId,
 					input.provider,
 				);
+
+				await invalidateOrganizationProviderCache(input.organizationId);
 
 				return { success: true };
 			} catch (error) {

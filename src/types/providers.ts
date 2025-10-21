@@ -66,6 +66,7 @@ export interface ProviderConfigUpdateRequest {
 	api_key?: string;
 	base_url?: string;
 	authorization_header?: string;
+	enabled?: boolean;
 }
 
 export const providerConfigCreateRequestSchema = z.object({
@@ -79,22 +80,28 @@ export const providerConfigUpdateRequestSchema = z.object({
 	api_key: z.string().optional(),
 	base_url: z.string().optional(),
 	authorization_header: z.string().optional(),
+	enabled: z.boolean().optional(),
 });
 
 // API Response types matching backend exactly
+export interface ProviderConfigWithSource {
+	id: number;
+	provider_name: string;
+	base_url: string;
+	has_api_key: boolean;
+	has_authorization_header: boolean;
+	enabled: boolean;
+	source: "project" | "organization";
+	created_at: string;
+	updated_at: string;
+	created_by: string;
+	updated_by: string;
+}
+
 export interface ProviderConfigListResponse {
 	project_id?: number;
 	organization_id?: string;
-	endpoint: string;
-	providers: Record<
-		string,
-		{
-			has_api_key: boolean;
-			base_url?: string;
-			authorization_header: boolean;
-			is_preset?: boolean;
-		}
-	>;
+	providers: ProviderConfigWithSource[];
 }
 
 export interface ProviderConfigResponse {
@@ -104,6 +111,7 @@ export interface ProviderConfigResponse {
 	provider_name: string;
 	has_api_key: boolean;
 	base_url?: string;
+	enabled: boolean;
 	created_at: string;
 	updated_at?: string;
 	created_by: string;

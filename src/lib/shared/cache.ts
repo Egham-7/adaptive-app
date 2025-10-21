@@ -144,6 +144,19 @@ export const invalidateProviderConfigCache = (
 	return invalidatePatterns(patterns);
 };
 
+export const invalidateOrganizationProviderCache = (
+	organizationId: string,
+	providerId?: string,
+) => {
+	const patterns = [`provider-configs:org:${organizationId}*`];
+
+	if (providerId) {
+		patterns.push(`provider-config:org:${organizationId}:${providerId}*`);
+	}
+
+	return invalidatePatterns(patterns);
+};
+
 export const invalidateClusterCache = async (
 	projectId: string,
 	clusterName?: string,

@@ -10,6 +10,8 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Switch } from "@/components/ui/switch";
 import { PROVIDER_METADATA, type ProviderName } from "@/types/providers";
 
 interface ProviderCardProps {
@@ -19,10 +21,13 @@ interface ProviderCardProps {
 	baseUrl?: string;
 	authorizationHeader?: boolean;
 	isInherited?: boolean;
-	isPreset?: boolean;
+	source?: "project" | "organization";
+	enabled?: boolean;
+	isLoading?: boolean;
 	onConfigure: () => void;
 	onEdit?: () => void;
 	onDelete?: () => void;
+	onToggle?: (enabled: boolean) => void;
 	level?: "project" | "organization";
 }
 
@@ -33,10 +38,13 @@ export function ProviderCard({
 	baseUrl,
 	authorizationHeader,
 	isInherited = false,
-	isPreset = false,
+	source,
+	enabled = true,
+	isLoading = false,
 	onConfigure,
 	onEdit,
 	onDelete,
+	onToggle,
 	level = "project",
 }: ProviderCardProps) {
 	const metadata = PROVIDER_METADATA[providerName as ProviderName];
@@ -46,8 +54,14 @@ export function ProviderCard({
 	}
 
 	return (
-		<Card className="relative">
-			{isInherited && (
+		<Card className={`relative ${!enabled ? "opacity-60" : ""}`}>
+			{isLoading && (
+				<div className="absolute top-2 right-2 flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 text-gray-700 text-xs dark:bg-gray-800 dark:text-gray-300">
+					<LoadingSpinner size="sm" />
+					<span>Syncing...</span>
+				</div>
+			)}
+			{!isLoading && isInherited && (
 				<div className="absolute top-2 right-2 rounded-md bg-blue-100 px-2 py-1 text-blue-700 text-xs dark:bg-blue-900 dark:text-blue-300">
 					Inherited from {level === "project" ? "organization" : "YAML"}
 				</div>
@@ -97,6 +111,19 @@ export function ProviderCard({
 						</div>
 					</div>
 
+					{/* Enable/Disable Toggle */}
+					{isConfigured && !isInherited && onToggle && (
+						<div className="flex items-center justify-between">
+							<span className="text-muted-foreground text-sm">Enabled</span>
+							<Switch
+								checked={enabled}
+								onCheckedChange={onToggle}
+								disabled={isLoading}
+								aria-label="Toggle provider"
+							/>
+						</div>
+					)}
+
 					{/* API Key Status */}
 					{isConfigured && (
 						<div className="flex items-center justify-between">
@@ -134,17 +161,19 @@ export function ProviderCard({
 										variant="outline"
 										size="sm"
 										onClick={onEdit}
+										disabled={isLoading}
 										className="flex-1"
 									>
 										<Edit className="mr-2 h-4 w-4" />
-										{isPreset ? "Override" : "Edit"}
+										Edit
 									</Button>
 								)}
-								{!isInherited && !isPreset && onDelete && (
+								{!isInherited && onDelete && (
 									<Button
 										variant="outline"
 										size="sm"
 										onClick={onDelete}
+										disabled={isLoading}
 										className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
 									>
 										Delete
@@ -155,6 +184,7 @@ export function ProviderCard({
 										variant="outline"
 										size="sm"
 										onClick={onConfigure}
+										disabled={isLoading}
 										className="flex-1"
 									>
 										Override
@@ -166,6 +196,7 @@ export function ProviderCard({
 								variant="default"
 								size="sm"
 								onClick={onConfigure}
+								disabled={isLoading}
 								className="w-full"
 							>
 								Configure

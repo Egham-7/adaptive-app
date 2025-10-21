@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,78 +27,86 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-	useCreateOrganizationProvider,
-	useCreateProjectProvider,
+	useUpdateOrganizationProvider,
+	useUpdateProjectProvider,
 } from "@/hooks/provider-configs";
+import { PROVIDER_METADATA, type ProviderName } from "@/types/providers";
 
-const customProviderSchema = z.object({
-	providerName: z
-		.string()
-		.min(1, "Provider name is required")
-		.regex(
-			/^[a-z0-9-]+$/,
-			"Only lowercase letters, numbers, and hyphens are allowed",
-		),
-	apiKey: z.string().min(1, "API key is required"),
-	baseUrl: z.string().url("Must be a valid URL"),
+const editProviderSchema = z.object({
+	apiKey: z.string().optional(),
+	baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
 	authorizationHeader: z.string().optional(),
 });
 
-type CustomProviderFormValues = z.infer<typeof customProviderSchema>;
+type EditProviderFormValues = z.infer<typeof editProviderSchema>;
 
-interface CustomProviderDialogProps {
+interface EditProviderDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	providerName: string;
 	level: "project" | "organization";
 	projectId?: number;
 	organizationId?: string;
+	existingConfig?: {
+		has_api_key?: boolean;
+		base_url?: string;
+		authorization_header?: boolean;
+	};
 }
 
-export function CustomProviderDialog({
+export function EditProviderDialog({
 	open,
 	onOpenChange,
+	providerName,
 	level,
 	projectId,
 	organizationId,
-}: CustomProviderDialogProps) {
+	existingConfig,
+}: EditProviderDialogProps) {
+	const metadata = PROVIDER_METADATA[providerName as ProviderName];
 	const [showApiKey, setShowApiKey] = useState(false);
 
-	const form = useForm<CustomProviderFormValues>({
-		resolver: zodResolver(customProviderSchema),
+	const form = useForm<EditProviderFormValues>({
+		resolver: zodResolver(editProviderSchema),
 		defaultValues: {
-			providerName: "",
 			apiKey: "",
-			baseUrl: "",
+			baseUrl: existingConfig?.base_url || "",
 			authorizationHeader: "",
 		},
 	});
 
-	const createProjectProvider = useCreateProjectProvider();
-	const createOrgProvider = useCreateOrganizationProvider();
-
-	const isLoading =
-		createProjectProvider.isPending || createOrgProvider.isPending;
+	const updateProjectProvider = useUpdateProjectProvider();
+	const updateOrgProvider = useUpdateOrganizationProvider();
 
 	useEffect(() => {
 		if (!open) {
 			form.reset();
 			setShowApiKey(false);
+		} else {
+			form.reset({
+				apiKey: "",
+				baseUrl: existingConfig?.base_url || "",
+				authorizationHeader: "",
+			});
 		}
-	}, [open, form]);
+	}, [open, form, existingConfig]);
 
-	const onSubmit = (values: CustomProviderFormValues) => {
+	const onSubmit = (values: EditProviderFormValues) => {
 		const data = {
-			provider_name: values.providerName,
-			api_key: values.apiKey,
-			base_url: values.baseUrl,
-			...(values.authorizationHeader && {
-				authorization_header: values.authorizationHeader,
+			...(values.apiKey?.trim() && { api_key: values.apiKey.trim() }),
+			...(values.baseUrl?.trim() && { base_url: values.baseUrl.trim() }),
+			...(values.authorizationHeader?.trim() && {
+				authorization_header: values.authorizationHeader.trim(),
 			}),
 		};
 
 		if (level === "project" && projectId) {
-			createProjectProvider.mutate(
-				{ projectId, provider: values.providerName, data },
+			updateProjectProvider.mutate(
+				{
+					projectId,
+					provider: providerName,
+					data,
+				},
 				{
 					onSuccess: () => {
 						onOpenChange(false);
@@ -105,8 +114,12 @@ export function CustomProviderDialog({
 				},
 			);
 		} else if (level === "organization" && organizationId) {
-			createOrgProvider.mutate(
-				{ organizationId, provider: values.providerName, data },
+			updateOrgProvider.mutate(
+				{
+					organizationId,
+					provider: providerName,
+					data,
+				},
 				{
 					onSuccess: () => {
 						onOpenChange(false);
@@ -116,48 +129,55 @@ export function CustomProviderDialog({
 		}
 	};
 
+	const isLoading =
+		updateProjectProvider.isPending || updateOrgProvider.isPending;
+
+	if (!metadata) {
+		return null;
+	}
+
+	if (!metadata) {
+		return null;
+	}
+
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[500px]">
 				<DialogHeader>
-					<DialogTitle>Add Custom Provider</DialogTitle>
-					<DialogDescription>
-						{level === "project"
-							? "Add a custom LLM provider for this project"
-							: "Add a custom LLM provider for this organization"}
-					</DialogDescription>
+					<div className="flex items-center gap-3">
+						{metadata.logo && (
+							<Image
+								src={metadata.logo}
+								alt={`${metadata.displayName} logo`}
+								width={32}
+								height={32}
+								className="rounded-lg"
+							/>
+						)}
+						<div>
+							<DialogTitle>Edit {metadata.displayName}</DialogTitle>
+							<DialogDescription>
+								{level === "project"
+									? "Update provider configuration for this project"
+									: "Update provider configuration for this organization"}
+							</DialogDescription>
+						</div>
+					</div>
 				</DialogHeader>
 
 				<Form {...form}>
 					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 						<FormField
 							control={form.control}
-							name="providerName"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Provider Name</FormLabel>
-									<FormControl>
-										<Input placeholder="my-custom-provider" {...field} />
-									</FormControl>
-									<FormDescription>
-										Use lowercase letters, numbers, and hyphens only
-									</FormDescription>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<FormField
-							control={form.control}
 							name="apiKey"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>API Key</FormLabel>
+									<FormLabel>API Key (Optional)</FormLabel>
 									<FormControl>
 										<div className="relative">
 											<Input
 												type={showApiKey ? "text" : "password"}
-												placeholder="Enter API key"
+												placeholder="Leave empty to keep existing key"
 												className="pr-10"
 												{...field}
 											/>
@@ -177,8 +197,7 @@ export function CustomProviderDialog({
 										</div>
 									</FormControl>
 									<FormDescription>
-										Your API key will be stored securely and never displayed in
-										full
+										Leave empty to keep the existing API key
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -190,7 +209,7 @@ export function CustomProviderDialog({
 							name="baseUrl"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Base URL</FormLabel>
+									<FormLabel>Base URL (Optional)</FormLabel>
 									<FormControl>
 										<Input
 											type="url"
@@ -199,7 +218,7 @@ export function CustomProviderDialog({
 										/>
 									</FormControl>
 									<FormDescription>
-										The base URL for your custom provider's API
+										Override the default base URL for this provider
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -237,7 +256,7 @@ export function CustomProviderDialog({
 								Cancel
 							</Button>
 							<Button type="submit" disabled={isLoading}>
-								{isLoading ? "Creating..." : "Create Provider"}
+								{isLoading ? "Updating..." : "Update"}
 							</Button>
 						</DialogFooter>
 					</form>
