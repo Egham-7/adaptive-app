@@ -56,7 +56,8 @@ export const ProjectProvidersTab: React.FC<ProjectProvidersTabProps> = ({
 
 	const handleEditProvider = (providerName: string) => {
 		setSelectedProvider(providerName);
-		setConfigMode("edit");
+		const config = providers[providerName];
+		setConfigMode(config?.is_preset ? "create" : "edit");
 		setConfigDialogOpen(true);
 	};
 

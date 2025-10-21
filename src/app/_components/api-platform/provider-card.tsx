@@ -137,7 +137,7 @@ export function ProviderCard({
 										className="flex-1"
 									>
 										<Edit className="mr-2 h-4 w-4" />
-										Edit
+										{isPreset ? "Override" : "Edit"}
 									</Button>
 								)}
 								{!isInherited && !isPreset && onDelete && (
