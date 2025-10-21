@@ -55,7 +55,7 @@ export const useCreateProjectProvider = (
 			await Promise.all([
 				utils.providerConfigs.listProjectProviders.invalidate(),
 				utils.projects.getById.invalidate({ id: variables.projectId }),
-				utils.projects.list.invalidate(),
+				utils.projects.getByOrganization.invalidate(),
 			]);
 			options?.onSuccess?.(data);
 		},
