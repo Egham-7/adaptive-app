@@ -51,7 +51,8 @@ export const OrganizationProvidersTab: React.FC<
 
 	const handleEditProvider = (providerName: string) => {
 		setSelectedProvider(providerName);
-		setConfigMode("edit");
+		const config = providers[providerName];
+		setConfigMode(config?.is_preset ? "create" : "edit");
 		setConfigDialogOpen(true);
 	};
 
