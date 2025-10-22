@@ -48,7 +48,7 @@ export default withPostHogConfig(config, {
 	host: env.NEXT_PUBLIC_POSTHOG_API_HOST, // (optional), defaults to https://us.posthog.com
 	sourcemaps: {
 		// (optional)
-		enabled: true, // (optional) Enable sourcemaps generation and upload, default to true on production builds
+		enabled: process.env.NODE_ENV === "production", // Only enable sourcemaps in production builds
 		project: "adaptive", // (optional) Project name, defaults to repository name
 		deleteAfterUpload: true, // (optional) Delete sourcemaps after upload, defaults to true
 	},

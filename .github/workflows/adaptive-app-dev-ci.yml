@@ -79,3 +79,6 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           ADAPTIVE_API_BASE_URL: ${{ secrets.ADAPTIVE_API_BASE_URL_DEV }}
           EXA_API_KEY: ${{secrets.EXA_API_KEY}}
+          NEXT_PUBLIC_POSTHOG_API_HOST: ${{secrets.NEXT_PUBLIC_POSTHOG_API_HOST}}
+          POSTHOG_API_KEY: ${{secrets.POSTHOG_API_KEY}}
+          POSTHOG_ENV_ID: ${{secrets.POSTHOG_ENV_ID}}
