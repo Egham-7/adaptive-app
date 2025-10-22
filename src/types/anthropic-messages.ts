@@ -113,7 +113,7 @@ export interface AdaptiveAnthropicMessage extends Message {
 }
 
 export interface AdaptiveAnthropicUsage extends AnthropicSDKUsage {
-	cache_tier?: "semantic_exact" | "semantic_similar" | "prompt_response";
+	cache_tier?: "semantic_exact" | "semantic_similar";
 }
 
 export interface AdaptiveAnthropicResponse extends Omit<Message, "usage"> {
