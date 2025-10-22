@@ -14,6 +14,9 @@ export const env = createEnv({
 		NODE_ENV: z
 			.enum(["development", "test", "production"])
 			.default("development"),
+
+		POSTHOG_API_KEY: z.string().min(1),
+		POSTHOG_ENV_ID: z.string().min(1),
 	},
 
 	/**
@@ -22,7 +25,7 @@ export const env = createEnv({
 	 * `NEXT_PUBLIC_`.
 	 */
 	client: {
-		// NEXT_PUBLIC_CLIENTVAR: z.string(),
+		NEXT_PUBLIC_POSTHOG_API_HOST: z.url().default("https://app.posthog.com"),
 	},
 
 	/**
@@ -35,7 +38,9 @@ export const env = createEnv({
 		RESEND_API_KEY: process.env.RESEND_API_KEY,
 		ADAPTIVE_API_BASE_URL: process.env.ADAPTIVE_API_BASE_URL,
 		NODE_ENV: process.env.NODE_ENV,
-		// NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+		POSTHOG_API_KEY: process.env.POSTHOG_API_KEY,
+		POSTHOG_ENV_ID: process.env.POSTHOG_ENV_ID,
+		NEXT_PUBLIC_POSTHOG_API_HOST: process.env.NEXT_PUBLIC_POSTHOG_API_HOST,
 	},
 	/**
 	 * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
