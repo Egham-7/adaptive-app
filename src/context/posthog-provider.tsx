@@ -19,7 +19,11 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 	return <PHProvider client={posthog}>{children}</PHProvider>;
 }
 
-export function PostHogAuthWrapper({ children }: { children: React.ReactNode }) {
+export function PostHogAuthWrapper({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
 	const auth = useAuth();
 	const userInfo = useUser();
 

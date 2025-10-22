@@ -1,8 +1,8 @@
 import "../styles/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
-import { Suspense } from "react";
 import Script from "next/script";
+import { Suspense } from "react";
 import { Toaster } from "sonner";
 import { PostHogPageView } from "@/components/posthog-page-view";
 import { SidebarProvider } from "@/components/ui/sidebar";
