@@ -3,35 +3,25 @@
  * All event tracking functions organized by domain
  */
 
-// Authentication events
-export * from './auth';
-
-// Onboarding events
-export * from './onboarding';
-
-// Organization events
-export * from './organizations';
-
-// Project events
-export * from './projects';
-
-// API Key events
-export * from './api-keys';
-
-// Chat events
-export * from './chat';
-
-// Billing & Subscription events
-export * from './billing';
-
-// Settings events
-export * from './settings';
-
 // Analytics & Dashboard events
-export * from './analytics';
-
+export * from "./analytics";
+// API Key events
+export * from "./api-keys";
+// Authentication events
+export * from "./auth";
+// Billing & Subscription events
+export * from "./billing";
+// Chat events
+export * from "./chat";
 // Error events
-export * from './errors';
-
+export * from "./errors";
+// Onboarding events
+export * from "./onboarding";
+// Organization events
+export * from "./organizations";
 // Performance events
-export * from './performance';
+export * from "./performance";
+// Project events
+export * from "./projects";
+// Settings events
+export * from "./settings";

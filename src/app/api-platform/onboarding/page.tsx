@@ -11,6 +11,7 @@ import { QuickstartStep } from "@/app/_components/api-platform/onboarding/quicks
 import { WelcomeStep } from "@/app/_components/api-platform/onboarding/welcome-step";
 import { Progress } from "@/components/ui/progress";
 import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
+import { useOnboardingTracking } from "@/hooks/posthog/use-onboarding-tracking";
 import { useCreateProject } from "@/hooks/projects/use-create-project";
 import { api } from "@/trpc/react";
 import type { ProjectCreateResponse } from "@/types";
@@ -28,6 +29,7 @@ export default function OnboardingPage() {
 		useState<ProjectCreateResponse | null>(null);
 	const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
 	const [isFirstOrg, setIsFirstOrg] = useState(false);
+	const [onboardingStartTime] = useState(Date.now());
 	const router = useRouter();
 	const { organization } = useOrganization();
 	const { userMemberships } = useOrganizationList({
@@ -38,12 +40,53 @@ export default function OnboardingPage() {
 	const createApiKey = useCreateProjectApiKey();
 	const addCreditsMutation = api.credits.addPromotionalCredits.useMutation();
 	const { data: userCountData } = api.user.getUserCount.useQuery();
+	const {
+		trackStepViewed,
+		trackCompleted,
+		trackSkipped,
+		trackPromotionalCreditsAdded,
+	} = useOnboardingTracking();
 
 	useEffect(() => {
 		if (userMemberships.data && userMemberships.data.length === 1) {
 			setIsFirstOrg(true);
 		}
 	}, [userMemberships.data]);
+
+	// Track step views
+	useEffect(() => {
+		const mappedStep = (currentStep === "api-key" ? "api_key" : currentStep) as
+			| "welcome"
+			| "project"
+			| "api_key"
+			| "quickstart"
+			| "complete";
+
+		// Calculate step number inline to avoid dependency
+		let stepNumber = 1;
+		switch (currentStep) {
+			case "welcome":
+				stepNumber = 1;
+				break;
+			case "project":
+				stepNumber = 2;
+				break;
+			case "api-key":
+				stepNumber = 3;
+				break;
+			case "quickstart":
+				stepNumber = 4;
+				break;
+			case "complete":
+				stepNumber = 5;
+				break;
+		}
+
+		trackStepViewed({
+			step: mappedStep,
+			stepNumber,
+		});
+	}, [currentStep, trackStepViewed]);
 
 	const onProjectSubmit = (values: { name: string; description?: string }) => {
 		if (!organization) {
@@ -74,6 +117,12 @@ export default function OnboardingPage() {
 									toast.success(
 										`Welcome! $${creditAmount} in credits added to your account`,
 									);
+									// Track promotional credits added
+									trackPromotionalCreditsAdded({
+										amount: creditAmount,
+										isFirstOrg: true,
+										userCountAtSignup: totalUserCount,
+									});
 								},
 								onError: (error) => {
 									console.error("Failed to add promotional credits:", error);
@@ -119,14 +168,17 @@ export default function OnboardingPage() {
 	};
 
 	const handleSkipProject = () => {
+		trackSkipped({ step: "project", reason: "user_skipped" });
 		setCurrentStep("complete");
 	};
 
 	const handleSkipApiKey = () => {
+		trackSkipped({ step: "api_key", reason: "user_skipped" });
 		setCurrentStep("complete");
 	};
 
 	const handleSkipQuickstart = () => {
+		trackSkipped({ step: "quickstart", reason: "user_skipped" });
 		setCurrentStep("complete");
 	};
 
@@ -152,6 +204,16 @@ export default function OnboardingPage() {
 	};
 
 	const handleComplete = () => {
+		// Track onboarding completion
+		const completionTimeSeconds = Math.floor(
+			(Date.now() - onboardingStartTime) / 1000,
+		);
+		trackCompleted({
+			projectId: createdProject?.id ? String(createdProject.id) : undefined,
+			hasApiKey: !!createdApiKey,
+			completionTimeSeconds,
+		});
+
 		if (organization && createdProject) {
 			router.push(
 				`/api-platform/orgs/${organization.slug}/projects/${createdProject.id.toString()}`,

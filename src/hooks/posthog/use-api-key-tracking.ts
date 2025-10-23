@@ -1,51 +1,54 @@
-'use client';
+"use client";
 
 /**
  * API Key Tracking Hook
  * React hooks for tracking API key management events
  */
 
-import { useCallback } from 'react';
+import { useCallback } from "react";
 import {
-  trackApiKeyCreated,
-  trackApiKeyViewed,
-  trackApiKeyCopied,
-  trackApiKeyRevoked,
-  trackApiKeyDeleted,
-} from '@/lib/posthog/events/api-keys';
+	trackApiKeyCopied,
+	trackApiKeyCreated,
+	trackApiKeyDeleted,
+	trackApiKeyRevoked,
+	trackApiKeyViewed,
+} from "@/lib/posthog/events/api-keys";
 import type {
-  ApiKeyCreatedProps,
-  ApiKeyRevokedProps,
-  ApiKeyDeletedProps,
-  ApiKeyCopiedProps,
-} from '@/lib/posthog/types';
+	ApiKeyCopiedProps,
+	ApiKeyCreatedProps,
+	ApiKeyDeletedProps,
+	ApiKeyRevokedProps,
+} from "@/lib/posthog/types";
 
 export function useApiKeyTracking() {
-  const handleCreated = useCallback((props: ApiKeyCreatedProps) => {
-    trackApiKeyCreated(props);
-  }, []);
+	const handleCreated = useCallback((props: ApiKeyCreatedProps) => {
+		trackApiKeyCreated(props);
+	}, []);
 
-  const handleViewed = useCallback((props: { projectId: string; organizationId: string }) => {
-    trackApiKeyViewed(props);
-  }, []);
+	const handleViewed = useCallback(
+		(props: { projectId: string; organizationId: string }) => {
+			trackApiKeyViewed(props);
+		},
+		[],
+	);
 
-  const handleCopied = useCallback((props: ApiKeyCopiedProps) => {
-    trackApiKeyCopied(props);
-  }, []);
+	const handleCopied = useCallback((props: ApiKeyCopiedProps) => {
+		trackApiKeyCopied(props);
+	}, []);
 
-  const handleRevoked = useCallback((props: ApiKeyRevokedProps) => {
-    trackApiKeyRevoked(props);
-  }, []);
+	const handleRevoked = useCallback((props: ApiKeyRevokedProps) => {
+		trackApiKeyRevoked(props);
+	}, []);
 
-  const handleDeleted = useCallback((props: ApiKeyDeletedProps) => {
-    trackApiKeyDeleted(props);
-  }, []);
+	const handleDeleted = useCallback((props: ApiKeyDeletedProps) => {
+		trackApiKeyDeleted(props);
+	}, []);
 
-  return {
-    trackCreated: handleCreated,
-    trackViewed: handleViewed,
-    trackCopied: handleCopied,
-    trackRevoked: handleRevoked,
-    trackDeleted: handleDeleted,
-  };
+	return {
+		trackCreated: handleCreated,
+		trackViewed: handleViewed,
+		trackCopied: handleCopied,
+		trackRevoked: handleRevoked,
+		trackDeleted: handleDeleted,
+	};
 }

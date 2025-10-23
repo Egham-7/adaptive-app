@@ -15,6 +15,10 @@ import type { z } from "zod";
 import { z as zodSchema } from "zod";
 import { hasReachedDailyLimit } from "@/lib/chat/message-utils";
 import { multiTagReasoningMiddleware } from "@/lib/middleware/multi-tag-reasoning";
+import {
+	trackChatMessageSent,
+	trackDailyMessageLimitReached,
+} from "@/lib/posthog/events/chat";
 import { safeParseJson } from "@/lib/server/utils";
 import { db } from "@/server/db";
 import { api } from "@/trpc/server";
@@ -160,6 +164,12 @@ export async function POST(req: Request) {
 		if (!isSubscribed && !isDevelopment) {
 			const hasReachedLimit = await hasReachedDailyLimit(db, userId);
 			if (hasReachedLimit) {
+				// Track daily message limit reached
+				trackDailyMessageLimitReached({
+					limitValue: 10, // Default free tier limit
+					remainingMessages: 0,
+				});
+
 				return new Response(
 					JSON.stringify({
 						error: "Daily message limit reached. Please upgrade to continue.",
@@ -197,6 +207,13 @@ export async function POST(req: Request) {
 		};
 
 		await api.messages.create(userMessage);
+
+		// Track message sent
+		trackChatMessageSent({
+			conversationId: String(numericConversationId),
+			messageLength: JSON.stringify(message.parts).length,
+			hasAttachments: false,
+		});
 
 		// Check if this is the first message in the conversation to generate a title
 		const isFirstMessage = previousMessages.length === 0;

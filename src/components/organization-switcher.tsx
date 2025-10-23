@@ -18,6 +18,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useOrgTracking } from "@/hooks/posthog/use-org-tracking";
 
 export function OrganizationSwitcher() {
 	const router = useRouter();
@@ -28,6 +29,7 @@ export function OrganizationSwitcher() {
 			infinite: true,
 		},
 	});
+	const { trackSwitched } = useOrgTracking();
 
 	if (!isLoaded || !activeOrg) {
 		return null;
@@ -41,6 +43,12 @@ export function OrganizationSwitcher() {
 		);
 
 		if (membership) {
+			// Track organization switch
+			trackSwitched({
+				organizationId: membership.organization.id,
+				organizationName: membership.organization.name,
+			});
+
 			await setActive({ organization: membership.organization.id });
 			router.push(`/api-platform/orgs/${orgSlug}`);
 		}

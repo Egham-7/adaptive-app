@@ -1,60 +1,66 @@
-'use client';
+"use client";
 
 /**
  * Project Tracking Hook
  * React hooks for tracking project-related events
  */
 
-import { useCallback } from 'react';
+import { useCallback } from "react";
 import {
-  trackProjectCreated,
-  trackProjectViewed,
-  trackProjectDashboardViewed,
-  trackProjectDeleted,
-  trackProjectSettingsOpened,
-  trackProjectSettingsUpdated,
-} from '@/lib/posthog/events/projects';
+	trackProjectCreated,
+	trackProjectDashboardViewed,
+	trackProjectDeleted,
+	trackProjectSettingsOpened,
+	trackProjectSettingsUpdated,
+	trackProjectViewed,
+} from "@/lib/posthog/events/projects";
 import type {
-  ProjectCreatedProps,
-  ProjectViewedProps,
-  ProjectDeletedProps,
-  ProjectSettingsUpdatedProps,
-} from '@/lib/posthog/types';
+	ProjectCreatedProps,
+	ProjectDeletedProps,
+	ProjectSettingsUpdatedProps,
+	ProjectViewedProps,
+} from "@/lib/posthog/types";
 
 export function useProjectTracking() {
-  const handleCreated = useCallback((props: ProjectCreatedProps) => {
-    trackProjectCreated(props);
-  }, []);
+	const handleCreated = useCallback((props: ProjectCreatedProps) => {
+		trackProjectCreated(props);
+	}, []);
 
-  const handleViewed = useCallback((props: ProjectViewedProps) => {
-    trackProjectViewed(props);
-  }, []);
+	const handleViewed = useCallback((props: ProjectViewedProps) => {
+		trackProjectViewed(props);
+	}, []);
 
-  const handleDashboardViewed = useCallback((props: { projectId: string; organizationId: string }) => {
-    trackProjectDashboardViewed(props);
-  }, []);
+	const handleDashboardViewed = useCallback(
+		(props: { projectId: string; organizationId: string }) => {
+			trackProjectDashboardViewed(props);
+		},
+		[],
+	);
 
-  const handleDeleted = useCallback((props: ProjectDeletedProps) => {
-    trackProjectDeleted(props);
-  }, []);
+	const handleDeleted = useCallback((props: ProjectDeletedProps) => {
+		trackProjectDeleted(props);
+	}, []);
 
-  const handleSettingsOpened = useCallback(
-    (props: { projectId: string; organizationId: string; tab?: string }) => {
-      trackProjectSettingsOpened(props);
-    },
-    []
-  );
+	const handleSettingsOpened = useCallback(
+		(props: { projectId: string; organizationId: string; tab?: string }) => {
+			trackProjectSettingsOpened(props);
+		},
+		[],
+	);
 
-  const handleSettingsUpdated = useCallback((props: ProjectSettingsUpdatedProps) => {
-    trackProjectSettingsUpdated(props);
-  }, []);
+	const handleSettingsUpdated = useCallback(
+		(props: ProjectSettingsUpdatedProps) => {
+			trackProjectSettingsUpdated(props);
+		},
+		[],
+	);
 
-  return {
-    trackCreated: handleCreated,
-    trackViewed: handleViewed,
-    trackDashboardViewed: handleDashboardViewed,
-    trackDeleted: handleDeleted,
-    trackSettingsOpened: handleSettingsOpened,
-    trackSettingsUpdated: handleSettingsUpdated,
-  };
+	return {
+		trackCreated: handleCreated,
+		trackViewed: handleViewed,
+		trackDashboardViewed: handleDashboardViewed,
+		trackDeleted: handleDeleted,
+		trackSettingsOpened: handleSettingsOpened,
+		trackSettingsUpdated: handleSettingsUpdated,
+	};
 }

@@ -41,6 +41,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDeleteOrganization } from "@/hooks/organizations/use-delete-organization";
+import { useOrgTracking } from "@/hooks/posthog/use-org-tracking";
 
 const organizationFormSchema = z.object({
 	name: z
@@ -71,6 +72,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 		userMemberships: { infinite: true },
 	});
 	const { mutate: deleteOrg, isPending } = useDeleteOrganization();
+	const { trackSettingsUpdated, trackDeleted } = useOrgTracking();
 
 	const form = useForm<OrganizationFormValues>({
 		resolver: zodResolver(organizationFormSchema),
@@ -97,6 +99,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 				name: values.name,
 				slug: values.slug,
 			});
+
+			// Track settings update
+			trackSettingsUpdated({
+				organizationId: organization.id,
+				settingsChanged: ["name", "slug"],
+			});
+
 			toast.success("Organization updated successfully");
 		} catch (error) {
 			toast.error("Failed to update organization");
@@ -106,6 +115,11 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 
 	const handleDelete = async () => {
 		if (!organization) return;
+
+		// Track organization deletion
+		trackDeleted({
+			organizationId: organization.id,
+		});
 
 		deleteOrg(
 			{ organizationId: organization.id },

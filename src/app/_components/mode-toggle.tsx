@@ -15,9 +15,16 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useSettingsTracking } from "@/hooks/posthog/use-settings-tracking";
 
 export function ModeToggle() {
 	const { setTheme } = useTheme();
+	const { trackThemeChanged } = useSettingsTracking();
+
+	const handleThemeChange = (theme: "light" | "dark" | "system") => {
+		trackThemeChanged({ theme });
+		setTheme(theme);
+	};
 
 	return (
 		<Tooltip>
@@ -32,13 +39,13 @@ export function ModeToggle() {
 					</DropdownMenuTrigger>
 				</TooltipTrigger>
 				<DropdownMenuContent align="end">
-					<DropdownMenuItem onClick={() => setTheme("light")}>
+					<DropdownMenuItem onClick={() => handleThemeChange("light")}>
 						Light
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={() => setTheme("dark")}>
+					<DropdownMenuItem onClick={() => handleThemeChange("dark")}>
 						Dark
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={() => setTheme("system")}>
+					<DropdownMenuItem onClick={() => handleThemeChange("system")}>
 						System
 					</DropdownMenuItem>
 				</DropdownMenuContent>

@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useProjectTracking } from "@/hooks/posthog/use-project-tracking";
 import { useDeleteProject } from "@/hooks/projects/use-delete-project";
 import { useProject } from "@/hooks/projects/use-project";
 import { useUpdateProject } from "@/hooks/projects/use-update-project";
@@ -56,6 +57,7 @@ type ProjectFormValues = z.infer<typeof projectFormSchema>;
 export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 	const router = useRouter();
 	const { organization } = useOrganization();
+	const { trackSettingsUpdated, trackDeleted } = useProjectTracking();
 
 	const { data: project, isLoading } = useProject(projectId);
 
@@ -88,9 +90,22 @@ export function ProjectSettingsGeneral({ projectId }: { projectId: number }) {
 			name: values.name.trim(),
 			description: values.description?.trim() ?? "",
 		});
+
+		// Track project settings update
+		trackSettingsUpdated({
+			projectId: String(projectId),
+			organizationId: organization?.id || "",
+			settingsChanged: ["name", "description"],
+		});
 	};
 
 	const handleDelete = () => {
+		// Track project deletion
+		trackDeleted({
+			projectId: String(projectId),
+			organizationId: organization?.id || "",
+		});
+
 		deleteProjectMutate(
 			{ id: projectId },
 			{

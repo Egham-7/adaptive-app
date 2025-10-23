@@ -44,6 +44,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
 import { useDeleteProjectApiKey } from "@/hooks/api_keys/use-delete-project-api-key";
 import { useProjectApiKeys } from "@/hooks/api_keys/use-project-api-keys";
+import { useApiKeyTracking } from "@/hooks/posthog/use-api-key-tracking";
 import type { ApiKeyResponse } from "@/types/api-keys";
 
 const formSchema = z.object({
@@ -69,6 +70,7 @@ export default function ApiKeysPage() {
 	const { data: apiKeys = [], isLoading, error } = useProjectApiKeys(projectId);
 	const createApiKey = useCreateProjectApiKey();
 	const deleteApiKey = useDeleteProjectApiKey();
+	const { trackCreated, trackCopied, trackDeleted } = useApiKeyTracking();
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -104,6 +106,14 @@ export default function ApiKeysPage() {
 					setShowCreateDialog(false);
 					form.reset();
 
+					// Track API key creation
+					trackCreated({
+						projectId: String(projectId),
+						organizationId: _slug || "",
+						keyName: values.name,
+						expirationDate: values.expires_at || undefined,
+					});
+
 					if (data.key) {
 						setNewApiKey(data.key);
 						setShowApiKeyModal(true);
@@ -118,6 +128,13 @@ export default function ApiKeysPage() {
 			try {
 				await navigator.clipboard.writeText(newApiKey);
 				setCopiedApiKey(true);
+
+				// Track API key copied
+				trackCopied({
+					keyId: "",
+					projectId: String(projectId),
+				});
+
 				setTimeout(() => setCopiedApiKey(false), 2000);
 			} catch (err) {
 				console.error("Failed to copy:", err);
@@ -132,6 +149,12 @@ export default function ApiKeysPage() {
 	};
 
 	const handleDeleteApiKey = (id: number) => {
+		// Track API key deletion
+		trackDeleted({
+			keyId: String(id),
+			projectId: String(projectId),
+		});
+
 		deleteApiKey.mutate({ id });
 	};
 

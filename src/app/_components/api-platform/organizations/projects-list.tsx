@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useProjectTracking } from "@/hooks/posthog/use-project-tracking";
 import { useCreateProject } from "@/hooks/projects/use-create-project";
 import { useProjects } from "@/hooks/projects/use-projects";
 
@@ -32,6 +33,7 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 	const { organization } = useOrganization();
 	const [projectName, setProjectName] = useState("");
 	const [projectDescription, setProjectDescription] = useState("");
+	const { trackCreated } = useProjectTracking();
 
 	const { data: projects, isLoading } = useProjects(organizationId);
 
@@ -39,6 +41,14 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 
 	const createProject = useCreateProject({
 		onSuccess: (project) => {
+			// Track project creation
+			trackCreated({
+				projectId: String(project.id),
+				organizationId,
+				projectName: project.name,
+				description: project.description || undefined,
+			});
+
 			setProjectName("");
 			setProjectDescription("");
 			if (organization?.slug) {
