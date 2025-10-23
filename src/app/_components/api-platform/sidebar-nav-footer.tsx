@@ -12,10 +12,12 @@ import {
 	SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { SupportButton } from "@/components/ui/support-button";
+import { useAuthTracking } from "@/hooks/posthog/use-auth-tracking";
 
 export function ApiSidebarNavFooter() {
 	const { user } = useUser();
 	const { signOut } = useAuth();
+	const { trackSignOut } = useAuthTracking();
 	const docsId = useId();
 	const supportId = useId();
 	const legalId = useId();
@@ -75,7 +77,13 @@ export function ApiSidebarNavFooter() {
 						</SidebarMenuButton>
 					</SidebarMenuItem>
 					<SidebarMenuItem>
-						<SidebarMenuButton onClick={() => signOut()} title="Log out">
+						<SidebarMenuButton
+							onClick={() => {
+								trackSignOut();
+								signOut();
+							}}
+							title="Log out"
+						>
 							<LogOut className="h-4 w-4" />
 						</SidebarMenuButton>
 					</SidebarMenuItem>

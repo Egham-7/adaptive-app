@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useCreateOrganization } from "@/hooks/organizations/use-create-organization";
+import { useOrgTracking } from "@/hooks/posthog/use-org-tracking";
 
 const formSchema = z.object({
 	name: z.string().min(1, "Organization name is required"),
@@ -55,6 +56,7 @@ export function CreateOrganizationDialog({
 		},
 	});
 	const createOrgMutation = useCreateOrganization();
+	const { trackCreated } = useOrgTracking();
 
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),
@@ -69,6 +71,12 @@ export function CreateOrganizationDialog({
 			const org = await createOrgMutation.mutateAsync({
 				name: data.name,
 				slug: data.slug || undefined,
+			});
+
+			// Track organization creation
+			trackCreated({
+				organizationId: org.id,
+				organizationName: org.name,
 			});
 
 			if (setActive) {

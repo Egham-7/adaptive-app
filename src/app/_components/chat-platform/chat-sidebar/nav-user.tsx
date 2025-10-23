@@ -20,6 +20,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuthTracking } from "@/hooks/posthog/use-auth-tracking";
 import { PlansModal } from "./plans-modal";
 
 export function NavUser({
@@ -33,6 +34,7 @@ export function NavUser({
 }) {
 	const { isMobile } = useSidebar();
 	const { signOut } = useAuth(); // Access the signOut method
+	const { trackSignOut } = useAuthTracking();
 
 	return (
 		<SidebarMenu>
@@ -91,6 +93,7 @@ export function NavUser({
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
 							onClick={() => {
+								trackSignOut();
 								signOut(); // Trigger the log-out functionality
 							}}
 						>

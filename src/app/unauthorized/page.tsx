@@ -3,11 +3,20 @@
 import { AlertTriangle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { trackUnauthorizedAccess } from "@/lib/posthog/events/auth";
 
 export default function UnauthorizedPage() {
 	const searchParams = useSearchParams();
 	const returnUrl = searchParams.get("return_url") || "/";
+
+	useEffect(() => {
+		// Track unauthorized access attempt
+		trackUnauthorizedAccess({
+			attemptedPath: returnUrl,
+		});
+	}, [returnUrl]);
 
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-background">

@@ -3,7 +3,8 @@
 import { useAuth, useUser } from "@clerk/nextjs";
 import posthog from "posthog-js";
 import { PostHogProvider as PHProvider } from "posthog-js/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { trackSignIn } from "@/lib/posthog/events/auth";
 
 if (typeof window !== "undefined") {
 	posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
@@ -26,6 +27,7 @@ export function PostHogAuthWrapper({
 }) {
 	const auth = useAuth();
 	const userInfo = useUser();
+	const hasTrackedSignIn = useRef(false);
 
 	useEffect(() => {
 		if (userInfo.user) {
@@ -33,8 +35,17 @@ export function PostHogAuthWrapper({
 				email: userInfo.user.primaryEmailAddress?.emailAddress,
 				name: userInfo.user.fullName,
 			});
+
+			// Track sign-in event once per session
+			if (!hasTrackedSignIn.current) {
+				trackSignIn({
+					signInMethod: "clerk",
+				});
+				hasTrackedSignIn.current = true;
+			}
 		} else if (!auth.isSignedIn) {
 			posthog.reset();
+			hasTrackedSignIn.current = false;
 		}
 	}, [auth, userInfo]);
 
