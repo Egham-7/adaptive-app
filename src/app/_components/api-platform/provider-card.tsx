@@ -48,10 +48,13 @@ export function ProviderCard({
 	level = "project",
 }: ProviderCardProps) {
 	const metadata = PROVIDER_METADATA[providerName as ProviderName];
+	const isCustomProvider = !metadata;
 
-	if (!metadata) {
-		return null;
-	}
+	const displayMetadata = metadata || {
+		name: providerName,
+		displayName: providerName.charAt(0).toUpperCase() + providerName.slice(1),
+		description: "",
+	};
 
 	return (
 		<Card className={`relative ${!enabled ? "opacity-60" : ""}`}>
@@ -69,19 +72,19 @@ export function ProviderCard({
 
 			<CardHeader>
 				<div className="flex items-center gap-3">
-					{metadata.logo && (
+					{!isCustomProvider && metadata.logo && (
 						<Image
 							src={metadata.logo}
-							alt={`${metadata.displayName} logo`}
+							alt={`${displayMetadata.displayName} logo`}
 							width={40}
 							height={40}
 							className="rounded-lg"
 						/>
 					)}
 					<div className="flex-1">
-						<CardTitle>{metadata.displayName}</CardTitle>
+						<CardTitle>{displayMetadata.displayName}</CardTitle>
 						<CardDescription className="mt-1">
-							{metadata.description}
+							{displayMetadata.description}
 						</CardDescription>
 					</div>
 				</div>

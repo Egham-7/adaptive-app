@@ -26,7 +26,7 @@ export const env = createEnv({
 	 */
 	client: {
 		NEXT_PUBLIC_POSTHOG_API_HOST: z.url().default("https://app.posthog.com"),
-		NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
+		NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1).optional(),
 	},
 
 	/**

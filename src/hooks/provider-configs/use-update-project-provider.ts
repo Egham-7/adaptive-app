@@ -1,9 +1,9 @@
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
-import type { ProviderConfigResponse } from "@/types/providers";
+import type { ProviderConfigApiResponse } from "@/types/providers";
 
 type UpdateProjectProviderOptions = {
-	onSuccess?: (data: ProviderConfigResponse) => void;
+	onSuccess?: (data: ProviderConfigApiResponse) => void;
 };
 
 export const useUpdateProjectProvider = (

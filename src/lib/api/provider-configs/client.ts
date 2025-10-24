@@ -1,9 +1,9 @@
 import type {
-	ProviderConfigCreateRequest,
-	ProviderConfigHistoryResponse,
-	ProviderConfigListResponse,
-	ProviderConfigResponse,
-	ProviderConfigUpdateRequest,
+	CreateProviderApiRequest,
+	GetProviderHistoryApiResponse,
+	ListProvidersApiResponse,
+	ProviderConfigApiResponse,
+	UpdateProviderApiRequest,
 } from "@/types/providers";
 import { BaseApiClient } from "../base-client";
 
@@ -24,9 +24,9 @@ export class ProviderConfigsClient extends BaseApiClient {
 	async listProjectProviders(
 		projectId: number,
 		endpoint?: string,
-	): Promise<ProviderConfigListResponse> {
+	): Promise<ListProvidersApiResponse> {
 		try {
-			return await this.get<ProviderConfigListResponse>(
+			return await this.get<ListProvidersApiResponse>(
 				`/projects/${projectId}/providers`,
 				{ params: endpoint ? { endpoint } : undefined },
 			);
@@ -44,12 +44,12 @@ export class ProviderConfigsClient extends BaseApiClient {
 	async createProjectProvider(
 		projectId: number,
 		provider: string,
-		data: ProviderConfigCreateRequest,
-	): Promise<ProviderConfigResponse> {
+		data: CreateProviderApiRequest,
+	): Promise<ProviderConfigApiResponse> {
 		try {
 			return await this.post<
-				ProviderConfigResponse,
-				ProviderConfigCreateRequest
+				ProviderConfigApiResponse,
+				CreateProviderApiRequest
 			>(`/projects/${projectId}/providers/${provider}`, {
 				body: data,
 			});
@@ -67,12 +67,12 @@ export class ProviderConfigsClient extends BaseApiClient {
 	async updateProjectProvider(
 		projectId: number,
 		provider: string,
-		data: ProviderConfigUpdateRequest,
-	): Promise<ProviderConfigResponse> {
+		data: UpdateProviderApiRequest,
+	): Promise<ProviderConfigApiResponse> {
 		try {
 			return await this.patch<
-				ProviderConfigResponse,
-				ProviderConfigUpdateRequest
+				ProviderConfigApiResponse,
+				UpdateProviderApiRequest
 			>(`/projects/${projectId}/providers/${provider}`, {
 				body: data,
 			});
@@ -110,9 +110,9 @@ export class ProviderConfigsClient extends BaseApiClient {
 	async listOrganizationProviders(
 		organizationId: string,
 		endpoint?: string,
-	): Promise<ProviderConfigListResponse> {
+	): Promise<ListProvidersApiResponse> {
 		try {
-			return await this.get<ProviderConfigListResponse>(
+			return await this.get<ListProvidersApiResponse>(
 				`/organizations/${organizationId}/providers`,
 				{ params: endpoint ? { endpoint } : undefined },
 			);
@@ -132,12 +132,12 @@ export class ProviderConfigsClient extends BaseApiClient {
 	async createOrganizationProvider(
 		organizationId: string,
 		provider: string,
-		data: ProviderConfigCreateRequest,
-	): Promise<ProviderConfigResponse> {
+		data: CreateProviderApiRequest,
+	): Promise<ProviderConfigApiResponse> {
 		try {
 			return await this.post<
-				ProviderConfigResponse,
-				ProviderConfigCreateRequest
+				ProviderConfigApiResponse,
+				CreateProviderApiRequest
 			>(`/organizations/${organizationId}/providers/${provider}`, {
 				body: data,
 			});
@@ -157,12 +157,12 @@ export class ProviderConfigsClient extends BaseApiClient {
 	async updateOrganizationProvider(
 		organizationId: string,
 		provider: string,
-		data: ProviderConfigUpdateRequest,
-	): Promise<ProviderConfigResponse> {
+		data: UpdateProviderApiRequest,
+	): Promise<ProviderConfigApiResponse> {
 		try {
 			return await this.patch<
-				ProviderConfigResponse,
-				ProviderConfigUpdateRequest
+				ProviderConfigApiResponse,
+				UpdateProviderApiRequest
 			>(`/organizations/${organizationId}/providers/${provider}`, {
 				body: data,
 			});
@@ -204,9 +204,9 @@ export class ProviderConfigsClient extends BaseApiClient {
 	 */
 	async getProviderHistory(
 		configId: number,
-	): Promise<ProviderConfigHistoryResponse> {
+	): Promise<GetProviderHistoryApiResponse> {
 		try {
-			return await this.get<ProviderConfigHistoryResponse>(
+			return await this.get<GetProviderHistoryApiResponse>(
 				`/provider-configs/${configId}/history`,
 			);
 		} catch (error) {
