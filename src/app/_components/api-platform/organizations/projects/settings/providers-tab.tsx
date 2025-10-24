@@ -113,14 +113,19 @@ export const ProjectProvidersTab: React.FC<ProjectProvidersTabProps> = ({
 
 	const providersArray = providersData?.providers || [];
 	const providersMap = providersArray.reduce(
-		(acc, config) => {
+		(
+			acc: Record<string, (typeof providersArray)[0]>,
+			config: (typeof providersArray)[0],
+		) => {
 			acc[config.provider_name] = config;
 			return acc;
 		},
 		{} as Record<string, (typeof providersArray)[0]>,
 	);
 
-	const providerNames = providersArray.map((config) => config.provider_name);
+	const providerNames = providersArray.map(
+		(config: (typeof providersArray)[0]) => config.provider_name,
+	);
 
 	return (
 		<ErrorBoundary>
@@ -144,7 +149,7 @@ export const ProjectProvidersTab: React.FC<ProjectProvidersTabProps> = ({
 
 				{/* Provider Grid */}
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{providerNames.map((providerName) => {
+					{providerNames.map((providerName: string) => {
 						const config = providersMap[providerName];
 						const isConfigured = !!config;
 						const isInherited = config?.source === "organization";

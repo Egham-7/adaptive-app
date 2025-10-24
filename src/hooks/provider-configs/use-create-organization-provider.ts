@@ -1,12 +1,13 @@
 import { toast } from "sonner";
 import { api } from "@/trpc/react";
 import type {
-	ProviderConfigListResponse,
-	ProviderConfigResponse,
+	ListProvidersApiResponse,
+	ProviderConfigApiResponse,
 } from "@/types/providers";
+import { getEndpointTypesFromCompatibility } from "@/types/providers";
 
 type CreateOrganizationProviderOptions = {
-	onSuccess?: (data: ProviderConfigResponse) => void;
+	onSuccess?: (data: ProviderConfigApiResponse) => void;
 };
 
 export const useCreateOrganizationProvider = (
@@ -28,9 +29,12 @@ export const useCreateOrganizationProvider = (
 				(old) => {
 					if (!old || !old.providers) return old;
 
-					const newProvider: ProviderConfigListResponse["providers"][0] = {
+					const newProvider: ListProvidersApiResponse["providers"][0] = {
 						id: Date.now(),
 						provider_name: variables.data.provider_name,
+						endpoint_types: getEndpointTypesFromCompatibility(
+							variables.data.api_compatibility,
+						),
 						base_url: variables.data.base_url || "",
 						has_api_key: !!variables.data.api_key,
 						has_authorization_header: !!variables.data.authorization_header,

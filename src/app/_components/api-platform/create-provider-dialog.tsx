@@ -31,11 +31,18 @@ import {
 	useCreateOrganizationProvider,
 	useCreateProjectProvider,
 } from "@/hooks/provider-configs";
-import { PROVIDER_METADATA, type ProviderName } from "@/types/providers";
+import {
+	API_COMPATIBILITY_METADATA,
+	type ApiCompatibilityType,
+	PROVIDER_COMPATIBILITY_DEFAULTS,
+	PROVIDER_METADATA,
+	type ProviderName,
+} from "@/types/providers";
 
 const createProviderSchema = z
 	.object({
 		provider: z.string().min(1, "Provider is required"),
+		apiCompatibility: z.enum(["openai", "anthropic", "gemini"]),
 		apiKey: z.string().min(1, "API key is required"),
 		baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
 		authorizationHeader: z.string().optional(),
@@ -83,6 +90,7 @@ export function CreateProviderDialog({
 		resolver: zodResolver(createProviderSchema),
 		defaultValues: {
 			provider: "",
+			apiCompatibility: "openai", // Default to OpenAI-compatible
 			apiKey: "",
 			baseUrl: "",
 			authorizationHeader: "",
@@ -119,6 +127,17 @@ export function CreateProviderDialog({
 
 	const isCustomProvider = selectedProvider && !metadata;
 
+	// Auto-select API compatibility for built-in providers
+	useEffect(() => {
+		if (selectedProvider && !isCustomProvider) {
+			const defaultCompatibility =
+				PROVIDER_COMPATIBILITY_DEFAULTS[selectedProvider as ProviderName];
+			if (defaultCompatibility) {
+				form.setValue("apiCompatibility", defaultCompatibility);
+			}
+		}
+	}, [selectedProvider, isCustomProvider, form]);
+
 	useEffect(() => {
 		if (!open) {
 			form.reset();
@@ -127,18 +146,18 @@ export function CreateProviderDialog({
 	}, [open, form]);
 
 	const onSubmit = (values: CreateProviderFormValues) => {
-		const data = {
+		// Prepare form data for tRPC
+		const formData = {
 			provider_name: values.provider,
+			api_compatibility: values.apiCompatibility,
 			api_key: values.apiKey,
-			...(values.baseUrl && { base_url: values.baseUrl }),
-			...(values.authorizationHeader && {
-				authorization_header: values.authorizationHeader,
-			}),
+			base_url: values.baseUrl,
+			authorization_header: values.authorizationHeader,
 		};
 
 		if (level === "project" && projectId) {
 			createProjectProvider.mutate(
-				{ projectId, provider: values.provider, data },
+				{ projectId, provider: values.provider, data: formData },
 				{
 					onSuccess: () => {
 						onOpenChange(false);
@@ -147,7 +166,7 @@ export function CreateProviderDialog({
 			);
 		} else if (level === "organization" && organizationId) {
 			createOrgProvider.mutate(
-				{ organizationId, provider: values.provider, data },
+				{ organizationId, provider: values.provider, data: formData },
 				{
 					onSuccess: () => {
 						onOpenChange(false);
@@ -212,6 +231,50 @@ export function CreateProviderDialog({
 								</FormItem>
 							)}
 						/>
+
+						{isCustomProvider && (
+							<FormField
+								control={form.control}
+								name="apiCompatibility"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>
+											API Compatibility <span className="text-red-500">*</span>
+										</FormLabel>
+										<FormControl>
+											<select
+												{...field}
+												className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+												disabled={!selectedProvider}
+											>
+												{Object.entries(API_COMPATIBILITY_METADATA).map(
+													([key, metadata]) => (
+														<option key={key} value={key}>
+															{metadata.label}
+														</option>
+													),
+												)}
+											</select>
+										</FormControl>
+										<FormDescription>
+											{field.value &&
+												API_COMPATIBILITY_METADATA[
+													field.value as ApiCompatibilityType
+												]?.description}
+											<br />
+											<span className="text-muted-foreground text-xs">
+												Examples:{" "}
+												{field.value &&
+													API_COMPATIBILITY_METADATA[
+														field.value as ApiCompatibilityType
+													]?.examples.join(", ")}
+											</span>
+										</FormDescription>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						)}
 
 						<FormField
 							control={form.control}

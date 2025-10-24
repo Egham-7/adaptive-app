@@ -9,8 +9,10 @@ import {
 } from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
-	providerConfigCreateRequestSchema,
-	providerConfigUpdateRequestSchema,
+	createProviderFormSchema,
+	formDataToApiRequest,
+	getEndpointTypesFromCompatibility,
+	updateProviderFormSchema,
 } from "@/types/providers";
 
 export const providerConfigsRouter = createTRPCRouter({
@@ -65,7 +67,7 @@ export const providerConfigsRouter = createTRPCRouter({
 			z.object({
 				projectId: z.number(),
 				provider: z.string(),
-				data: providerConfigCreateRequestSchema,
+				data: createProviderFormSchema,
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -76,10 +78,12 @@ export const providerConfigsRouter = createTRPCRouter({
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
 				const client = new ProviderConfigsClient(token);
+				// Convert form data to API request format
+				const apiRequest = formDataToApiRequest(input.data);
 				const config = await client.createProjectProvider(
 					input.projectId,
 					input.provider,
-					input.data,
+					apiRequest,
 				);
 
 				// Invalidate both project cache and provider-specific cache
@@ -124,7 +128,7 @@ export const providerConfigsRouter = createTRPCRouter({
 			z.object({
 				projectId: z.number(),
 				provider: z.string(),
-				data: providerConfigUpdateRequestSchema,
+				data: updateProviderFormSchema,
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -135,10 +139,17 @@ export const providerConfigsRouter = createTRPCRouter({
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
 				const client = new ProviderConfigsClient(token);
+				// Convert form data to API request format
+				const apiRequest = {
+					...input.data,
+					endpoint_types: input.data.api_compatibility
+						? getEndpointTypesFromCompatibility(input.data.api_compatibility)
+						: undefined,
+				};
 				const config = await client.updateProjectProvider(
 					input.projectId,
 					input.provider,
-					input.data,
+					apiRequest,
 				);
 
 				// Invalidate both project cache and provider-specific cache
@@ -274,7 +285,7 @@ export const providerConfigsRouter = createTRPCRouter({
 			z.object({
 				organizationId: z.string(),
 				provider: z.string(),
-				data: providerConfigCreateRequestSchema,
+				data: createProviderFormSchema,
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -285,10 +296,12 @@ export const providerConfigsRouter = createTRPCRouter({
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
 				const client = new ProviderConfigsClient(token);
+				// Convert form data to API request format
+				const apiRequest = formDataToApiRequest(input.data);
 				const config = await client.createOrganizationProvider(
 					input.organizationId,
 					input.provider,
-					input.data,
+					apiRequest,
 				);
 
 				await invalidateOrganizationProviderCache(input.organizationId);
@@ -327,7 +340,7 @@ export const providerConfigsRouter = createTRPCRouter({
 			z.object({
 				organizationId: z.string(),
 				provider: z.string(),
-				data: providerConfigUpdateRequestSchema,
+				data: updateProviderFormSchema,
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -338,10 +351,17 @@ export const providerConfigsRouter = createTRPCRouter({
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
 				const client = new ProviderConfigsClient(token);
+				// Convert form data to API request format
+				const apiRequest = {
+					...input.data,
+					endpoint_types: input.data.api_compatibility
+						? getEndpointTypesFromCompatibility(input.data.api_compatibility)
+						: undefined,
+				};
 				const config = await client.updateOrganizationProvider(
 					input.organizationId,
 					input.provider,
-					input.data,
+					apiRequest,
 				);
 
 				await invalidateOrganizationProviderCache(input.organizationId);

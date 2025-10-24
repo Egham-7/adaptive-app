@@ -30,9 +30,18 @@ import {
 	useUpdateOrganizationProvider,
 	useUpdateProjectProvider,
 } from "@/hooks/provider-configs";
-import { PROVIDER_METADATA, type ProviderName } from "@/types/providers";
+import {
+	API_COMPATIBILITY_METADATA,
+	type ApiCompatibilityType,
+	type EndpointType,
+	getCompatibilityFromEndpointTypes,
+	getEndpointTypesFromCompatibility,
+	PROVIDER_METADATA,
+	type ProviderName,
+} from "@/types/providers";
 
 const editProviderSchema = z.object({
+	apiCompatibility: z.enum(["openai", "anthropic", "gemini"]).optional(),
 	apiKey: z.string().optional(),
 	baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
 	authorizationHeader: z.string().optional(),
@@ -48,6 +57,7 @@ interface EditProviderDialogProps {
 	projectId?: number;
 	organizationId?: string;
 	existingConfig?: {
+		endpoint_types?: EndpointType[];
 		has_api_key?: boolean;
 		base_url?: string;
 		authorization_header?: boolean;
@@ -64,11 +74,20 @@ export function EditProviderDialog({
 	existingConfig,
 }: EditProviderDialogProps) {
 	const metadata = PROVIDER_METADATA[providerName as ProviderName];
+	const isCustomProvider = !metadata;
 	const [showApiKey, setShowApiKey] = useState(false);
+	const [showCompatibilityWarning, setShowCompatibilityWarning] =
+		useState(false);
+
+	// Derive API compatibility from existing endpoint_types
+	const currentCompatibility = existingConfig?.endpoint_types
+		? getCompatibilityFromEndpointTypes(existingConfig.endpoint_types)
+		: null;
 
 	const form = useForm<EditProviderFormValues>({
 		resolver: zodResolver(editProviderSchema),
 		defaultValues: {
+			apiCompatibility: currentCompatibility ?? undefined,
 			apiKey: "",
 			baseUrl: existingConfig?.base_url || "",
 			authorizationHeader: "",
@@ -82,23 +101,35 @@ export function EditProviderDialog({
 		if (!open) {
 			form.reset();
 			setShowApiKey(false);
+			setShowCompatibilityWarning(false);
 		} else {
 			form.reset({
+				apiCompatibility: currentCompatibility ?? undefined,
 				apiKey: "",
 				baseUrl: existingConfig?.base_url || "",
 				authorizationHeader: "",
 			});
 		}
-	}, [open, form, existingConfig]);
+	}, [open, form, existingConfig, currentCompatibility]);
 
 	const onSubmit = (values: EditProviderFormValues) => {
-		const data = {
+		const data: any = {
 			...(values.apiKey?.trim() && { api_key: values.apiKey.trim() }),
 			...(values.baseUrl?.trim() && { base_url: values.baseUrl.trim() }),
 			...(values.authorizationHeader?.trim() && {
 				authorization_header: values.authorizationHeader.trim(),
 			}),
 		};
+
+		// Include endpoint_types if API compatibility changed
+		if (
+			values.apiCompatibility &&
+			values.apiCompatibility !== currentCompatibility
+		) {
+			data.endpoint_types = getEndpointTypesFromCompatibility(
+				values.apiCompatibility as ApiCompatibilityType,
+			);
+		}
 
 		if (level === "project" && projectId) {
 			updateProjectProvider.mutate(
@@ -132,20 +163,12 @@ export function EditProviderDialog({
 	const isLoading =
 		updateProjectProvider.isPending || updateOrgProvider.isPending;
 
-	if (!metadata) {
-		return null;
-	}
-
-	if (!metadata) {
-		return null;
-	}
-
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[500px]">
 				<DialogHeader>
 					<div className="flex items-center gap-3">
-						{metadata.logo && (
+						{metadata?.logo && (
 							<Image
 								src={metadata.logo}
 								alt={`${metadata.displayName} logo`}
@@ -155,7 +178,9 @@ export function EditProviderDialog({
 							/>
 						)}
 						<div>
-							<DialogTitle>Edit {metadata.displayName}</DialogTitle>
+							<DialogTitle>
+								Edit {metadata?.displayName ?? providerName}
+							</DialogTitle>
 							<DialogDescription>
 								{level === "project"
 									? "Update provider configuration for this project"
@@ -203,6 +228,54 @@ export function EditProviderDialog({
 								</FormItem>
 							)}
 						/>
+
+						{isCustomProvider && (
+							<FormField
+								control={form.control}
+								name="apiCompatibility"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>API Compatibility</FormLabel>
+										<FormControl>
+											<select
+												{...field}
+												value={field.value || ""}
+												onChange={(e) => {
+													if (e.target.value !== currentCompatibility) {
+														setShowCompatibilityWarning(true);
+													}
+													field.onChange(e);
+												}}
+												className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+											>
+												{Object.entries(API_COMPATIBILITY_METADATA).map(
+													([key, metadata]) => (
+														<option key={key} value={key}>
+															{metadata.label}
+														</option>
+													),
+												)}
+											</select>
+										</FormControl>
+										{showCompatibilityWarning &&
+											field.value !== currentCompatibility && (
+												<div className="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200">
+													<strong>⚠️ Warning:</strong> Changing API compatibility
+													may break existing integrations. Make sure the new
+													format matches your provider's API.
+												</div>
+											)}
+										<FormDescription>
+											{field.value &&
+												API_COMPATIBILITY_METADATA[
+													field.value as ApiCompatibilityType
+												]?.description}
+										</FormDescription>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						)}
 
 						<FormField
 							control={form.control}
