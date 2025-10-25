@@ -150,15 +150,15 @@ export function VersatileMetricChart({
 				</div>
 			</CardHeader>
 			<CardContent>
-				<ChartContainer config={chartConfig} className="h-[140px] w-full">
-					{!data || data.length === 0 ? (
-						<div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-							No data available
-						</div>
-					) : (
-						renderChart()
-					)}
-				</ChartContainer>
+				{!data || data.length === 0 ? (
+					<div className="flex h-[140px] w-full items-center justify-center text-muted-foreground text-sm">
+						No data available
+					</div>
+				) : (
+					<ChartContainer config={chartConfig} className="h-[140px] w-full">
+						{renderChart()}
+					</ChartContainer>
+				)}
 			</CardContent>
 		</Card>
 	);
