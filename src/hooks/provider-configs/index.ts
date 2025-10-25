@@ -8,6 +8,8 @@ export { useDeleteOrganizationProvider } from "./use-delete-organization-provide
 export { useDeleteProjectProvider } from "./use-delete-project-provider";
 export { useOrganizationProviders } from "./use-organization-providers";
 export { useProjectProviders } from "./use-project-providers";
+// Form hooks
+export { useProviderConfigForm } from "./use-provider-config-form";
 export { useProviderHistory } from "./use-provider-history";
 export { useUpdateOrganizationProvider } from "./use-update-organization-provider";
 export { useUpdateProjectProvider } from "./use-update-project-provider";

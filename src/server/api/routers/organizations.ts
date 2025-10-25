@@ -45,7 +45,7 @@ export const organizationsRouter = createTRPCRouter({
 				organizationId: z.string(),
 			}),
 		)
-		.mutation(async ({ input, ctx }) => {
+		.mutation(async ({ input }) => {
 			try {
 				await (await clerkClient()).organizations.deleteOrganization(
 					input.organizationId,
