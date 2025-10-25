@@ -121,7 +121,7 @@ export const invalidateProviderCache = (
 ) => {
 	const patterns = [
 		`providers:${projectId}*`,
-		`provider-configs:${projectId}*`,
+		`provider-configs:project:${projectId}*`,
 	];
 
 	if (providerName) {
@@ -135,10 +135,10 @@ export const invalidateProviderConfigCache = (
 	projectId: string,
 	providerId?: string,
 ) => {
-	const patterns = [`provider-configs:${projectId}*`];
+	const patterns = [`provider-configs:project:${projectId}*`];
 
 	if (providerId) {
-		patterns.push(`provider-config:${projectId}:${providerId}*`);
+		patterns.push(`provider-config:project:${projectId}:${providerId}*`);
 	}
 
 	return invalidatePatterns(patterns);

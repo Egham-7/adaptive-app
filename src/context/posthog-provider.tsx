@@ -7,13 +7,16 @@ import { useEffect, useRef } from "react";
 import { trackSignIn } from "@/lib/posthog/events/auth";
 
 if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
-	posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
-		api_host: "/ingest",
-		ui_host: "https://eu.posthog.com",
-		person_profiles: "identified_only",
-		capture_pageview: false, // We'll manually capture pageviews
-		capture_pageleave: true,
-	});
+	const posthogKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+	if (posthogKey) {
+		posthog.init(posthogKey, {
+			api_host: "/ingest",
+			ui_host: "https://eu.posthog.com",
+			person_profiles: "identified_only",
+			capture_pageview: false, // We'll manually capture pageviews
+			capture_pageleave: true,
+		});
+	}
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {

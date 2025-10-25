@@ -36,7 +36,6 @@ export function ProviderCard({
 	hasApiKey,
 	baseUrl,
 	isInherited = false,
-	source,
 	enabled = true,
 	isLoading = false,
 	onConfigure,

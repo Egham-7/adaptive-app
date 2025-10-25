@@ -33,7 +33,6 @@ interface ProjectProvidersTabProps {
 
 export const ProjectProvidersTab: React.FC<ProjectProvidersTabProps> = ({
 	projectId,
-	organizationId,
 	currentUserRole,
 }) => {
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);

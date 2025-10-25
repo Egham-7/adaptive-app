@@ -296,9 +296,28 @@ export const createProviderFormSchema = z.object({
 export const updateProviderFormSchema = z.object({
 	api_compatibility: z.enum(apiCompatibilityTypes).optional(),
 	api_key: z.string().optional(),
-	base_url: z.string().optional(),
+	base_url: z.url("Please enter a valid URL").or(z.literal("")).optional(),
 	enabled: z.boolean().optional(),
 });
+
+/**
+ * Create a schema for provider config form with custom provider validation
+ */
+export const createProviderConfigFormSchema = (isCustom: boolean) => {
+	if (isCustom) {
+		// Custom providers require both fields
+		return z.object({
+			apiKey: z.string().min(1, "API key is required for custom providers"),
+			baseUrl: z.url("Please enter a valid URL"),
+		});
+	}
+
+	// Default providers - fields are optional but must be valid if provided
+	return z.object({
+		apiKey: z.string().optional(),
+		baseUrl: z.url("Please enter a valid URL").or(z.literal("")).optional(),
+	});
+};
 
 // ============================================================================
 // FALLBACK CONFIGURATION

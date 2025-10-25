@@ -24,6 +24,10 @@ export function ProjectTopbar() {
 
 	const tabs = [
 		{
+			id: "architecture",
+			label: "Architecture",
+		},
+		{
 			id: "usage",
 			label: "Usage",
 		},
@@ -41,12 +45,15 @@ export function ProjectTopbar() {
 	const getActiveTab = () => {
 		if (pathname.includes("/api-keys")) return "api-keys";
 		if (pathname.includes("/settings")) return "settings";
-		return "usage";
+		if (pathname.includes("/usage")) return "usage";
+		// Default to architecture for project root
+		return "architecture";
 	};
 
 	const handleTabChange = (tabId: string) => {
 		const routes: Record<string, string> = {
-			usage: `/api-platform/orgs/${orgSlug}/projects/${projectId}`,
+			architecture: `/api-platform/orgs/${orgSlug}/projects/${projectId}`,
+			usage: `/api-platform/orgs/${orgSlug}/projects/${projectId}/usage`,
 			"api-keys": `/api-platform/orgs/${orgSlug}/projects/${projectId}/api-keys`,
 			settings: `/api-platform/orgs/${orgSlug}/projects/${projectId}/settings`,
 		};
