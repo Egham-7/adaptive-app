@@ -3,7 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { ProjectMembersTab } from "@/app/_components/api-platform/organizations/projects/project-members-tab";
 import { ProjectSettingsGeneral } from "@/app/_components/api-platform/organizations/projects/settings/general";
-import { ProjectProvidersTab } from "@/app/_components/api-platform/organizations/projects/settings/providers-tab";
 import { Button } from "@/components/ui/button";
 import { useProject } from "@/hooks/projects/use-project";
 
@@ -53,19 +52,6 @@ export default function ProjectSettingsPage() {
 					>
 						Members
 					</Button>
-
-					<Button
-						type="button"
-						onClick={() => handleTabChange("providers")}
-						variant="ghost"
-						className={`w-full justify-start ${
-							activeTab === "providers"
-								? "bg-accent text-accent-foreground"
-								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-						}`}
-					>
-						Providers
-					</Button>
 				</nav>
 			</div>
 
@@ -75,13 +61,6 @@ export default function ProjectSettingsPage() {
 				)}
 				{activeTab === "members" && (
 					<ProjectMembersTab
-						projectId={Number(projectId)}
-						organizationId={project?.organization_id ?? orgSlug}
-						currentUserRole={project?.currentUserRole}
-					/>
-				)}
-				{activeTab === "providers" && (
-					<ProjectProvidersTab
 						projectId={Number(projectId)}
 						organizationId={project?.organization_id ?? orgSlug}
 						currentUserRole={project?.currentUserRole}
