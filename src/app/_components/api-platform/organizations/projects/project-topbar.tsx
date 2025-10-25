@@ -61,7 +61,7 @@ export function ProjectTopbar() {
 		<div className="border-b bg-background">
 			<div className="px-6 py-4">
 				{/* Header with Logo, Org, and Project */}
-				<div className="mb-6 flex items-center gap-2">
+				<div className="flex items-center gap-2">
 					<Link href={`/api-platform/orgs/${orgSlug}`}>
 						<SocialLogo width={60} height={20} className="shrink-0" />
 					</Link>

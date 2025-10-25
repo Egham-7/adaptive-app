@@ -16,14 +16,6 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
 	return (
 		<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-			<div className="flex-1">
-				<h1 className="font-bold text-2xl text-foreground sm:text-3xl">
-					Usage Dashboard
-				</h1>
-				<p className="mt-1 text-muted-foreground text-sm sm:text-base">
-					Monitor your API usage and optimize costs
-				</p>
-			</div>
 			<div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
 				<DateRangePicker
 					dateRange={dateRange}
