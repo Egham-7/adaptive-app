@@ -19,7 +19,6 @@ interface ProviderCardProps {
 	isConfigured: boolean;
 	hasApiKey?: boolean;
 	baseUrl?: string;
-	authorizationHeader?: boolean;
 	isInherited?: boolean;
 	source?: "project" | "organization";
 	enabled?: boolean;
@@ -36,7 +35,6 @@ export function ProviderCard({
 	isConfigured,
 	hasApiKey,
 	baseUrl,
-	authorizationHeader,
 	isInherited = false,
 	source,
 	enabled = true,
@@ -144,14 +142,6 @@ export function ProviderCard({
 							<span className="max-w-[200px] truncate text-sm" title={baseUrl}>
 								{baseUrl}
 							</span>
-						</div>
-					)}
-
-					{/* Authorization Header */}
-					{isConfigured && authorizationHeader && (
-						<div className="flex items-center justify-between">
-							<span className="text-muted-foreground text-sm">Custom Auth</span>
-							<span className="text-sm">Enabled</span>
 						</div>
 					)}
 

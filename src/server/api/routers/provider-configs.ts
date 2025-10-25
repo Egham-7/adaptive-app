@@ -2,6 +2,10 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { ProviderConfigsClient } from "@/lib/api/provider-configs";
 import {
+	formDataToApiRequest,
+	getEndpointTypesFromCompatibility,
+} from "@/lib/providers";
+import {
 	invalidateOrganizationProviderCache,
 	invalidateProjectCache,
 	invalidateProviderConfigCache,
@@ -10,8 +14,6 @@ import {
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
 	createProviderFormSchema,
-	formDataToApiRequest,
-	getEndpointTypesFromCompatibility,
 	updateProviderFormSchema,
 } from "@/types/providers";
 
@@ -29,7 +31,6 @@ export const providerConfigsRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const _userId = ctx.clerkAuth.userId;
 			const cacheKey = `provider-configs:project:${input.projectId}:${input.endpoint ?? "default"}`;
 
 			return withCache(cacheKey, async () => {
@@ -247,7 +248,6 @@ export const providerConfigsRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const _userId = ctx.clerkAuth.userId;
 			const cacheKey = `provider-configs:org:${input.organizationId}:${input.endpoint ?? "default"}`;
 
 			return withCache(cacheKey, async () => {
@@ -289,8 +289,6 @@ export const providerConfigsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const _userId = ctx.clerkAuth.userId;
-
 			try {
 				const token = await ctx.clerkAuth.getToken();
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -344,8 +342,6 @@ export const providerConfigsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const _userId = ctx.clerkAuth.userId;
-
 			try {
 				const token = await ctx.clerkAuth.getToken();
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -400,8 +396,6 @@ export const providerConfigsRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const _userId = ctx.clerkAuth.userId;
-
 			try {
 				const token = await ctx.clerkAuth.getToken();
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });

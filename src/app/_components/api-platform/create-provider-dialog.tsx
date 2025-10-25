@@ -26,7 +26,6 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
 	useCreateOrganizationProvider,
 	useCreateProjectProvider,
@@ -43,9 +42,8 @@ const createProviderSchema = z
 	.object({
 		provider: z.string().min(1, "Provider is required"),
 		apiCompatibility: z.enum(["openai", "anthropic", "gemini"]),
-		apiKey: z.string().min(1, "API key is required"),
+		apiKey: z.string().optional(),
 		baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
-		authorizationHeader: z.string().optional(),
 	})
 	.superRefine((data, ctx) => {
 		const isCustomProvider = !PROVIDER_METADATA[data.provider as ProviderName];
@@ -55,6 +53,14 @@ const createProviderSchema = z
 					code: z.ZodIssueCode.custom,
 					message: "Only lowercase letters, numbers, and hyphens allowed",
 					path: ["provider"],
+				});
+			}
+			// Custom providers require both API key and BaseURL
+			if (!data.apiKey || data.apiKey.trim() === "") {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: "API key is required for custom providers",
+					path: ["apiKey"],
 				});
 			}
 			if (!data.baseUrl || data.baseUrl.trim() === "") {
@@ -93,7 +99,6 @@ export function CreateProviderDialog({
 			apiCompatibility: "openai", // Default to OpenAI-compatible
 			apiKey: "",
 			baseUrl: "",
-			authorizationHeader: "",
 		},
 	});
 
@@ -150,9 +155,8 @@ export function CreateProviderDialog({
 		const formData = {
 			provider_name: values.provider,
 			api_compatibility: values.apiCompatibility,
-			api_key: values.apiKey,
+			api_key: values.apiKey || undefined,
 			base_url: values.baseUrl,
-			authorization_header: values.authorizationHeader,
 		};
 
 		if (level === "project" && projectId) {
@@ -281,12 +285,21 @@ export function CreateProviderDialog({
 							name="apiKey"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>API Key</FormLabel>
+									<FormLabel>
+										API Key
+										{isCustomProvider && (
+											<span className="text-red-500"> *</span>
+										)}
+									</FormLabel>
 									<FormControl>
 										<div className="relative">
 											<Input
 												type={showApiKey ? "text" : "password"}
-												placeholder="Enter API key"
+												placeholder={
+													isCustomProvider
+														? "Enter API key (required)"
+														: "Enter API key (optional)"
+												}
 												disabled={!selectedProvider}
 												className="pr-10"
 												{...field}
@@ -308,7 +321,9 @@ export function CreateProviderDialog({
 										</div>
 									</FormControl>
 									<FormDescription>
-										Your API key will be stored securely
+										{isCustomProvider
+											? "API key is required for custom providers"
+											: "Leave empty to use YAML config default"}
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -336,30 +351,8 @@ export function CreateProviderDialog({
 									</FormControl>
 									<FormDescription>
 										{isCustomProvider
-											? "Base URL for your custom provider's API"
-											: "Override the default base URL (optional)"}
-									</FormDescription>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<FormField
-							control={form.control}
-							name="authorizationHeader"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Authorization Header (Optional)</FormLabel>
-									<FormControl>
-										<Textarea
-											placeholder="Bearer your-token"
-											rows={3}
-											disabled={!selectedProvider}
-											{...field}
-										/>
-									</FormControl>
-									<FormDescription>
-										Custom authorization header if different from API key
+											? "Base URL is required for custom providers"
+											: "Leave empty to use YAML config default"}
 									</FormDescription>
 									<FormMessage />
 								</FormItem>

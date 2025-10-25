@@ -161,7 +161,6 @@ export const ProjectProvidersTab: React.FC<ProjectProvidersTabProps> = ({
 								isConfigured={isConfigured}
 								hasApiKey={config?.has_api_key}
 								baseUrl={config?.base_url}
-								authorizationHeader={config?.has_authorization_header}
 								enabled={config?.enabled}
 								isInherited={isInherited}
 								source={config?.source}

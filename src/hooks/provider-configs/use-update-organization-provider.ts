@@ -37,9 +37,6 @@ export const useUpdateOrganizationProvider = (
 										...(variables.data.api_key !== undefined && {
 											has_api_key: true,
 										}),
-										...(variables.data.authorization_header !== undefined && {
-											has_authorization_header: true,
-										}),
 										...(variables.data.enabled !== undefined && {
 											enabled: variables.data.enabled,
 										}),

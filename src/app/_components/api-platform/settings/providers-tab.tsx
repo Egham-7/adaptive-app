@@ -163,7 +163,6 @@ export const OrganizationProvidersTab: React.FC<
 								isConfigured={isConfigured}
 								hasApiKey={config?.has_api_key}
 								baseUrl={config?.base_url}
-								authorizationHeader={config?.has_authorization_header}
 								enabled={config?.enabled}
 								source={config?.source}
 								level="organization"

@@ -25,26 +25,27 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
 	useUpdateOrganizationProvider,
 	useUpdateProjectProvider,
 } from "@/hooks/provider-configs";
 import {
+	getCompatibilityFromEndpointTypes,
+	getEndpointTypesFromCompatibility,
+} from "@/lib/providers";
+import {
 	API_COMPATIBILITY_METADATA,
 	type ApiCompatibilityType,
 	type EndpointType,
-	getCompatibilityFromEndpointTypes,
-	getEndpointTypesFromCompatibility,
 	PROVIDER_METADATA,
 	type ProviderName,
+	type UpdateProviderApiRequest,
 } from "@/types/providers";
 
 const editProviderSchema = z.object({
 	apiCompatibility: z.enum(["openai", "anthropic", "gemini"]).optional(),
 	apiKey: z.string().optional(),
 	baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
-	authorizationHeader: z.string().optional(),
 });
 
 type EditProviderFormValues = z.infer<typeof editProviderSchema>;
@@ -60,7 +61,6 @@ interface EditProviderDialogProps {
 		endpoint_types?: EndpointType[];
 		has_api_key?: boolean;
 		base_url?: string;
-		authorization_header?: boolean;
 	};
 }
 
@@ -90,7 +90,6 @@ export function EditProviderDialog({
 			apiCompatibility: currentCompatibility ?? undefined,
 			apiKey: "",
 			baseUrl: existingConfig?.base_url || "",
-			authorizationHeader: "",
 		},
 	});
 
@@ -107,18 +106,14 @@ export function EditProviderDialog({
 				apiCompatibility: currentCompatibility ?? undefined,
 				apiKey: "",
 				baseUrl: existingConfig?.base_url || "",
-				authorizationHeader: "",
 			});
 		}
 	}, [open, form, existingConfig, currentCompatibility]);
 
 	const onSubmit = (values: EditProviderFormValues) => {
-		const data: any = {
+		const data: UpdateProviderApiRequest = {
 			...(values.apiKey?.trim() && { api_key: values.apiKey.trim() }),
 			...(values.baseUrl?.trim() && { base_url: values.baseUrl.trim() }),
-			...(values.authorizationHeader?.trim() && {
-				authorization_header: values.authorizationHeader.trim(),
-			}),
 		};
 
 		// Include endpoint_types if API compatibility changed
@@ -222,7 +217,7 @@ export function EditProviderDialog({
 										</div>
 									</FormControl>
 									<FormDescription>
-										Leave empty to keep the existing API key
+										Leave empty to keep existing or inherit from YAML config
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -291,28 +286,7 @@ export function EditProviderDialog({
 										/>
 									</FormControl>
 									<FormDescription>
-										Override the default base URL for this provider
-									</FormDescription>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-
-						<FormField
-							control={form.control}
-							name="authorizationHeader"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Authorization Header (Optional)</FormLabel>
-									<FormControl>
-										<Textarea
-											placeholder="Bearer your-token"
-											rows={3}
-											{...field}
-										/>
-									</FormControl>
-									<FormDescription>
-										Custom authorization header if different from API key
+										Leave empty to inherit from YAML config
 									</FormDescription>
 									<FormMessage />
 								</FormItem>

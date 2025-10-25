@@ -1,10 +1,10 @@
 import { toast } from "sonner";
+import { getEndpointTypesFromCompatibility } from "@/lib/providers";
 import { api } from "@/trpc/react";
 import type {
 	ListProvidersApiResponse,
 	ProviderConfigApiResponse,
 } from "@/types/providers";
-import { getEndpointTypesFromCompatibility } from "@/types/providers";
 
 type CreateOrganizationProviderOptions = {
 	onSuccess?: (data: ProviderConfigApiResponse) => void;
@@ -37,7 +37,6 @@ export const useCreateOrganizationProvider = (
 						),
 						base_url: variables.data.base_url || "",
 						has_api_key: !!variables.data.api_key,
-						has_authorization_header: !!variables.data.authorization_header,
 						enabled: true,
 						source: "organization",
 						created_at: new Date().toISOString(),

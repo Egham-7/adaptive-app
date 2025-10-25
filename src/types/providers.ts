@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-// Provider enum for consistent typing across the app
+// ============================================================================
+// ENUMS & CONSTANTS
+// ============================================================================
+
+/**
+ * Supported provider types
+ */
 export const providerEnum = [
 	"openai",
 	"anthropic",
@@ -16,7 +22,9 @@ export const providerEnum = [
 
 export type ProviderType = (typeof providerEnum)[number];
 
-// Endpoint types available in adaptive-proxy
+/**
+ * Endpoint types available in adaptive-proxy
+ */
 export const endpointTypes = [
 	"chat_completions",
 	"messages",
@@ -27,12 +35,20 @@ export const endpointTypes = [
 
 export type EndpointType = (typeof endpointTypes)[number];
 
-// API Compatibility types for custom providers
+/**
+ * API compatibility types for custom providers
+ */
 export const apiCompatibilityTypes = ["openai", "anthropic", "gemini"] as const;
 
 export type ApiCompatibilityType = (typeof apiCompatibilityTypes)[number];
 
-// API Compatibility metadata
+// ============================================================================
+// METADATA & CONFIGURATION
+// ============================================================================
+
+/**
+ * API compatibility metadata with endpoint mappings and examples
+ */
 export const API_COMPATIBILITY_METADATA: Record<
 	ApiCompatibilityType,
 	{
@@ -70,213 +86,9 @@ export const API_COMPATIBILITY_METADATA: Record<
 	},
 };
 
-// Default API compatibility for built-in providers
-export const PROVIDER_COMPATIBILITY_DEFAULTS: Record<
-	ProviderName,
-	ApiCompatibilityType
-> = {
-	openai: "openai",
-	anthropic: "anthropic",
-	gemini: "gemini",
-	deepseek: "openai",
-	groq: "openai",
-	grok: "openai",
-	huggingface: "openai",
-	cohere: "anthropic",
-	mistral: "openai",
-} as const;
-
-// Helper: Convert API compatibility to endpoint types
-export function getEndpointTypesFromCompatibility(
-	compatibility: ApiCompatibilityType,
-): EndpointType[] {
-	return API_COMPATIBILITY_METADATA[compatibility].endpoints;
-}
-
-// Helper: Get API compatibility from endpoint types (best match)
-export function getCompatibilityFromEndpointTypes(
-	endpointTypes: EndpointType[],
-): ApiCompatibilityType | null {
-	// Sort to normalize comparison
-	const sorted = [...endpointTypes].sort().join(",");
-
-	for (const [compatibility, metadata] of Object.entries(
-		API_COMPATIBILITY_METADATA,
-	)) {
-		const metadataEndpoints = [...metadata.endpoints].sort().join(",");
-		if (sorted === metadataEndpoints) {
-			return compatibility as ApiCompatibilityType;
-		}
-	}
-
-	return null; // Custom/mixed endpoints
-}
-
-// Helper: Convert form data to API request
-export function formDataToApiRequest(
-	formData: CreateProviderFormData,
-): CreateProviderApiRequest {
-	return {
-		...formData,
-		endpoint_types: getEndpointTypesFromCompatibility(
-			formData.api_compatibility,
-		),
-	};
-}
-
-// Helper: Convert API response to form data (for editing)
-export function apiResponseToFormData(
-	response: GetProviderApiResponse,
-): UpdateProviderFormData {
-	const apiCompatibility = getCompatibilityFromEndpointTypes(
-		response.endpoint_types,
-	);
-
-	return {
-		api_compatibility: apiCompatibility ?? "openai", // Default to openai if custom
-		base_url: response.base_url,
-		enabled: response.enabled,
-	};
-}
-
-// Runtime provider config (used internally by proxy)
-export interface ProviderRuntimeConfig {
-	api_key?: string;
-	base_url?: string;
-	authorization_header?: string;
-	endpoint_types?: EndpointType[];
-}
-
-// ProviderConfig alias for request overrides (backward compatibility)
-export type ProviderConfig = Pick<
-	ProviderRuntimeConfig,
-	"api_key" | "base_url" | "authorization_header"
->;
-
-// Database model - stored provider configuration
-export interface ProviderConfigurationRecord {
-	id: number;
-	project_id?: number;
-	organization_id: string;
-	provider_name: string;
-	endpoint_types: EndpointType[];
-	has_api_key: boolean; // Masked - actual key not exposed
-	base_url?: string;
-	has_authorization_header: boolean; // Just indicator, not the actual value
-	enabled: boolean;
-	created_at: string;
-	updated_at: string;
-	created_by: string;
-	updated_by: string;
-}
-
-// Audit history for provider configuration changes
-export interface ProviderConfigurationHistoryRecord {
-	id: number;
-	config_id: number;
-	action: "created" | "updated" | "deleted";
-	changes: string; // JSON string
-	changed_by: string;
-	changed_at: string;
-}
-
-// Frontend form types (what user sees in UI)
-export interface CreateProviderFormData {
-	provider_name: string;
-	api_compatibility: ApiCompatibilityType; // User-friendly selection
-	api_key: string;
-	base_url?: string;
-	authorization_header?: string;
-}
-
-export interface UpdateProviderFormData {
-	api_compatibility?: ApiCompatibilityType;
-	api_key?: string;
-	base_url?: string;
-	authorization_header?: string;
-	enabled?: boolean;
-}
-
-// API request types (what gets sent to backend)
-export interface CreateProviderApiRequest {
-	provider_name: string;
-	endpoint_types: EndpointType[]; // Backend expects endpoint_types
-	api_key: string;
-	base_url?: string;
-	authorization_header?: string;
-}
-
-export interface UpdateProviderApiRequest {
-	endpoint_types?: EndpointType[];
-	api_key?: string;
-	base_url?: string;
-	authorization_header?: string;
-	enabled?: boolean;
-}
-
-// Zod schemas for form validation
-export const createProviderFormSchema = z.object({
-	provider_name: z.string().min(1).max(100),
-	api_compatibility: z.enum(apiCompatibilityTypes),
-	api_key: z.string().min(1),
-	base_url: z.string().optional(),
-	authorization_header: z.string().optional(),
-});
-
-export const updateProviderFormSchema = z.object({
-	api_compatibility: z.enum(apiCompatibilityTypes).optional(),
-	api_key: z.string().optional(),
-	base_url: z.string().optional(),
-	authorization_header: z.string().optional(),
-	enabled: z.boolean().optional(),
-});
-
-// API response - provider config with source (project vs org)
-export interface ProviderConfigApiResponse {
-	id: number;
-	provider_name: string;
-	endpoint_types: EndpointType[];
-	base_url: string;
-	has_api_key: boolean;
-	has_authorization_header: boolean;
-	enabled: boolean;
-	source: "project" | "organization";
-	created_at: string;
-	updated_at: string;
-	created_by: string;
-	updated_by: string;
-}
-
-// API response - list of providers
-export interface ListProvidersApiResponse {
-	project_id?: number;
-	organization_id?: string;
-	providers: ProviderConfigApiResponse[];
-}
-
-// API response - single provider details
-export interface GetProviderApiResponse {
-	id: number;
-	project_id?: number;
-	organization_id: string;
-	provider_name: string;
-	endpoint_types: EndpointType[];
-	has_api_key: boolean;
-	base_url?: string;
-	enabled: boolean;
-	created_at: string;
-	updated_at?: string;
-	created_by: string;
-	updated_by?: string;
-}
-
-// API response - provider history
-export interface GetProviderHistoryApiResponse {
-	config_id: number;
-	history: ProviderConfigurationHistoryRecord[];
-}
-
-// Provider metadata with logos from /public/logos/
+/**
+ * Provider metadata with logos and descriptions
+ */
 export const PROVIDER_METADATA = {
 	openai: {
 		name: "openai",
@@ -342,14 +154,172 @@ export const PROVIDER_METADATA = {
 
 export type ProviderName = keyof typeof PROVIDER_METADATA;
 
-// Fallback configuration (kept for backward compatibility)
+/**
+ * Default API compatibility for built-in providers
+ */
+export const PROVIDER_COMPATIBILITY_DEFAULTS: Record<
+	ProviderName,
+	ApiCompatibilityType
+> = {
+	openai: "openai",
+	anthropic: "anthropic",
+	gemini: "gemini",
+	deepseek: "openai",
+	groq: "openai",
+	grok: "openai",
+	huggingface: "openai",
+	cohere: "anthropic",
+	mistral: "openai",
+} as const;
+
+// ============================================================================
+// CORE TYPES
+// ============================================================================
+
+/**
+ * Runtime provider configuration (used internally by proxy)
+ */
+export interface ProviderRuntimeConfig {
+	api_key?: string;
+	base_url?: string;
+	endpoint_types?: EndpointType[];
+}
+
+/**
+ * Provider config for request overrides (backward compatibility)
+ */
+export type ProviderConfig = Pick<
+	ProviderRuntimeConfig,
+	"api_key" | "base_url"
+>;
+
+// ============================================================================
+// FORM TYPES
+// ============================================================================
+
+/**
+ * Form data for creating a provider (what user sees in UI)
+ */
+export interface CreateProviderFormData {
+	provider_name: string;
+	api_compatibility: ApiCompatibilityType;
+	api_key?: string;
+	base_url?: string;
+}
+
+// ============================================================================
+// API REQUEST TYPES
+// ============================================================================
+
+/**
+ * API request for creating a provider
+ */
+export interface CreateProviderApiRequest {
+	provider_name: string;
+	endpoint_types: EndpointType[];
+	api_key?: string;
+	base_url?: string;
+}
+
+/**
+ * API request for updating a provider
+ */
+export interface UpdateProviderApiRequest {
+	endpoint_types?: EndpointType[];
+	api_key?: string;
+	base_url?: string;
+	enabled?: boolean;
+}
+
+// ============================================================================
+// API RESPONSE TYPES
+// ============================================================================
+
+/**
+ * Provider configuration response from API
+ */
+export interface ProviderConfigApiResponse {
+	id: number;
+	provider_name: string;
+	endpoint_types: EndpointType[];
+	base_url: string;
+	has_api_key: boolean;
+	enabled: boolean;
+	source: "project" | "organization";
+	created_at: string;
+	updated_at: string;
+	created_by: string;
+	updated_by: string;
+}
+
+/**
+ * List of provider configurations
+ */
+export interface ListProvidersApiResponse {
+	project_id?: number;
+	organization_id?: string;
+	providers: ProviderConfigApiResponse[];
+}
+
+/**
+ * Provider configuration change history
+ */
+export interface GetProviderHistoryApiResponse {
+	config_id: number;
+	history: {
+		id: number;
+		config_id: number;
+		action: "created" | "updated" | "deleted";
+		changes: string; // JSON string
+		changed_by: string;
+		changed_at: string;
+	}[];
+}
+
+// ============================================================================
+// VALIDATION SCHEMAS
+// ============================================================================
+
+/**
+ * Zod schema for creating a provider
+ */
+export const createProviderFormSchema = z.object({
+	provider_name: z.string().min(1).max(100),
+	api_compatibility: z.enum(apiCompatibilityTypes),
+	api_key: z.string().optional(),
+	base_url: z.string().optional(),
+});
+
+/**
+ * Zod schema for updating a provider
+ */
+export const updateProviderFormSchema = z.object({
+	api_compatibility: z.enum(apiCompatibilityTypes).optional(),
+	api_key: z.string().optional(),
+	base_url: z.string().optional(),
+	enabled: z.boolean().optional(),
+});
+
+// ============================================================================
+// FALLBACK CONFIGURATION
+// ============================================================================
+
+/**
+ * Fallback mode for provider requests
+ */
 export type FallbackMode = "sequential" | "race";
 
+/**
+ * Fallback configuration for chat requests
+ */
 export interface FallbackConfig {
 	enabled?: boolean;
 	mode?: FallbackMode;
 }
 
+/**
+ * Zod schema for fallback configuration
+ */
 export const fallbackConfigSchema = z.object({
 	enabled: z.boolean().optional(),
 	mode: z.enum(["sequential", "race"]).optional(),
