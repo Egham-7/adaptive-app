@@ -2,11 +2,7 @@
 
 import { useOrganization } from "@clerk/nextjs";
 import Link from "next/link";
-import {
-	useParams,
-	usePathname,
-	useRouter,
-} from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { SocialLogo } from "@/components/ui/social-logo";
 import { Tabs } from "@/components/ui/vercel-tabs";
