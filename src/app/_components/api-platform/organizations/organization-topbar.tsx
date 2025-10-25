@@ -6,7 +6,6 @@ import {
 	useParams,
 	usePathname,
 	useRouter,
-	useSearchParams,
 } from "next/navigation";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { SocialLogo } from "@/components/ui/social-logo";
@@ -19,7 +18,6 @@ export function OrganizationTopbar() {
 	const { organization } = useOrganization();
 	const router = useRouter();
 	const pathname = usePathname();
-	const searchParams = useSearchParams();
 	const orgSlug = orgId ?? organization?.slug;
 
 	const tabs = [
@@ -28,26 +26,20 @@ export function OrganizationTopbar() {
 			label: "Projects",
 		},
 		{
-			id: "billing",
-			label: "Billing",
-		},
-		{
 			id: "settings",
 			label: "Settings",
 		},
 	];
 
-	// Determine active tab based on current pathname or query params
+	// Determine active tab based on current pathname
 	const getActiveTab = () => {
 		if (pathname.includes("/settings")) return "settings";
-		if (searchParams.get("tab") === "credits") return "billing";
 		return "projects";
 	};
 
 	const handleTabChange = (tabId: string) => {
 		const routes: Record<string, string> = {
 			projects: `/api-platform/orgs/${orgSlug}`,
-			billing: `/api-platform/orgs/${orgSlug}?tab=credits`,
 			settings: `/api-platform/orgs/${orgSlug}/settings`,
 		};
 
