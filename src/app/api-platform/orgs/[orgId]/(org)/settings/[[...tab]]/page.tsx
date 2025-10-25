@@ -4,6 +4,7 @@ import { useOrganization } from "@clerk/nextjs";
 import { useParams, useRouter } from "next/navigation";
 import { ApiKeysTab } from "@/app/_components/api-platform/settings/api-keys-tab";
 import { AppearanceTab } from "@/app/_components/api-platform/settings/appearance-tab";
+import { BillingTab } from "@/app/_components/api-platform/settings/billing-tab";
 import { MembersTab } from "@/app/_components/api-platform/settings/members-tab";
 import { PrivacyTab } from "@/app/_components/api-platform/settings/privacy-tab";
 import { ProfileTab } from "@/app/_components/api-platform/settings/profile-tab";
@@ -114,6 +115,19 @@ const OrganizationSettingsPage: React.FC = () => {
 
 					<Button
 						type="button"
+						onClick={() => handleTabChange("billing")}
+						variant="ghost"
+						className={`w-full justify-start ${
+							activeTab === "billing"
+								? "bg-accent text-accent-foreground"
+								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+						}`}
+					>
+						Billing
+					</Button>
+
+					<Button
+						type="button"
 						onClick={() => handleTabChange("privacy")}
 						variant="ghost"
 						className={`w-full justify-start ${
@@ -144,6 +158,9 @@ const OrganizationSettingsPage: React.FC = () => {
 						organizationId={organization.id}
 						isAdmin={membership?.role === "org:admin"}
 					/>
+				)}
+				{activeTab === "billing" && (
+					<BillingTab organizationId={organization.id} />
 				)}
 				{activeTab === "privacy" && <PrivacyTab />}
 			</div>

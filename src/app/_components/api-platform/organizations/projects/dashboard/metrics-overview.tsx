@@ -1,22 +1,15 @@
 "use client";
 
-import { useOrganization } from "@clerk/nextjs";
 import { useParams } from "next/navigation";
 import {
 	FaChartLine,
 	FaCoins,
-	FaCreditCard,
 	FaExclamationTriangle,
 	FaServer,
 } from "react-icons/fa";
-import type { RouterOutputs } from "@/trpc/react";
-import { api } from "@/trpc/react";
 import type { ProjectAnalytics } from "@/types/api-platform/dashboard";
 import { MetricCardSkeleton } from "./loading-skeleton";
 import { VersatileMetricChart } from "./versatile-metric-chart";
-
-type CreditTransactionItem =
-	RouterOutputs["credits"]["getTransactionHistory"]["transactions"][number];
 
 interface MetricsOverviewProps {
 	data: ProjectAnalytics | null;
@@ -25,28 +18,11 @@ interface MetricsOverviewProps {
 
 export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
 	const _params = useParams();
-	const { organization } = useOrganization();
-	const orgId = organization?.id;
-
-	// Fetch credit balance and transaction history for credit chart
-	const { data: creditBalance } = api.credits.getBalance.useQuery(
-		{ organizationId: orgId ?? "" },
-		{ enabled: !!orgId },
-	);
-
-	const { data: creditTransactions } =
-		api.credits.getTransactionHistory.useQuery(
-			{
-				organizationId: orgId ?? "",
-				limit: 30,
-			},
-			{ enabled: !!orgId },
-		);
 
 	if (loading) {
 		return (
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{Array.from({ length: 5 }).map((_, i) => (
+				{Array.from({ length: 4 }).map((_, i) => (
 					<MetricCardSkeleton key={`skeleton-${i}`} />
 				))}
 			</div>
@@ -60,25 +36,7 @@ export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
 		value: d.spend, // This is the actual customer spending
 	}));
 
-	// Create credit balance history data from transactions
-	const creditBalanceData = (creditTransactions?.transactions ?? [])
-		.slice() // clone to avoid mutating cached data
-		.reverse() // chronological order
-		.map((transaction: CreditTransactionItem) => ({
-			// Stable date string for charting (YYYY-MM-DD, UTC)
-			date: new Date(transaction.created_at).toISOString().slice(0, 10),
-			value: Number.parseFloat(transaction.balance_after.toString()),
-		}));
-
 	const allMetrics = [
-		{
-			title: "Credit Balance",
-			chartType: "line" as const,
-			icon: <FaCreditCard className="h-5 w-5 text-primary" />,
-			data: creditBalanceData,
-			color: "hsl(var(--primary))",
-			totalValue: creditBalance?.formattedBalance || "$0.00",
-		},
 		{
 			title: "Spending Over Time",
 			chartType: "line" as const,

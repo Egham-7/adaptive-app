@@ -52,7 +52,11 @@ export const supportRouter = createTRPCRouter({
 				// Send email to support team
 				await resend.emails.send({
 					from: "Adaptive Support <info@llmadaptive.uk>",
-					to: ["info@llmadaptive.uk"],
+					to: [
+						"botirkhaltaev@llmadaptive.uk",
+						"mohammedelamineatoui@llmadaptive.uk",
+						"kendrick.lwin@llmadaptive.uk",
+					],
 					subject: `[${priorityLabel}] ${categoryLabel}: ${input.subject} (${ticketId})`,
 					react: (
 						<SupportTicketEmail
