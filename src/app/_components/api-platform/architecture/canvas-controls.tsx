@@ -109,11 +109,11 @@ export function CanvasControls() {
 							</svg>
 						</Button>
 					</TooltipTrigger>
-				<TooltipContent side="right">
-					<p>Zoom Out</p>
-				</TooltipContent>
-			</Tooltip>
-		</div>
-	</TooltipProvider>
+					<TooltipContent side="right">
+						<p>Zoom Out</p>
+					</TooltipContent>
+				</Tooltip>
+			</div>
+		</TooltipProvider>
 	);
 }
