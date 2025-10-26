@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useCallback, useEffect } from "react";
 
 export interface CanvasCommand {
 	id: string;
@@ -60,7 +60,9 @@ export function useCanvasCommands({ commands }: UseCanvasCommandsOptions) {
 				// Check modifiers match exactly
 				const modPressed = event.metaKey || event.ctrlKey;
 				const modMatches = needsMod ? modPressed : true;
-				const ctrlMatches = needsCtrl ? event.ctrlKey : !event.ctrlKey || needsMod;
+				const ctrlMatches = needsCtrl
+					? event.ctrlKey
+					: !event.ctrlKey || needsMod;
 				const shiftMatches = needsShift ? event.shiftKey : !event.shiftKey;
 				const altMatches = needsAlt ? event.altKey : !event.altKey;
 

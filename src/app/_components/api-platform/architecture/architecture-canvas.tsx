@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import ReactFlow, {
 	applyNodeChanges,
 	Background,
@@ -17,12 +17,6 @@ import { Plus } from "lucide-react";
 import { AddProviderDialog } from "@/app/_components/api-platform/add-provider-dialog";
 import { Button } from "@/components/ui/button";
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuShortcut,
-} from "@/components/ui/dropdown-menu";
-import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
@@ -30,12 +24,18 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { useProjectAdaptiveConfig } from "@/hooks/adaptive-config";
 import {
-	useCanvasCommands,
-	type CanvasCommand,
-} from "@/hooks/use-canvas-commands";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuShortcut,
+} from "@/components/ui/dropdown-menu";
+import { useProjectAdaptiveConfig } from "@/hooks/adaptive-config";
 import { useDeleteProjectProvider } from "@/hooks/provider-configs";
+import {
+	type CanvasCommand,
+	useCanvasCommands,
+} from "@/hooks/use-canvas-commands";
 import type {
 	ArchitectureCanvasProps,
 	ProviderInfo,
@@ -409,15 +409,12 @@ function ArchitectureCanvasInner({
 	}, []);
 
 	// Handle context menu on canvas background (pane)
-	const handlePaneContextMenu = useCallback(
-		(event: React.MouseEvent) => {
-			event.preventDefault();
-			setContextMenuContext({ type: "canvas" });
-			setMenuPosition({ x: event.clientX, y: event.clientY });
-			setMenuOpen(true);
-		},
-		[],
-	);
+	const handlePaneContextMenu = useCallback((event: React.MouseEvent) => {
+		event.preventDefault();
+		setContextMenuContext({ type: "canvas" });
+		setMenuPosition({ x: event.clientX, y: event.clientY });
+		setMenuOpen(true);
+	}, []);
 
 	// Handle context menu on nodes
 	const handleNodeContextMenu = useCallback(
@@ -502,7 +499,9 @@ function ArchitectureCanvasInner({
 							}}
 						>
 							{command.label}
-							<DropdownMenuShortcut>{command.shortcutDisplay}</DropdownMenuShortcut>
+							<DropdownMenuShortcut>
+								{command.shortcutDisplay}
+							</DropdownMenuShortcut>
 						</DropdownMenuItem>
 					))}
 				</DropdownMenuContent>
