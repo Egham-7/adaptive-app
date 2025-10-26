@@ -13,7 +13,7 @@ import ReactFlow, {
 	useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { Plus } from "lucide-react";
+import { History, Plus } from "lucide-react";
 import { AddProviderDialog } from "@/app/_components/api-platform/add-provider-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -499,8 +499,19 @@ function ArchitectureCanvasInner({
 				proOptions={{ hideAttribution: true }}
 			>
 				<Background gap={40} />
-				<CanvasControls onHistoryClick={() => setHistorySheetOpen(true)} />
+				<CanvasControls />
 			</ReactFlow>
+
+			{/* Fixed Position History Button - Bottom Right */}
+			<Button
+				onClick={() => setHistorySheetOpen(true)}
+				variant="outline"
+				size="icon"
+				className="fixed bottom-6 right-6 z-10 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all bg-background border-2"
+				title="View Project History"
+			>
+				<History className="h-5 w-5" />
+			</Button>
 
 			{/* Custom Context Menu */}
 			<DropdownMenu open={menuOpen} onOpenChange={setMenuOpen} modal={false}>
