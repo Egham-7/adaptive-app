@@ -130,12 +130,9 @@ function ArchitectureCanvasInner({
 
 	const allProviders = useMemo(() => combineProviders(providers), [providers]);
 
-	const handleProviderClick = useCallback(
-		(name: string) => {
-			setVisibleSheet(name);
-		},
-		[],
-	);
+	const handleProviderClick = useCallback((name: string) => {
+		setVisibleSheet(name);
+	}, []);
 
 	const handleAdaptiveClick = useCallback(() => {
 		setShowAdaptiveSheet(true);
