@@ -73,9 +73,9 @@ const createProviderSchema = z
 		}
 	});
 
-type CreateProviderFormValues = z.infer<typeof createProviderSchema>;
+type AddProviderFormValues = z.infer<typeof createProviderSchema>;
 
-interface CreateProviderDialogProps {
+interface AddProviderDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	level: "project" | "organization";
@@ -83,16 +83,16 @@ interface CreateProviderDialogProps {
 	organizationId?: string;
 }
 
-export function CreateProviderDialog({
+export function AddProviderDialog({
 	open,
 	onOpenChange,
 	level,
 	projectId,
 	organizationId,
-}: CreateProviderDialogProps) {
+}: AddProviderDialogProps) {
 	const [showApiKey, setShowApiKey] = useState(false);
 
-	const form = useForm<CreateProviderFormValues>({
+	const form = useForm<AddProviderFormValues>({
 		resolver: zodResolver(createProviderSchema),
 		defaultValues: {
 			provider: "",
@@ -150,7 +150,7 @@ export function CreateProviderDialog({
 		}
 	}, [open, form]);
 
-	const onSubmit = (values: CreateProviderFormValues) => {
+	const onSubmit = (values: AddProviderFormValues) => {
 		// Prepare form data for tRPC
 		const formData = {
 			provider_name: values.provider,
@@ -198,8 +198,8 @@ export function CreateProviderDialog({
 							<DialogTitle>Add Provider</DialogTitle>
 							<DialogDescription>
 								{level === "project"
-									? "Add a provider for this project"
-									: "Add a provider for this organization"}
+									? "Add a provider to this project"
+									: "Add a provider to this organization"}
 							</DialogDescription>
 						</div>
 					</div>
@@ -369,7 +369,7 @@ export function CreateProviderDialog({
 								Cancel
 							</Button>
 							<Button type="submit" disabled={isLoading || !selectedProvider}>
-								{isLoading ? "Creating..." : "Create"}
+								{isLoading ? "Adding..." : "Add Provider"}
 							</Button>
 						</DialogFooter>
 					</form>

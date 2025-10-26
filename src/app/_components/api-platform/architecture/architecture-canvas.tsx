@@ -14,9 +14,28 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Plus } from "lucide-react";
-import { CreateProviderDialog } from "@/app/_components/api-platform/create-provider-dialog";
+import { AddProviderDialog } from "@/app/_components/api-platform/add-provider-dialog";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuShortcut,
+} from "@/components/ui/dropdown-menu";
 import { useProjectAdaptiveConfig } from "@/hooks/adaptive-config";
+import { useDeleteProjectProvider } from "@/hooks/provider-configs";
+import {
+	type CanvasCommand,
+	useCanvasCommands,
+} from "@/hooks/use-canvas-commands";
 import type {
 	ArchitectureCanvasProps,
 	ProviderInfo,
@@ -115,18 +134,32 @@ const combineProviders = (
 };
 
 // Inner component that uses useReactFlow hook
+type ContextMenuContext =
+	| { type: "canvas" }
+	| { type: "provider"; providerId: string }
+	| { type: "adaptive" };
+
 function ArchitectureCanvasInner({
 	projectId,
 	providers,
 }: ArchitectureCanvasProps) {
-	const [showCreateDialog, setShowCreateDialog] = useState(false);
+	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [visibleSheet, setVisibleSheet] = useState<string | null>(null);
 	const [showAdaptiveSheet, setShowAdaptiveSheet] = useState(false);
 	const [adaptiveNodeHighlight, setAdaptiveNodeHighlight] = useState(false);
+	const [contextMenuContext, setContextMenuContext] =
+		useState<ContextMenuContext>({ type: "canvas" });
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [providerToDelete, setProviderToDelete] = useState<string | null>(null);
+	const [menuOpen, setMenuOpen] = useState(false);
+	const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 	const { setCenter } = useReactFlow();
 
 	// Fetch adaptive config
 	const { data: adaptiveConfig } = useProjectAdaptiveConfig(projectId);
+
+	// Delete provider mutation
+	const deleteProvider = useDeleteProjectProvider();
 
 	const allProviders = useMemo(() => combineProviders(providers), [providers]);
 
@@ -148,6 +181,78 @@ function ArchitectureCanvasInner({
 		setAdaptiveNodeHighlight(true);
 		setTimeout(() => setAdaptiveNodeHighlight(false), 2000);
 	}, []);
+
+	// Define canvas commands with keyboard shortcuts based on context
+	const canvasCommands: CanvasCommand[] = useMemo(() => {
+		if (contextMenuContext.type === "canvas") {
+			// Canvas context: only "Add Provider"
+			return [
+				{
+					id: "add-provider",
+					label: "Add Provider",
+					shortcut: "mod+p",
+					shortcutDisplay: "⌘P",
+					handler: () => setShowAddDialog(true),
+				},
+			];
+		}
+
+		if (contextMenuContext.type === "provider") {
+			// Provider node context: "Configure Provider" and "Delete Provider"
+			const provider = allProviders.find(
+				(p) => p.name === contextMenuContext.providerId,
+			);
+			const isOrgLevel = provider?.config?.source === "organization";
+
+			const commands = [
+				{
+					id: "configure-provider",
+					label: "Configure Provider",
+					shortcut: "mod+e",
+					shortcutDisplay: "⌘E",
+					handler: () => {
+						setVisibleSheet(contextMenuContext.providerId);
+					},
+				},
+			];
+
+			// Only show delete for project-level configs
+			if (!isOrgLevel) {
+				commands.push({
+					id: "delete-provider",
+					label: "Delete Provider",
+					shortcut: "mod+backspace",
+					shortcutDisplay: "⌘⌫",
+					handler: () => {
+						setProviderToDelete(contextMenuContext.providerId);
+						setDeleteDialogOpen(true);
+					},
+				});
+			}
+
+			return commands;
+		}
+
+		if (contextMenuContext.type === "adaptive") {
+			// Adaptive node context: only "Configure Adaptive"
+			return [
+				{
+					id: "configure-adaptive",
+					label: "Configure Adaptive",
+					shortcut: "mod+e",
+					shortcutDisplay: "⌘E",
+					handler: () => {
+						setShowAdaptiveSheet(true);
+					},
+				},
+			];
+		}
+
+		return [];
+	}, [contextMenuContext, allProviders]);
+
+	// Register commands and keyboard shortcuts
+	const { commands } = useCanvasCommands({ commands: canvasCommands });
 
 	const initialNodes = useMemo<Node[]>(() => {
 		const totalProviders = allProviders.length;
@@ -303,6 +408,29 @@ function ArchitectureCanvasInner({
 		setNodes((nds) => applyNodeChanges(changes, nds));
 	}, []);
 
+	// Handle context menu on canvas background (pane)
+	const handlePaneContextMenu = useCallback((event: React.MouseEvent) => {
+		event.preventDefault();
+		setContextMenuContext({ type: "canvas" });
+		setMenuPosition({ x: event.clientX, y: event.clientY });
+		setMenuOpen(true);
+	}, []);
+
+	// Handle context menu on nodes
+	const handleNodeContextMenu = useCallback(
+		(event: React.MouseEvent, node: Node) => {
+			event.preventDefault();
+			if (node.id === "adaptive") {
+				setContextMenuContext({ type: "adaptive" });
+			} else {
+				setContextMenuContext({ type: "provider", providerId: node.id });
+			}
+			setMenuPosition({ x: event.clientX, y: event.clientY });
+			setMenuOpen(true);
+		},
+		[],
+	);
+
 	const currentProvider = visibleSheet
 		? allProviders.find((p) => p.name === visibleSheet)
 		: null;
@@ -311,7 +439,7 @@ function ArchitectureCanvasInner({
 		<div className="relative h-screen w-full overflow-hidden rounded-lg border">
 			<div className="absolute top-4 right-4 z-10">
 				<Button
-					onClick={() => setShowCreateDialog(true)}
+					onClick={() => setShowAddDialog(true)}
 					variant="default"
 					size="sm"
 				>
@@ -324,6 +452,8 @@ function ArchitectureCanvasInner({
 				nodes={nodes}
 				edges={edges}
 				onNodesChange={onNodesChange}
+				onPaneContextMenu={handlePaneContextMenu}
+				onNodeContextMenu={handleNodeContextMenu}
 				nodeTypes={nodeTypes}
 				fitView
 				fitViewOptions={{
@@ -344,9 +474,42 @@ function ArchitectureCanvasInner({
 				<CanvasControls />
 			</ReactFlow>
 
-			<CreateProviderDialog
-				open={showCreateDialog}
-				onOpenChange={setShowCreateDialog}
+			{/* Custom Context Menu */}
+			<DropdownMenu open={menuOpen} onOpenChange={setMenuOpen} modal={false}>
+				<DropdownMenuContent
+					className="min-w-[200px]"
+					style={{
+						position: "fixed",
+						left: `${menuPosition.x}px`,
+						top: `${menuPosition.y}px`,
+					}}
+					onCloseAutoFocus={(e) => e.preventDefault()}
+					align="start"
+					sideOffset={0}
+				>
+					{commands.map((command) => (
+						<DropdownMenuItem
+							key={command.id}
+							variant={
+								command.id === "delete-provider" ? "destructive" : "default"
+							}
+							onClick={() => {
+								command.handler();
+								setMenuOpen(false);
+							}}
+						>
+							{command.label}
+							<DropdownMenuShortcut>
+								{command.shortcutDisplay}
+							</DropdownMenuShortcut>
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			<AddProviderDialog
+				open={showAddDialog}
+				onOpenChange={setShowAddDialog}
 				level="project"
 				projectId={projectId}
 			/>
@@ -380,6 +543,45 @@ function ArchitectureCanvasInner({
 				existingConfig={adaptiveConfig}
 				onSaveSuccess={handleAdaptiveSaveSuccess}
 			/>
+
+			{/* Delete Provider Confirmation Dialog */}
+			<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Delete Provider</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to delete the provider &quot;
+							{providerToDelete}&quot;? This action cannot be undone.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => {
+								setDeleteDialogOpen(false);
+								setProviderToDelete(null);
+							}}
+						>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={() => {
+								if (providerToDelete) {
+									deleteProvider.mutate({
+										projectId,
+										provider: providerToDelete,
+									});
+									setDeleteDialogOpen(false);
+									setProviderToDelete(null);
+								}
+							}}
+						>
+							Delete
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

@@ -3,7 +3,7 @@
 import { Plus } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
-import { CreateProviderDialog } from "@/app/_components/api-platform/create-provider-dialog";
+import { AddProviderDialog } from "@/app/_components/api-platform/add-provider-dialog";
 import { EditProviderDialog } from "@/app/_components/api-platform/edit-provider-dialog";
 import { ProviderCard } from "@/app/_components/api-platform/provider-card";
 import {
@@ -184,8 +184,8 @@ export const OrganizationProvidersTab: React.FC<
 					})}
 				</div>
 
-				{/* Create Provider Dialog */}
-				<CreateProviderDialog
+				{/* Add Provider Dialog */}
+				<AddProviderDialog
 					open={createDialogOpen}
 					onOpenChange={setCreateDialogOpen}
 					level="organization"
