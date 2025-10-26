@@ -638,16 +638,16 @@ function ArchitectureCanvasInner({
 				</DialogContent>
 			</Dialog>
 
-		{/* Audit History Drawer */}
-		<AuditLogDrawer
-			open={historySheetOpen}
-			onOpenChange={setHistorySheetOpen}
-			title="Project Configuration History"
-			description="View all changes to provider and adaptive configurations"
-			historyData={auditHistory}
-			isLoading={historyLoading}
-			error={historyError?.message}
-		/>
+			{/* Audit History Drawer */}
+			<AuditLogDrawer
+				open={historySheetOpen}
+				onOpenChange={setHistorySheetOpen}
+				title="Project Configuration History"
+				description="View all changes to provider and adaptive configurations"
+				historyData={auditHistory}
+				isLoading={historyLoading}
+				error={historyError?.message}
+			/>
 		</div>
 	);
 }
