@@ -31,6 +31,7 @@ import {
 	DropdownMenuShortcut,
 } from "@/components/ui/dropdown-menu";
 import { useProjectAdaptiveConfig } from "@/hooks/adaptive-config";
+import { useProjectAuditHistory } from "@/hooks/audit/use-project-audit-history";
 import { useDeleteProjectProvider } from "@/hooks/provider-configs";
 import {
 	type CanvasCommand,
@@ -46,6 +47,7 @@ import {
 	type ProviderConfigApiResponse,
 	type ProviderName,
 } from "@/types/providers";
+import { AuditLogDrawer } from "../audit/audit-log-drawer";
 import { AdaptiveConfigSheet } from "./adaptive-config-sheet";
 import { AdaptiveNodeCard } from "./adaptive-node-card";
 import { CanvasControls } from "./canvas-controls";
@@ -153,10 +155,18 @@ function ArchitectureCanvasInner({
 	const [providerToDelete, setProviderToDelete] = useState<string | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+	const [historySheetOpen, setHistorySheetOpen] = useState(false);
 	const { setCenter } = useReactFlow();
 
 	// Fetch adaptive config
 	const { data: adaptiveConfig } = useProjectAdaptiveConfig(projectId);
+
+	// Fetch combined audit history
+	const {
+		data: auditHistory,
+		isLoading: historyLoading,
+		error: historyError,
+	} = useProjectAuditHistory(projectId);
 
 	// Delete provider mutation
 	const deleteProvider = useDeleteProjectProvider();
@@ -198,7 +208,7 @@ function ArchitectureCanvasInner({
 		}
 
 		if (contextMenuContext.type === "provider") {
-			// Provider node context: "Configure Provider" and "Delete Provider"
+			// Provider node context: "Configure Provider", "View History", and "Delete Provider"
 			const provider = allProviders.find(
 				(p) => p.name === contextMenuContext.providerId,
 			);
@@ -212,6 +222,15 @@ function ArchitectureCanvasInner({
 					shortcutDisplay: "⌘E",
 					handler: () => {
 						setVisibleSheet(contextMenuContext.providerId);
+					},
+				},
+				{
+					id: "view-history",
+					label: "View History",
+					shortcut: "mod+h",
+					shortcutDisplay: "⌘H",
+					handler: () => {
+						setHistorySheetOpen(true);
 					},
 				},
 			];
@@ -234,7 +253,7 @@ function ArchitectureCanvasInner({
 		}
 
 		if (contextMenuContext.type === "adaptive") {
-			// Adaptive node context: only "Configure Adaptive"
+			// Adaptive node context: "Configure Adaptive" and "View History"
 			return [
 				{
 					id: "configure-adaptive",
@@ -243,6 +262,15 @@ function ArchitectureCanvasInner({
 					shortcutDisplay: "⌘E",
 					handler: () => {
 						setShowAdaptiveSheet(true);
+					},
+				},
+				{
+					id: "view-history",
+					label: "View History",
+					shortcut: "mod+h",
+					shortcutDisplay: "⌘H",
+					handler: () => {
+						setHistorySheetOpen(true);
 					},
 				},
 			];
@@ -471,7 +499,7 @@ function ArchitectureCanvasInner({
 				proOptions={{ hideAttribution: true }}
 			>
 				<Background gap={40} />
-				<CanvasControls />
+				<CanvasControls onHistoryClick={() => setHistorySheetOpen(true)} />
 			</ReactFlow>
 
 			{/* Custom Context Menu */}
@@ -528,21 +556,23 @@ function ArchitectureCanvasInner({
 					isCustom={currentProvider.isCustom}
 					projectId={projectId}
 					existingConfig={currentProvider.config}
+					onHistoryClick={() => setHistorySheetOpen(true)}
 				/>
 			)}
 
-			<AdaptiveConfigSheet
-				open={showAdaptiveSheet}
-				onOpenChange={(open) => {
-					if (!open) {
-						handleSheetClose();
-					}
-					setShowAdaptiveSheet(open);
-				}}
-				projectId={projectId}
-				existingConfig={adaptiveConfig}
-				onSaveSuccess={handleAdaptiveSaveSuccess}
-			/>
+		<AdaptiveConfigSheet
+			open={showAdaptiveSheet}
+			onOpenChange={(open) => {
+				if (!open) {
+					handleSheetClose();
+				}
+				setShowAdaptiveSheet(open);
+			}}
+			projectId={projectId}
+			existingConfig={adaptiveConfig}
+			onSaveSuccess={handleAdaptiveSaveSuccess}
+			onHistoryClick={() => setHistorySheetOpen(true)}
+		/>
 
 			{/* Delete Provider Confirmation Dialog */}
 			<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -582,6 +612,17 @@ function ArchitectureCanvasInner({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Audit History Drawer */}
+			<AuditLogDrawer
+				open={historySheetOpen}
+				onOpenChange={setHistorySheetOpen}
+				title="Project Configuration History"
+				description="View all changes to provider and adaptive configurations"
+				historyData={auditHistory}
+				isLoading={historyLoading}
+				error={historyError}
+			/>
 		</div>
 	);
 }

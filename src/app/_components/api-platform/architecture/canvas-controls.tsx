@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Maximize2, Plus } from "lucide-react";
+import { History, Home, Maximize2, Plus } from "lucide-react";
 import { useCallback } from "react";
 import { useReactFlow } from "reactflow";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,11 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export function CanvasControls() {
+interface CanvasControlsProps {
+	onHistoryClick?: () => void;
+}
+
+export function CanvasControls({ onHistoryClick }: CanvasControlsProps) {
 	const { fitView, setCenter, zoomIn, zoomOut } = useReactFlow();
 
 	const handleResetView = useCallback(() => {
@@ -113,6 +117,28 @@ export function CanvasControls() {
 						<p>Zoom Out</p>
 					</TooltipContent>
 				</Tooltip>
+
+				{onHistoryClick && (
+					<>
+						<div className="my-1 h-px w-full bg-border" />
+
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									onClick={onHistoryClick}
+									variant="outline"
+									size="icon"
+									className="h-9 w-9 bg-background"
+								>
+									<History className="h-4 w-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent side="right">
+								<p>View History</p>
+							</TooltipContent>
+						</Tooltip>
+					</>
+				)}
 			</div>
 		</TooltipProvider>
 	);

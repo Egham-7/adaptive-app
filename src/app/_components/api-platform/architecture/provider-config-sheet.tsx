@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, Trash2 } from "lucide-react";
+import { Eye, EyeOff, History, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ interface ProviderConfigSheetProps {
 	isCustom: boolean;
 	projectId: number;
 	existingConfig?: ProviderConfigApiResponse;
+	onHistoryClick?: () => void;
 }
 
 export function ProviderConfigSheet({
@@ -45,6 +46,7 @@ export function ProviderConfigSheet({
 	isCustom,
 	projectId,
 	existingConfig,
+	onHistoryClick,
 }: ProviderConfigSheetProps) {
 	const isOrgLevel = existingConfig?.source === "organization";
 	const isProjectLevel = existingConfig?.source === "project";
@@ -130,6 +132,16 @@ export function ProviderConfigSheet({
 								</SheetDescription>
 							</div>
 						</div>
+						{onHistoryClick && (
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={onHistoryClick}
+								className="h-9 w-9"
+							>
+								<History className="h-4 w-4" />
+							</Button>
+						)}
 					</div>
 				</SheetHeader>
 
