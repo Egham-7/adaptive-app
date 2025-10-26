@@ -30,6 +30,12 @@ import {
 	DropdownMenuItem,
 	DropdownMenuShortcut,
 } from "@/components/ui/dropdown-menu";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useProjectAdaptiveConfig } from "@/hooks/adaptive-config";
 import { useProjectAuditHistory } from "@/hooks/audit/use-project-audit-history";
 import { useDeleteProjectProvider } from "@/hooks/provider-configs";
@@ -502,16 +508,24 @@ function ArchitectureCanvasInner({
 				<CanvasControls />
 			</ReactFlow>
 
-			{/* Fixed Position History Button - Bottom Right */}
-			<Button
-				onClick={() => setHistorySheetOpen(true)}
-				variant="outline"
-				size="icon"
-				className="fixed bottom-6 right-6 z-10 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all bg-background border-2"
-				title="View Project History"
-			>
-				<History className="h-5 w-5" />
-			</Button>
+		{/* Fixed Position History Button - Bottom Right */}
+		<TooltipProvider>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button
+						onClick={() => setHistorySheetOpen(true)}
+						variant="outline"
+						size="icon"
+						className="fixed bottom-6 right-6 z-10 h-12 w-12 rounded-full shadow-lg hover:shadow-xl transition-all bg-background border-2"
+					>
+						<History className="h-5 w-5" />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent side="left">
+					<p>View Project History</p>
+				</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
 
 			{/* Custom Context Menu */}
 			<DropdownMenu open={menuOpen} onOpenChange={setMenuOpen} modal={false}>
