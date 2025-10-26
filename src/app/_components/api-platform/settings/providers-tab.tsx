@@ -18,12 +18,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { useProviderConfigHistory } from "@/hooks/audit/use-provider-config-history";
 import {
 	useDeleteOrganizationProvider,
 	useOrganizationProviders,
 	useUpdateOrganizationProvider,
 } from "@/hooks/provider-configs";
 import { PROVIDER_METADATA, type ProviderName } from "@/types/providers";
+import { AuditLogDrawer } from "../audit/audit-log-drawer";
 
 interface OrganizationProvidersTabProps {
 	organizationId: string;
@@ -36,13 +38,22 @@ export const OrganizationProvidersTab: React.FC<
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 	const [editDialogOpen, setEditDialogOpen] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
 	const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+	const [selectedConfigId, setSelectedConfigId] = useState<number | null>(null);
 	const [loadingProviders, setLoadingProviders] = useState<Set<string>>(
 		new Set(),
 	);
 
 	const { data: providersData, isLoading } =
 		useOrganizationProviders(organizationId);
+
+	// Fetch history for selected provider
+	const {
+		data: historyData,
+		isLoading: historyLoading,
+		error: historyError,
+	} = useProviderConfigHistory(selectedConfigId);
 
 	console.log("Providers Data: ", providersData);
 
@@ -67,6 +78,12 @@ export const OrganizationProvidersTab: React.FC<
 	const handleDeleteProvider = (providerName: string) => {
 		setSelectedProvider(providerName);
 		setDeleteDialogOpen(true);
+	};
+
+	const handleViewHistory = (providerName: string, configId: number) => {
+		setSelectedProvider(providerName);
+		setSelectedConfigId(configId);
+		setHistoryDrawerOpen(true);
 	};
 
 	const handleToggleProvider = (providerName: string, enabled: boolean) => {
@@ -179,6 +196,11 @@ export const OrganizationProvidersTab: React.FC<
 										? (enabled) => handleToggleProvider(providerName, enabled)
 										: undefined
 								}
+								onViewHistory={
+									isConfigured && config?.id
+										? () => handleViewHistory(providerName, config.id)
+										: undefined
+								}
 							/>
 						);
 					})}
@@ -229,6 +251,18 @@ export const OrganizationProvidersTab: React.FC<
 						</AlertDialogFooter>
 					</AlertDialogContent>
 				</AlertDialog>
+
+				{/* Audit History Drawer */}
+				<AuditLogDrawer
+					open={historyDrawerOpen}
+					onOpenChange={setHistoryDrawerOpen}
+					title={`${selectedProvider ? PROVIDER_METADATA[selectedProvider as ProviderName]?.displayName || selectedProvider : "Provider"} Configuration History`}
+					description="View all changes made to this provider configuration"
+					historyData={historyData}
+					isLoading={historyLoading}
+					error={historyError}
+					entityType="provider_config"
+				/>
 			</div>
 		</ErrorBoundary>
 	);

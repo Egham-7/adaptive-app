@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Edit, X } from "lucide-react";
+import { Check, Edit, History, X } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +27,7 @@ interface ProviderCardProps {
 	onEdit?: () => void;
 	onDelete?: () => void;
 	onToggle?: (enabled: boolean) => void;
+	onViewHistory?: () => void;
 	level?: "project" | "organization";
 }
 
@@ -42,6 +43,7 @@ export function ProviderCard({
 	onEdit,
 	onDelete,
 	onToggle,
+	onViewHistory,
 	level = "project",
 }: ProviderCardProps) {
 	const metadata = PROVIDER_METADATA[providerName as ProviderName];
@@ -145,53 +147,69 @@ export function ProviderCard({
 					)}
 
 					{/* Actions */}
-					<div className="flex gap-2 pt-2">
-						{isConfigured ? (
-							<>
-								{!isInherited && onEdit && (
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={onEdit}
-										disabled={isLoading}
-										className="flex-1"
-									>
-										<Edit className="mr-2 h-4 w-4" />
-										Edit
-									</Button>
-								)}
-								{!isInherited && onDelete && (
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={onDelete}
-										disabled={isLoading}
-										className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
-									>
-										Delete
-									</Button>
-								)}
-								{isInherited && (
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={onConfigure}
-										disabled={isLoading}
-										className="flex-1"
-									>
-										Override
-									</Button>
-								)}
-							</>
-						) : (
+					<div className="space-y-2 pt-2">
+						<div className="flex gap-2">
+							{isConfigured ? (
+								<>
+									{!isInherited && onEdit && (
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={onEdit}
+											disabled={isLoading}
+											className="flex-1"
+										>
+											<Edit className="mr-2 h-4 w-4" />
+											Edit
+										</Button>
+									)}
+									{!isInherited && onDelete && (
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={onDelete}
+											disabled={isLoading}
+											className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
+										>
+											Delete
+										</Button>
+									)}
+									{isInherited && (
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={onConfigure}
+											disabled={isLoading}
+											className="flex-1"
+										>
+											Override
+										</Button>
+									)}
+								</>
+							) : (
+								<Button
+									variant="default"
+									size="sm"
+									onClick={onConfigure}
+									disabled={isLoading}
+									className="w-full"
+								>
+									Configure
+								</Button>
+							)}
+						</div>
+
+						{/* View History Button */}
+						{isConfigured && !isInherited && onViewHistory && (
 							<Button
-								variant="default"
+								variant="ghost"
 								size="sm"
-								onClick={onConfigure}
+								onClick={onViewHistory}
 								disabled={isLoading}
-								className="w-full"
+								className="w-full gap-2"
 							>
-								Configure
+								<History className="h-4 w-4" />
+								View History
 							</Button>
 						)}
 					</div>
