@@ -40,7 +40,11 @@ export function ProviderNodeCard({
 		left: Position.Left,
 	};
 
-	const handleClick = (_e: React.MouseEvent) => {
+	const handleClick = (e: React.MouseEvent) => {
+		// Don't trigger onClick on right-click (context menu)
+		if (e.button === 2) {
+			return;
+		}
 		onClick();
 	};
 
