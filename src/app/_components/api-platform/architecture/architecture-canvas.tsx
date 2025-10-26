@@ -13,7 +13,7 @@ import ReactFlow, {
 	useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { Plus } from "lucide-react";
+import { History, Plus } from "lucide-react";
 import { AddProviderDialog } from "@/app/_components/api-platform/add-provider-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +30,14 @@ import {
 	DropdownMenuItem,
 	DropdownMenuShortcut,
 } from "@/components/ui/dropdown-menu";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useProjectAdaptiveConfig } from "@/hooks/adaptive-config";
+import { useProjectAuditHistory } from "@/hooks/audit/use-project-audit-history";
 import { useDeleteProjectProvider } from "@/hooks/provider-configs";
 import {
 	type CanvasCommand,
@@ -46,6 +53,7 @@ import {
 	type ProviderConfigApiResponse,
 	type ProviderName,
 } from "@/types/providers";
+import { AuditLogDrawer } from "../audit/audit-log-drawer";
 import { AdaptiveConfigSheet } from "./adaptive-config-sheet";
 import { AdaptiveNodeCard } from "./adaptive-node-card";
 import { CanvasControls } from "./canvas-controls";
@@ -153,10 +161,18 @@ function ArchitectureCanvasInner({
 	const [providerToDelete, setProviderToDelete] = useState<string | null>(null);
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+	const [historySheetOpen, setHistorySheetOpen] = useState(false);
 	const { setCenter } = useReactFlow();
 
 	// Fetch adaptive config
 	const { data: adaptiveConfig } = useProjectAdaptiveConfig(projectId);
+
+	// Fetch combined audit history
+	const {
+		data: auditHistory,
+		isLoading: historyLoading,
+		error: historyError,
+	} = useProjectAuditHistory(projectId);
 
 	// Delete provider mutation
 	const deleteProvider = useDeleteProjectProvider();
@@ -198,7 +214,7 @@ function ArchitectureCanvasInner({
 		}
 
 		if (contextMenuContext.type === "provider") {
-			// Provider node context: "Configure Provider" and "Delete Provider"
+			// Provider node context: "Configure Provider", "View History", and "Delete Provider"
 			const provider = allProviders.find(
 				(p) => p.name === contextMenuContext.providerId,
 			);
@@ -212,6 +228,15 @@ function ArchitectureCanvasInner({
 					shortcutDisplay: "⌘E",
 					handler: () => {
 						setVisibleSheet(contextMenuContext.providerId);
+					},
+				},
+				{
+					id: "view-history",
+					label: "View History",
+					shortcut: "mod+h",
+					shortcutDisplay: "⌘H",
+					handler: () => {
+						setHistorySheetOpen(true);
 					},
 				},
 			];
@@ -234,7 +259,7 @@ function ArchitectureCanvasInner({
 		}
 
 		if (contextMenuContext.type === "adaptive") {
-			// Adaptive node context: only "Configure Adaptive"
+			// Adaptive node context: "Configure Adaptive" and "View History"
 			return [
 				{
 					id: "configure-adaptive",
@@ -243,6 +268,15 @@ function ArchitectureCanvasInner({
 					shortcutDisplay: "⌘E",
 					handler: () => {
 						setShowAdaptiveSheet(true);
+					},
+				},
+				{
+					id: "view-history",
+					label: "View History",
+					shortcut: "mod+h",
+					shortcutDisplay: "⌘H",
+					handler: () => {
+						setHistorySheetOpen(true);
 					},
 				},
 			];
@@ -474,6 +508,25 @@ function ArchitectureCanvasInner({
 				<CanvasControls />
 			</ReactFlow>
 
+			{/* Fixed Position History Button - Bottom Right */}
+			<TooltipProvider>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							onClick={() => setHistorySheetOpen(true)}
+							variant="outline"
+							size="icon"
+							className="fixed right-6 bottom-6 z-10 h-12 w-12 rounded-full border-2 bg-background shadow-lg transition-all hover:shadow-xl"
+						>
+							<History className="h-5 w-5" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="left">
+						<p>View Project History</p>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
+
 			{/* Custom Context Menu */}
 			<DropdownMenu open={menuOpen} onOpenChange={setMenuOpen} modal={false}>
 				<DropdownMenuContent
@@ -528,6 +581,7 @@ function ArchitectureCanvasInner({
 					isCustom={currentProvider.isCustom}
 					projectId={projectId}
 					existingConfig={currentProvider.config}
+					onHistoryClick={() => setHistorySheetOpen(true)}
 				/>
 			)}
 
@@ -542,6 +596,7 @@ function ArchitectureCanvasInner({
 				projectId={projectId}
 				existingConfig={adaptiveConfig}
 				onSaveSuccess={handleAdaptiveSaveSuccess}
+				onHistoryClick={() => setHistorySheetOpen(true)}
 			/>
 
 			{/* Delete Provider Confirmation Dialog */}
@@ -582,6 +637,17 @@ function ArchitectureCanvasInner({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* Audit History Drawer */}
+			<AuditLogDrawer
+				open={historySheetOpen}
+				onOpenChange={setHistorySheetOpen}
+				title="Project Configuration History"
+				description="View all changes to provider and adaptive configurations"
+				historyData={auditHistory}
+				isLoading={historyLoading}
+				error={historyError?.message}
+			/>
 		</div>
 	);
 }

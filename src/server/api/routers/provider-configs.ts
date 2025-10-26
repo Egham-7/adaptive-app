@@ -470,4 +470,37 @@ export const providerConfigsRouter = createTRPCRouter({
 				}
 			});
 		}),
+
+	/**
+	 * Get combined audit history for all project configurations
+	 * Includes both provider configs and adaptive config history
+	 */
+	getProjectHistory: protectedProcedure
+		.input(z.object({ projectId: z.number() }))
+		.query(async ({ ctx, input }) => {
+			const cacheKey = `project-history:${input.projectId}`;
+
+			return withCache(cacheKey, async () => {
+				try {
+					const token = await ctx.clerkAuth.getToken();
+					if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+					const client = new ProviderConfigsClient(token);
+					const response = await client.getProjectHistory(input.projectId);
+					return response;
+				} catch (error) {
+					console.error("Error fetching project history:", error);
+					if (error instanceof Error && error.message.includes("FORBIDDEN")) {
+						throw new TRPCError({
+							code: "FORBIDDEN",
+							message: "You don't have access to this project",
+						});
+					}
+					throw new TRPCError({
+						code: "INTERNAL_SERVER_ERROR",
+						message: "Failed to fetch project history",
+					});
+				}
+			});
+		}),
 });

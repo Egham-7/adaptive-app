@@ -216,4 +216,23 @@ export class ProviderConfigsClient extends BaseApiClient {
 			throw new Error("Failed to get provider history");
 		}
 	}
+
+	/**
+	 * Get combined audit history for all project configurations
+	 * Includes both provider configs and adaptive config history
+	 */
+	async getProjectHistory(
+		projectId: number,
+	): Promise<GetProviderHistoryApiResponse> {
+		try {
+			return await this.get<GetProviderHistoryApiResponse>(
+				`/projects/${projectId}/history`,
+			);
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(error.message || "Failed to get project history");
+			}
+			throw new Error("Failed to get project history");
+		}
+	}
 }

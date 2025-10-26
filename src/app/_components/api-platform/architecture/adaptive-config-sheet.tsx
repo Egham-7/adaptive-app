@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { History, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ interface AdaptiveConfigSheetProps {
 	projectId: number;
 	existingConfig?: AdaptiveConfigApiResponse;
 	onSaveSuccess?: () => void;
+	onHistoryClick?: () => void;
 }
 
 export function AdaptiveConfigSheet({
@@ -49,6 +50,7 @@ export function AdaptiveConfigSheet({
 	projectId,
 	existingConfig,
 	onSaveSuccess,
+	onHistoryClick,
 }: AdaptiveConfigSheetProps) {
 	console.log("Existing Config:", existingConfig);
 	const configSource = existingConfig?.source;
@@ -130,6 +132,16 @@ export function AdaptiveConfigSheet({
 								</SheetDescription>
 							</div>
 						</div>
+						{onHistoryClick && (
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={onHistoryClick}
+								className="h-9 w-9"
+							>
+								<History className="h-4 w-4" />
+							</Button>
+						)}
 					</div>
 				</SheetHeader>
 
