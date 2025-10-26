@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import {
 	useCreateProjectAdaptiveConfig,
@@ -26,30 +26,34 @@ export function useAdaptiveConfigForm({
 	const updateMutation = useUpdateProjectAdaptiveConfig();
 
 	// Form data now matches API response structure exactly
-	const defaultValues: AdaptiveConfigFormData = existingConfig
-		? {
-				enabled: existingConfig.enabled,
-				model_router_config: existingConfig.model_router_config,
-				fallback_config: existingConfig.fallback_config,
-			}
-		: {
-				// Model Router defaults
-				model_router_config: {
-					cost_bias: 0.5,
-					cache: {
-						enabled: false,
-						semantic_threshold: 0.95,
+	const defaultValues: AdaptiveConfigFormData = useMemo(
+		() =>
+			existingConfig
+				? {
+						enabled: existingConfig.enabled,
+						model_router_config: existingConfig.model_router_config,
+						fallback_config: existingConfig.fallback_config,
+					}
+				: {
+						// Model Router defaults
+						model_router_config: {
+							cost_bias: 0.5,
+							cache: {
+								enabled: false,
+								semantic_threshold: 0.95,
+							},
+						},
+						// Fallback defaults
+						fallback_config: {
+							mode: "sequential",
+							timeout_ms: 30000,
+							max_retries: 2,
+						},
+						// General
+						enabled: true,
 					},
-				},
-				// Fallback defaults
-				fallback_config: {
-					mode: "sequential",
-					timeout_ms: 30000,
-					max_retries: 2,
-				},
-				// General
-				enabled: true,
-			};
+		[existingConfig],
+	);
 
 	const form = useForm<AdaptiveConfigFormData>({
 		resolver: zodResolver(adaptiveConfigFormSchema),
