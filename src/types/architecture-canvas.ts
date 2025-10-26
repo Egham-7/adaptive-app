@@ -17,6 +17,8 @@ export interface ProviderNodeData {
 	isConfigured: boolean;
 	config?: ProviderConfigApiResponse;
 	onClick: () => void;
+	handlePosition: "top" | "right" | "bottom" | "left";
+	adaptiveHandlePosition: "top" | "right" | "bottom" | "left";
 }
 
 export interface UnsavedChange {

@@ -3,6 +3,9 @@
 import { useCallback, useMemo, useState } from "react";
 import ReactFlow, {
 	applyNodeChanges,
+	Background,
+	type Edge,
+	MarkerType,
 	type Node,
 	type NodeChange,
 	type OnNodesChange,
@@ -11,7 +14,7 @@ import "reactflow/dist/style.css";
 import { Plus } from "lucide-react";
 import { CreateProviderDialog } from "@/app/_components/api-platform/create-provider-dialog";
 import { Button } from "@/components/ui/button";
-import { GridBackground } from "@/components/ui/grid-background";
+import { useProjectAdaptiveConfig } from "@/hooks/adaptive-config";
 import type {
 	ArchitectureCanvasProps,
 	ProviderInfo,
@@ -22,12 +25,23 @@ import {
 	type ProviderConfigApiResponse,
 	type ProviderName,
 } from "@/types/providers";
+import { AdaptiveConfigSheet } from "./adaptive-config-sheet";
+import { AdaptiveNodeCard } from "./adaptive-node-card";
 import { CanvasControls } from "./canvas-controls";
 import { ProviderConfigSheet } from "./provider-config-sheet";
 import { ProviderNodeCard } from "./provider-node-card";
 
 const CARD_WIDTH = 280;
-const CARD_GAP = 40;
+const ADAPTIVE_NODE_SIZE = 320;
+const _CARD_GAP = 100;
+const RADIUS = 650; // Radius for circular arrangement (increased to prevent overlap)
+
+interface AdaptiveNodeData {
+	isConfigured: boolean;
+	configSource?: "project" | "organization" | "yaml";
+	onClick: () => void;
+	highlight: boolean;
+}
 
 const nodeTypes = {
 	provider: ({ data }: { data: ProviderNodeData }) => (
@@ -37,14 +51,38 @@ const nodeTypes = {
 			isConfigured={data.isConfigured}
 			config={data.config}
 			onClick={data.onClick}
+			handlePosition={data.handlePosition}
+		/>
+	),
+	adaptive: ({ data }: { data: AdaptiveNodeData }) => (
+		<AdaptiveNodeCard
+			isConfigured={data.isConfigured}
+			configSource={data.configSource}
+			onClick={data.onClick}
+			highlight={data.highlight}
 		/>
 	),
 };
 
-const getNodePosition = (index: number) => ({
-	x: index * (CARD_WIDTH + CARD_GAP),
-	y: 0,
+/**
+ * Calculate position for adaptive node (center)
+ * Offset to account for adaptive node size so it's visually centered
+ */
+const getAdaptiveNodePosition = () => ({
+	x: -ADAPTIVE_NODE_SIZE / 2,
+	y: -ADAPTIVE_NODE_SIZE / 2,
 });
+
+/**
+ * Calculate positions for provider nodes in a circle around the adaptive node
+ * Places nodes evenly around the circle, accounting for card width
+ */
+const getProviderNodePosition = (index: number, total: number) => {
+	const angle = (index / total) * 2 * Math.PI - Math.PI / 2; // Start from top
+	const x = Math.cos(angle) * RADIUS - CARD_WIDTH / 2;
+	const y = Math.sin(angle) * RADIUS - CARD_WIDTH / 2;
+	return { x, y };
+};
 
 const combineProviders = (
 	providers: ProviderConfigApiResponse[],
@@ -80,6 +118,11 @@ export function ArchitectureCanvas({
 }: ArchitectureCanvasProps) {
 	const [showCreateDialog, setShowCreateDialog] = useState(false);
 	const [visibleSheet, setVisibleSheet] = useState<string | null>(null);
+	const [showAdaptiveSheet, setShowAdaptiveSheet] = useState(false);
+	const [adaptiveNodeHighlight, setAdaptiveNodeHighlight] = useState(false);
+
+	// Fetch adaptive config
+	const { data: adaptiveConfig } = useProjectAdaptiveConfig(projectId);
 
 	const allProviders = useMemo(() => combineProviders(providers), [providers]);
 
@@ -87,29 +130,145 @@ export function ArchitectureCanvas({
 		setVisibleSheet(name);
 	}, []);
 
-	const initialNodes = useMemo<Node[]>(
-		() =>
-			allProviders.map((provider, index) => ({
+	const handleAdaptiveClick = useCallback(() => {
+		setShowAdaptiveSheet(true);
+	}, []);
+
+	const handleAdaptiveSaveSuccess = useCallback(() => {
+		// Trigger highlight animation
+		setAdaptiveNodeHighlight(true);
+		setTimeout(() => setAdaptiveNodeHighlight(false), 2000);
+	}, []);
+
+	const initialNodes = useMemo<Node[]>(() => {
+		const totalProviders = allProviders.length;
+
+		// Create adaptive node (centered)
+		const adaptiveNode: Node = {
+			id: "adaptive",
+			type: "adaptive",
+			position: getAdaptiveNodePosition(),
+			data: {
+				isConfigured:
+					adaptiveConfig?.source === "project" ||
+					adaptiveConfig?.source === "organization",
+				configSource: adaptiveConfig?.source,
+				onClick: handleAdaptiveClick,
+				highlight: adaptiveNodeHighlight,
+			},
+			draggable: true,
+		};
+
+		// Create provider nodes arranged in a circle
+		const providerNodes = allProviders.map((provider, index) => {
+			const angle = (index / totalProviders) * 2 * Math.PI - Math.PI / 2;
+
+			// Determine which side of the provider node should have the handle
+			// The handle should be on the side facing the adaptive node (center)
+			// This is the OPPOSITE of where the provider is positioned
+			let providerHandlePosition: "top" | "right" | "bottom" | "left";
+			let adaptiveHandlePosition: "top" | "right" | "bottom" | "left";
+
+			// Normalize angle to 0-360 degrees
+			const degrees = ((angle * 180) / Math.PI + 360) % 360;
+
+			// Determine handle positions based on angle quadrant
+			if (degrees >= 315 || degrees < 45) {
+				// Provider is to the right
+				providerHandlePosition = "left"; // Handle on left side of provider (facing center)
+				adaptiveHandlePosition = "right"; // Handle on right side of adaptive (facing provider)
+			} else if (degrees >= 45 && degrees < 135) {
+				// Provider is below
+				providerHandlePosition = "top"; // Handle on top side of provider (facing center)
+				adaptiveHandlePosition = "bottom"; // Handle on bottom side of adaptive (facing provider)
+			} else if (degrees >= 135 && degrees < 225) {
+				// Provider is to the left
+				providerHandlePosition = "right"; // Handle on right side of provider (facing center)
+				adaptiveHandlePosition = "left"; // Handle on left side of adaptive (facing provider)
+			} else {
+				// Provider is above
+				providerHandlePosition = "bottom"; // Handle on bottom side of provider (facing center)
+				adaptiveHandlePosition = "top"; // Handle on top side of adaptive (facing provider)
+			}
+
+			return {
 				id: provider.name,
 				type: "provider",
-				position: getNodePosition(index),
+				position: getProviderNodePosition(index, totalProviders),
 				data: {
 					providerName: provider.name,
 					isCustom: provider.isCustom,
 					isConfigured: provider.isConfigured,
 					config: provider.config,
 					onClick: () => handleProviderClick(provider.name),
+					handlePosition: providerHandlePosition,
+					adaptiveHandlePosition,
 				},
 				draggable: true,
-			})),
-		[allProviders, handleProviderClick],
-	);
+			};
+		});
+
+		return [adaptiveNode, ...providerNodes];
+	}, [
+		allProviders,
+		adaptiveConfig,
+		adaptiveNodeHighlight,
+		handleProviderClick,
+		handleAdaptiveClick,
+	]);
 
 	const [nodes, setNodes] = useState<Node[]>(initialNodes);
 
 	useMemo(() => {
 		setNodes(initialNodes);
 	}, [initialNodes]);
+
+	// Create edges from adaptive node to providers
+	const edges = useMemo<Edge[]>(() => {
+		const generatedEdges = allProviders
+			.filter((provider) => {
+				if (!provider.isConfigured) return true;
+				if (provider.config?.enabled) return true;
+				return false;
+			})
+			.map((provider) => {
+				const providerNode = nodes.find((n) => n.id === provider.name);
+				const nodeData = providerNode?.data as ProviderNodeData;
+				const providerHandlePosition = nodeData?.handlePosition || "top";
+				const adaptiveHandlePosition =
+					nodeData?.adaptiveHandlePosition || "bottom";
+
+				return {
+					id: `adaptive-${provider.name}`,
+					source: "adaptive",
+					target: provider.name,
+					sourceHandle: adaptiveHandlePosition,
+					targetHandle: providerHandlePosition,
+					type: "default",
+					animated: true,
+					style: {
+						stroke: "#253957",
+						strokeWidth: 3,
+					},
+					markerEnd: {
+						type: MarkerType.ArrowClosed,
+						color: "#253957",
+					},
+				};
+			});
+
+		console.log("Generated edges:", generatedEdges);
+		console.log(
+			"All providers:",
+			allProviders.map((p) => p.name),
+		);
+		console.log(
+			"Nodes:",
+			nodes.map((n) => n.id),
+		);
+
+		return generatedEdges;
+	}, [allProviders, nodes]);
 
 	const onNodesChange: OnNodesChange = useCallback((changes: NodeChange[]) => {
 		setNodes((nds) => applyNodeChanges(changes, nds));
@@ -120,40 +279,41 @@ export function ArchitectureCanvas({
 		: null;
 
 	return (
-		<GridBackground
-			className="h-screen overflow-hidden rounded-lg border"
-			gridSize={40}
-		>
-			<div className="relative h-full w-full">
-				<div className="absolute top-4 right-4 z-10">
-					<Button
-						onClick={() => setShowCreateDialog(true)}
-						variant="default"
-						size="sm"
-					>
-						<Plus className="mr-2 h-4 w-4" />
-						Add Custom Provider
-					</Button>
-				</div>
-
-				<ReactFlow
-					nodes={nodes}
-					onNodesChange={onNodesChange}
-					nodeTypes={nodeTypes}
-					fitView
-					minZoom={0.2}
-					maxZoom={2}
-					defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-					panOnScroll
-					panOnDrag
-					zoomOnScroll
-					zoomOnPinch
-					preventScrolling={false}
-					style={{ background: "transparent" }}
+		<div className="relative h-screen w-full overflow-hidden rounded-lg border">
+			<div className="absolute top-4 right-4 z-10">
+				<Button
+					onClick={() => setShowCreateDialog(true)}
+					variant="default"
+					size="sm"
 				>
-					<CanvasControls />
-				</ReactFlow>
+					<Plus className="mr-2 h-4 w-4" />
+					Add Custom Provider
+				</Button>
 			</div>
+
+			<ReactFlow
+				nodes={nodes}
+				edges={edges}
+				onNodesChange={onNodesChange}
+				nodeTypes={nodeTypes}
+				fitView
+				fitViewOptions={{
+					padding: 0.2,
+					includeHiddenNodes: false,
+				}}
+				minZoom={0.2}
+				maxZoom={1.5}
+				defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+				panOnScroll
+				panOnDrag
+				zoomOnScroll
+				zoomOnPinch
+				preventScrolling={false}
+				proOptions={{ hideAttribution: true }}
+			>
+				<Background gap={40} />
+				<CanvasControls />
+			</ReactFlow>
 
 			<CreateProviderDialog
 				open={showCreateDialog}
@@ -175,6 +335,14 @@ export function ArchitectureCanvas({
 					existingConfig={currentProvider.config}
 				/>
 			)}
-		</GridBackground>
+
+			<AdaptiveConfigSheet
+				open={showAdaptiveSheet}
+				onOpenChange={setShowAdaptiveSheet}
+				projectId={projectId}
+				existingConfig={adaptiveConfig}
+				onSaveSuccess={handleAdaptiveSaveSuccess}
+			/>
+		</div>
 	);
 }
