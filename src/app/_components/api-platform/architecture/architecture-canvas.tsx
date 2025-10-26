@@ -9,6 +9,8 @@ import ReactFlow, {
 	type Node,
 	type NodeChange,
 	type OnNodesChange,
+	ReactFlowProvider,
+	useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Plus } from "lucide-react";
@@ -112,7 +114,8 @@ const combineProviders = (
 	];
 };
 
-export function ArchitectureCanvas({
+// Inner component that uses useReactFlow hook
+function ArchitectureCanvasInner({
 	projectId,
 	providers,
 }: ArchitectureCanvasProps) {
@@ -120,6 +123,7 @@ export function ArchitectureCanvas({
 	const [visibleSheet, setVisibleSheet] = useState<string | null>(null);
 	const [showAdaptiveSheet, setShowAdaptiveSheet] = useState(false);
 	const [adaptiveNodeHighlight, setAdaptiveNodeHighlight] = useState(false);
+	const { setCenter } = useReactFlow();
 
 	// Fetch adaptive config
 	const { data: adaptiveConfig } = useProjectAdaptiveConfig(projectId);
@@ -134,6 +138,11 @@ export function ArchitectureCanvas({
 		setShowAdaptiveSheet(true);
 	}, []);
 
+	const handleSheetClose = useCallback(() => {
+		// Zoom back out to fit all content when closing any sheet
+		setCenter(0, 0, { zoom: 0.6, duration: 300 });
+	}, [setCenter]);
+
 	const handleAdaptiveSaveSuccess = useCallback(() => {
 		// Trigger highlight animation
 		setAdaptiveNodeHighlight(true);
@@ -142,6 +151,15 @@ export function ArchitectureCanvas({
 
 	const initialNodes = useMemo<Node[]>(() => {
 		const totalProviders = allProviders.length;
+
+		// Wrapper for adaptive click that includes zoom functionality
+		const handleAdaptiveClickWithZoom = () => {
+			const adaptivePos = getAdaptiveNodePosition();
+			const centerX = adaptivePos.x + ADAPTIVE_NODE_SIZE / 2;
+			const centerY = adaptivePos.y + ADAPTIVE_NODE_SIZE / 2;
+			setCenter(centerX, centerY, { zoom: 1.5, duration: 300 });
+			handleAdaptiveClick();
+		};
 
 		// Create adaptive node (centered)
 		const adaptiveNode: Node = {
@@ -153,7 +171,7 @@ export function ArchitectureCanvas({
 					adaptiveConfig?.source === "project" ||
 					adaptiveConfig?.source === "organization",
 				configSource: adaptiveConfig?.source,
-				onClick: handleAdaptiveClick,
+				onClick: handleAdaptiveClickWithZoom,
 				highlight: adaptiveNodeHighlight,
 			},
 			draggable: true,
@@ -191,16 +209,26 @@ export function ArchitectureCanvas({
 				adaptiveHandlePosition = "top"; // Handle on top side of adaptive (facing provider)
 			}
 
+			const nodePosition = getProviderNodePosition(index, totalProviders);
+
+			// Wrapper for provider click that includes zoom functionality
+			const handleProviderClickWithZoom = () => {
+				const centerX = nodePosition.x + CARD_WIDTH / 2;
+				const centerY = nodePosition.y + CARD_WIDTH / 2;
+				setCenter(centerX, centerY, { zoom: 1.5, duration: 300 });
+				handleProviderClick(provider.name);
+			};
+
 			return {
 				id: provider.name,
 				type: "provider",
-				position: getProviderNodePosition(index, totalProviders),
+				position: nodePosition,
 				data: {
 					providerName: provider.name,
 					isCustom: provider.isCustom,
 					isConfigured: provider.isConfigured,
 					config: provider.config,
-					onClick: () => handleProviderClick(provider.name),
+					onClick: handleProviderClickWithZoom,
 					handlePosition: providerHandlePosition,
 					adaptiveHandlePosition,
 				},
@@ -215,6 +243,7 @@ export function ArchitectureCanvas({
 		adaptiveNodeHighlight,
 		handleProviderClick,
 		handleAdaptiveClick,
+		setCenter,
 	]);
 
 	const [nodes, setNodes] = useState<Node[]>(initialNodes);
@@ -327,7 +356,10 @@ export function ArchitectureCanvas({
 					key={currentProvider.name}
 					open={true}
 					onOpenChange={(open) => {
-						if (!open) setVisibleSheet(null);
+						if (!open) {
+							handleSheetClose();
+							setVisibleSheet(null);
+						}
 					}}
 					providerName={currentProvider.name}
 					isCustom={currentProvider.isCustom}
@@ -338,11 +370,25 @@ export function ArchitectureCanvas({
 
 			<AdaptiveConfigSheet
 				open={showAdaptiveSheet}
-				onOpenChange={setShowAdaptiveSheet}
+				onOpenChange={(open) => {
+					if (!open) {
+						handleSheetClose();
+					}
+					setShowAdaptiveSheet(open);
+				}}
 				projectId={projectId}
 				existingConfig={adaptiveConfig}
 				onSaveSuccess={handleAdaptiveSaveSuccess}
 			/>
 		</div>
+	);
+}
+
+// Wrapper component that provides ReactFlow context
+export function ArchitectureCanvas(props: ArchitectureCanvasProps) {
+	return (
+		<ReactFlowProvider>
+			<ArchitectureCanvasInner {...props} />
+		</ReactFlowProvider>
 	);
 }
