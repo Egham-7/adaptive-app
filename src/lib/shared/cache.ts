@@ -157,6 +157,18 @@ export const invalidateOrganizationProviderCache = (
 	return invalidatePatterns(patterns);
 };
 
+export const invalidateProjectAdaptiveConfigCache = (
+	projectId: number | string,
+) => {
+	return invalidatePatterns([`adaptive-config:project:${projectId}*`]);
+};
+
+export const invalidateOrganizationAdaptiveConfigCache = (
+	organizationId: string,
+) => {
+	return invalidatePatterns([`adaptive-config:org:${organizationId}*`]);
+};
+
 export const invalidateClusterCache = async (
 	projectId: string,
 	clusterName?: string,
