@@ -8,9 +8,7 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { api } from "@/trpc/react";
 import type { AuditLogEntryProps } from "@/types/audit-log";
 import {
 	actionBadgeConfig,
@@ -18,66 +16,7 @@ import {
 	parseChanges,
 } from "@/types/audit-log";
 import { ChangeDiffViewer } from "./change-diff-viewer";
-
-/**
- * UserInfo - Displays user avatar and name
- * Fetches user information from Clerk based on user ID
- */
-function UserInfo({ userId }: { userId: string }) {
-	// Try to get user info from Clerk via the current user's organizations
-	const { data: user } = api.users.getById.useQuery(
-		{ userId },
-		{
-			enabled: !!userId,
-			staleTime: 60000, // Cache for 1 minute
-			retry: false, // Don't retry if user not found
-		},
-	);
-
-	const displayName = user?.firstName
-		? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ""}`
-		: user?.emailAddresses?.[0]?.emailAddress || userId;
-
-	const initials = user?.firstName
-		? `${user.firstName[0]}${user.lastName?.[0] || ""}`.toUpperCase()
-		: getUserInitials(userId);
-
-	return (
-		<>
-			<Avatar className="h-5 w-5">
-				{user?.imageUrl && (
-					<AvatarImage src={user.imageUrl} alt={displayName} />
-				)}
-				<AvatarFallback className="text-xs">{initials}</AvatarFallback>
-			</Avatar>
-			<span className="truncate">{displayName}</span>
-		</>
-	);
-}
-
-/**
- * Get user initials from email or ID as fallback
- */
-function getUserInitials(identifier: string): string {
-	// If it's an email, extract name part
-	if (identifier.includes("@")) {
-		const namePart = identifier.split("@")[0];
-		const parts = namePart?.split(/[._-]/);
-		if (parts && parts.length >= 2) {
-			return `${parts[0]?.[0] ?? ""}${parts[1]?.[0] ?? ""}`.toUpperCase();
-		}
-		return (namePart?.slice(0, 2) ?? "??").toUpperCase();
-	}
-
-	// If it's a name, get first letters
-	const parts = identifier.split(" ");
-	if (parts.length >= 2) {
-		return `${parts[0]?.[0] ?? ""}${parts[parts.length - 1]?.[0] ?? ""}`.toUpperCase();
-	}
-
-	// Fallback to first two characters of user ID
-	return (identifier.slice(0, 2) || "??").toUpperCase();
-}
+import { UserDisplay } from "./user-display";
 
 /**
  * AuditLogEntry - Displays a single audit history entry
@@ -139,7 +78,7 @@ export function AuditLogEntry({
 							<div className="min-w-0 flex-1 space-y-1">
 								<p className="truncate font-medium text-sm">{summary}</p>
 								<div className="flex items-center gap-2 text-muted-foreground text-xs">
-									<UserInfo userId={entry.changed_by} />
+									<UserDisplay userId={entry.changed_by} />
 									<span>•</span>
 									<time dateTime={entry.changed_at}>
 										{formattedDate} at {formattedTime}

@@ -32,7 +32,7 @@ interface QuickstartExamplesProps {
   description?: string;
 }
 
-const API_BASE_URL = env.ADAPTIVE_API_BASE_URL;
+const API_BASE_URL = env.NEXT_PUBLIC_ADAPTIVE_API_BASE_URL;
 
 export function QuickstartExamples({
   apiKey,
@@ -127,7 +127,7 @@ export function QuickstartExamples({
               </TabsList>
             </TooltipProvider>
 
-            <TabsContent value="curl" className="mt-4">
+            <TabsContent value="curl" className="mt-4 w-96">
               <CodeBlock>
                 <CodeBlockGroup className="border-b px-4 py-2">
                   <span className="font-medium text-sm">Test with cURL</span>
@@ -591,49 +591,57 @@ print(message.content[0].text)`}
               </TabsList>
             </TooltipProvider>
 
-            <TabsContent value="curl" className="mt-4">
+            <TabsContent value="curl" className="mt-4 w-full">
               <CodeBlock>
                 <CodeBlockGroup className="border-b px-4 py-2">
-                  <span className="font-medium text-sm">
-                    Gemini via OpenAI-compatible API
-                  </span>
+                  <span className="font-medium text-sm">Gemini Native API</span>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-xs">
                       bash
                     </Badge>
                     <CopyButton
-                      content={`curl -X POST "${API_BASE_URL}/chat/completions" \\
+                      content={`curl -X POST "${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent" \\
   -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer ${apiKey}" \\
+  -H "x-goog-api-key: ${apiKey}" \\
   -d '{
-    "model": "gemini-pro",
-    "messages": [
+    "contents": [
       {
         "role": "user",
-        "content": "Hello! How are you today?"
+        "parts": [
+          {
+            "text": "Hello! How are you today?"
+          }
+        ]
       }
     ],
-    "max_tokens": 150,
-    "temperature": 0.7
+    "config": {
+      "temperature": 0.7,
+      "maxOutputTokens": 150
+    }
   }'`}
                       copyMessage="cURL command copied!"
                     />
                   </div>
                 </CodeBlockGroup>
                 <CodeBlockCode
-                  code={`curl -X POST "${API_BASE_URL}/chat/completions" \\
+                  code={`curl -X POST "${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent" \\
   -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer ${apiKey}" \\
+  -H "x-goog-api-key: ${apiKey}" \\
   -d '{
-    "model": "gemini-pro",
-    "messages": [
+    "contents": [
       {
         "role": "user",
-        "content": "Hello! How are you today?"
+        "parts": [
+          {
+            "text": "Hello! How are you today?"
+          }
+        ]
       }
     ],
-    "max_tokens": 150,
-    "temperature": 0.7
+    "config": {
+      "temperature": 0.7,
+      "maxOutputTokens": 150
+    }
   }'`}
                   language="bash"
                 />
@@ -644,11 +652,10 @@ print(message.content[0].text)`}
               <div className="space-y-4">
                 <div className="rounded-lg border bg-muted/50 p-3">
                   <p className="text-sm font-medium">
-                    Install the OpenAI SDK (Gemini uses OpenAI-compatible
-                    format):
+                    Use native Gemini API format with fetch:
                   </p>
                   <code className="mt-1 block text-muted-foreground text-sm">
-                    npm install openai
+                    No SDK installation required
                   </code>
                 </div>
                 <CodeBlock>
@@ -661,59 +668,65 @@ print(message.content[0].text)`}
                         javascript
                       </Badge>
                       <CopyButton
-                        content={`import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}',
-});
-
-async function main() {
-  const completion = await client.chat.completions.create({
-    messages: [
-      {
-        role: 'user',
-        content: 'Hello! How are you today?'
+                        content={`const response = await fetch(
+  '${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent',
+  {
+    method: 'POST',
+    headers: {
+      'x-goog-api-key': '${apiKey}',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: 'Hello! How are you today?' }
+          ]
+        }
+      ],
+      config: {
+        temperature: 0.7,
+        maxOutputTokens: 150
       }
-    ],
-    model: 'gemini-pro',
-    max_tokens: 150,
-    temperature: 0.7,
-  });
+    })
+  }
+);
 
-  console.log(completion.choices[0]);
-}
-
-main();`}
+const data = await response.json();
+console.log(data.candidates[0].content.parts[0].text);`}
                         copyMessage="JavaScript code copied!"
                       />
                     </div>
                   </CodeBlockGroup>
                   <CodeBlockCode
-                    code={`import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}',
-});
-
-async function main() {
-  const completion = await client.chat.completions.create({
-    messages: [
-      {
-        role: 'user',
-        content: 'Hello! How are you today?'
+                    code={`const response = await fetch(
+  '${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent',
+  {
+    method: 'POST',
+    headers: {
+      'x-goog-api-key': '${apiKey}',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: 'Hello! How are you today?' }
+          ]
+        }
+      ],
+      config: {
+        temperature: 0.7,
+        maxOutputTokens: 150
       }
-    ],
-    model: 'gemini-pro',
-    max_tokens: 150,
-    temperature: 0.7,
-  });
+    })
+  }
+);
 
-  console.log(completion.choices[0]);
-}
-
-main();`}
+const data = await response.json();
+console.log(data.candidates[0].content.parts[0].text);`}
                     language="javascript"
                   />
                 </CodeBlock>
@@ -724,11 +737,10 @@ main();`}
               <div className="space-y-4">
                 <div className="rounded-lg border bg-muted/50 p-3">
                   <p className="text-sm font-medium">
-                    Install the OpenAI SDK (Gemini uses OpenAI-compatible
-                    format):
+                    Use native Gemini API format with requests:
                   </p>
                   <code className="mt-1 block text-muted-foreground text-sm">
-                    pip install openai
+                    pip install requests
                   </code>
                 </div>
                 <CodeBlock>
@@ -739,51 +751,63 @@ main();`}
                         python
                       </Badge>
                       <CopyButton
-                        content={`from openai import OpenAI
+                        content={`import requests
 
-client = OpenAI(
-    api_key="${apiKey}",
-    base_url="${API_BASE_URL}"
-)
-
-completion = client.chat.completions.create(
-    model="gemini-pro",
-    messages=[
-        {
-            "role": "user",
-            "content": "Hello! How are you today?"
+response = requests.post(
+    '${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent',
+    headers={
+        'x-goog-api-key': '${apiKey}',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'contents': [
+            {
+                'role': 'user',
+                'parts': [
+                    {'text': 'Hello! How are you today?'}
+                ]
+            }
+        ],
+        'config': {
+            'temperature': 0.7,
+            'maxOutputTokens': 150
         }
-    ],
-    max_tokens=150,
-    temperature=0.7
+    }
 )
 
-print(completion.choices[0].message.content)`}
+data = response.json()
+print(data['candidates'][0]['content']['parts'][0]['text'])`}
                         copyMessage="Python code copied!"
                       />
                     </div>
                   </CodeBlockGroup>
                   <CodeBlockCode
-                    code={`from openai import OpenAI
+                    code={`import requests
 
-client = OpenAI(
-    api_key="${apiKey}",
-    base_url="${API_BASE_URL}"
-)
-
-completion = client.chat.completions.create(
-    model="gemini-pro",
-    messages=[
-        {
-            "role": "user",
-            "content": "Hello! How are you today?"
+response = requests.post(
+    '${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent',
+    headers={
+        'x-goog-api-key': '${apiKey}',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'contents': [
+            {
+                'role': 'user',
+                'parts': [
+                    {'text': 'Hello! How are you today?'}
+                ]
+            }
+        ],
+        'config': {
+            'temperature': 0.7,
+            'maxOutputTokens': 150
         }
-    ],
-    max_tokens=150,
-    temperature=0.7
+    }
 )
 
-print(completion.choices[0].message.content)`}
+data = response.json()
+print(data['candidates'][0]['content']['parts'][0]['text'])`}
                     language="python"
                   />
                 </CodeBlock>

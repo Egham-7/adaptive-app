@@ -474,11 +474,7 @@ export function AdaptiveConfigSheet({
 									>
 										Cancel
 									</Button>
-									<Button
-										type="submit"
-										disabled={isLoading || !form.formState.isDirty}
-										className="flex-1"
-									>
+									<Button type="submit" disabled={isLoading} className="flex-1">
 										{isLoading
 											? "Saving..."
 											: isSuccess

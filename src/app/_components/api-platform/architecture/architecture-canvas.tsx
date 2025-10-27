@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
-	applyNodeChanges,
 	Background,
 	type Edge,
 	MarkerType,
 	type Node,
 	type NodeChange,
-	type OnNodesChange,
 	ReactFlowProvider,
+	useEdgesState,
+	useNodesState,
 	useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
@@ -61,24 +61,11 @@ import { ConnectDialog } from "./connect-dialog";
 import { ProviderConfigSheet } from "./provider-config-sheet";
 import { ProviderNodeCard } from "./provider-node-card";
 
-const CARD_WIDTH = 260; // Match actual provider card width
-const CARD_HEIGHT = 200; // Approximate card height for collision detection
+// Layout constants
+const CARD_WIDTH = 280;
+const CARD_HEIGHT = 160;
 const ADAPTIVE_NODE_SIZE = 320;
-
-/**
- * Calculate optimal radius based on number of providers
- * For small counts (1-3): tighter circle for better visual cohesion
- * For larger counts (4+): wider circle to prevent overlap
- */
-const getOptimalRadius = (providerCount: number): number => {
-	if (providerCount === 0) return 400;
-	if (providerCount === 1) return 350; // Single provider close to center
-	if (providerCount === 2) return 400; // Two providers at reasonable distance
-	if (providerCount === 3) return 450; // Three providers form compact triangle
-	if (providerCount <= 6) return 550; // Medium circle for 4-6 providers
-	if (providerCount <= 9) return 650; // Larger circle for 7-9 providers
-	return 750; // Extra large for 10+ providers
-};
+const RADIUS = 500; // Fixed radius for circular layout
 
 interface AdaptiveNodeData {
 	isConfigured: boolean;
@@ -86,6 +73,38 @@ interface AdaptiveNodeData {
 	onClick: () => void;
 	highlight: boolean;
 }
+
+// Helper to determine handle positions based on relative position to adaptive node
+const getHandlePositions = (
+	x: number,
+	y: number,
+): {
+	providerHandle: "top" | "right" | "bottom" | "left";
+	adaptiveHandle: "top" | "right" | "bottom" | "left";
+} => {
+	const angle = Math.atan2(y, x);
+	const degrees = ((angle * 180) / Math.PI + 360) % 360;
+
+	// Determine handle positions based on angle quadrant
+	if (degrees >= 315 || degrees < 45) {
+		return { providerHandle: "left", adaptiveHandle: "right" };
+	}
+	if (degrees >= 45 && degrees < 135) {
+		return { providerHandle: "top", adaptiveHandle: "bottom" };
+	}
+	if (degrees >= 135 && degrees < 225) {
+		return { providerHandle: "right", adaptiveHandle: "left" };
+	}
+	return { providerHandle: "bottom", adaptiveHandle: "top" };
+};
+
+// Get position for a provider at a specific index in the circle
+const getProviderPosition = (index: number) => {
+	const angle = (index * 2 * Math.PI) / 8 - Math.PI / 2; // 8 positions around circle
+	const x = Math.cos(angle) * RADIUS - CARD_WIDTH / 2;
+	const y = Math.sin(angle) * RADIUS - CARD_HEIGHT / 2;
+	return { x, y };
+};
 
 const nodeTypes = {
 	provider: ({ data }: { data: ProviderNodeData }) => (
@@ -95,7 +114,6 @@ const nodeTypes = {
 			isConfigured={data.isConfigured}
 			config={data.config}
 			onClick={data.onClick}
-			handlePosition={data.handlePosition}
 		/>
 	),
 	adaptive: ({ data }: { data: AdaptiveNodeData }) => (
@@ -106,44 +124,6 @@ const nodeTypes = {
 			highlight={data.highlight}
 		/>
 	),
-};
-
-/**
- * Calculate position for adaptive node (center)
- * Offset to account for adaptive node size so it's visually centered
- */
-const getAdaptiveNodePosition = () => ({
-	x: -ADAPTIVE_NODE_SIZE / 2,
-	y: -ADAPTIVE_NODE_SIZE / 2,
-});
-
-/**
- * Calculate positions for provider nodes in a circle around the adaptive node
- * Uses adaptive radius and optimized starting angle for visual balance
- */
-const getProviderNodePosition = (index: number, total: number) => {
-	const radius = getOptimalRadius(total);
-
-	// Optimize starting angle based on provider count for better symmetry
-	let startAngle = -Math.PI / 2; // Default: start from top (12 o'clock)
-
-	if (total === 1) {
-		startAngle = -Math.PI / 2; // Single provider at top
-	} else if (total === 2) {
-		startAngle = 0; // Two providers at 3 and 9 o'clock (horizontal)
-	} else if (total === 3) {
-		startAngle = -Math.PI / 2; // Three providers: top and bottom corners
-	} else if (total === 4) {
-		startAngle = -Math.PI / 4; // Four providers: diagonal alignment
-	}
-
-	const angle = startAngle + (index / total) * 2 * Math.PI;
-
-	// Center the card on the calculated position
-	const x = Math.cos(angle) * radius - CARD_WIDTH / 2;
-	const y = Math.sin(angle) * radius - CARD_HEIGHT / 2;
-
-	return { x, y };
 };
 
 const combineProviders = (
@@ -179,7 +159,8 @@ function ArchitectureCanvasInner({
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 	const [historySheetOpen, setHistorySheetOpen] = useState(false);
-	const { setCenter } = useReactFlow();
+	const [hasInitialFit, setHasInitialFit] = useState(false);
+	const { setCenter, fitView } = useReactFlow();
 
 	// Fetch adaptive config
 	const { data: adaptiveConfig } = useProjectAdaptiveConfig(projectId);
@@ -205,13 +186,12 @@ function ArchitectureCanvasInner({
 	}, []);
 
 	const handleSheetClose = useCallback(() => {
-		// Zoom back out to fit all content when closing any sheet
-		// Use adaptive zoom: smaller layouts need less zoom-out
-		const providerCount = allProviders.length;
-		const targetZoom =
-			providerCount <= 3 ? 0.8 : providerCount <= 6 ? 0.7 : 0.6;
-		setCenter(0, 0, { zoom: targetZoom, duration: 300 });
-	}, [setCenter, allProviders.length]);
+		// Use fitView to show all content when closing any sheet
+		fitView({
+			padding: 0.3,
+			duration: 300,
+		});
+	}, [fitView]);
 
 	const handleAdaptiveSaveSuccess = useCallback(() => {
 		// Trigger highlight animation
@@ -309,129 +289,148 @@ function ArchitectureCanvasInner({
 	// Register commands and keyboard shortcuts
 	const { commands } = useCanvasCommands({ commands: canvasCommands });
 
-	const initialNodes = useMemo<Node[]>(() => {
-		const totalProviders = allProviders.length;
+	// Use React Flow's built-in state management hooks
+	const [nodes, setNodes, onNodesChange] = useNodesState([]);
+	const [edges, setEdges, _onEdgesChange] = useEdgesState([]);
 
-		// Wrapper for adaptive click that includes zoom functionality
-		const handleAdaptiveClickWithZoom = () => {
-			const adaptivePos = getAdaptiveNodePosition();
-			const centerX = adaptivePos.x + ADAPTIVE_NODE_SIZE / 2;
-			const centerY = adaptivePos.y + ADAPTIVE_NODE_SIZE / 2;
-			setCenter(centerX, centerY, { zoom: 1.5, duration: 300 });
-			handleAdaptiveClick();
-		};
+	// Track next available position index
+	const nextPositionIndex = useRef(0);
 
-		// Always create adaptive node, but mark as configured only if config exists
+	// Custom nodes change handler to update handle positions on drag
+	const handleNodesChange = useCallback(
+		(changes: NodeChange[]) => {
+			onNodesChange(changes);
+
+			// Check if any position changes occurred
+			const positionChanges = changes.filter(
+				(
+					change,
+				): change is NodeChange & {
+					type: "position";
+					id: string;
+					position: { x: number; y: number };
+					dragging: boolean;
+				} =>
+					change.type === "position" &&
+					"dragging" in change &&
+					change.dragging === true &&
+					"position" in change &&
+					!!change.position,
+			);
+
+			if (positionChanges.length > 0) {
+				setNodes((nds) => {
+					return nds.map((node) => {
+						// Only update provider nodes
+						if (node.type !== "provider") return node;
+
+						// Find if this node has a position change
+						const change = positionChanges.find((c) => c.id === node.id);
+						const position = change?.position || node.position;
+
+						// Calculate relative position to adaptive node (at origin)
+						const relativeX = position.x + CARD_WIDTH / 2;
+						const relativeY = position.y + CARD_HEIGHT / 2;
+
+						// Get updated handle positions based on current position
+						const handlePositions = getHandlePositions(relativeX, relativeY);
+
+						// Update node data with new handle IDs for edge connections
+						return {
+							...node,
+							data: {
+								...node.data,
+								providerHandleId: handlePositions.providerHandle,
+								adaptiveHandleId: handlePositions.adaptiveHandle,
+							},
+						};
+					});
+				});
+			}
+		},
+		[onNodesChange, setNodes],
+	);
+
+	// Update nodes when providers or config changes
+	useEffect(() => {
 		const isAdaptiveConfigured =
 			adaptiveConfig?.source === "project" ||
 			adaptiveConfig?.source === "organization";
 
-		const adaptiveNode: Node = {
-			id: "adaptive",
-			type: "adaptive",
-			position: getAdaptiveNodePosition(),
-			data: {
-				isConfigured: isAdaptiveConfigured,
-				configSource: isAdaptiveConfigured ? adaptiveConfig.source : "project",
-				onClick: handleAdaptiveClickWithZoom,
-				highlight: adaptiveNodeHighlight,
+		const newNodes: Node[] = [
+			// Adaptive node at center
+			{
+				id: "adaptive",
+				type: "adaptive",
+				position: {
+					x: -ADAPTIVE_NODE_SIZE / 2,
+					y: -ADAPTIVE_NODE_SIZE / 2,
+				},
+				data: {
+					isConfigured: isAdaptiveConfigured,
+					configSource: isAdaptiveConfigured
+						? adaptiveConfig.source
+						: "project",
+					onClick: handleAdaptiveClick,
+					highlight: adaptiveNodeHighlight,
+				},
+				draggable: true,
 			},
-			draggable: true,
-		};
+		];
 
-		// Create provider nodes arranged in a circle
-		const providerNodes = allProviders.map((provider, index) => {
-			const angle = (index / totalProviders) * 2 * Math.PI - Math.PI / 2;
+		// Create provider nodes
+		allProviders.forEach((provider, index) => {
+			const position = getProviderPosition(index);
+			const handlePositions = getHandlePositions(position.x, position.y);
 
-			// Determine which side of the provider node should have the handle
-			// The handle should be on the side facing the adaptive node (center)
-			// This is the OPPOSITE of where the provider is positioned
-			let providerHandlePosition: "top" | "right" | "bottom" | "left";
-			let adaptiveHandlePosition: "top" | "right" | "bottom" | "left";
-
-			// Normalize angle to 0-360 degrees
-			const degrees = ((angle * 180) / Math.PI + 360) % 360;
-
-			// Determine handle positions based on angle quadrant
-			if (degrees >= 315 || degrees < 45) {
-				// Provider is to the right
-				providerHandlePosition = "left"; // Handle on left side of provider (facing center)
-				adaptiveHandlePosition = "right"; // Handle on right side of adaptive (facing provider)
-			} else if (degrees >= 45 && degrees < 135) {
-				// Provider is below
-				providerHandlePosition = "top"; // Handle on top side of provider (facing center)
-				adaptiveHandlePosition = "bottom"; // Handle on bottom side of adaptive (facing provider)
-			} else if (degrees >= 135 && degrees < 225) {
-				// Provider is to the left
-				providerHandlePosition = "right"; // Handle on right side of provider (facing center)
-				adaptiveHandlePosition = "left"; // Handle on left side of adaptive (facing provider)
-			} else {
-				// Provider is above
-				providerHandlePosition = "bottom"; // Handle on bottom side of provider (facing center)
-				adaptiveHandlePosition = "top"; // Handle on top side of adaptive (facing provider)
-			}
-
-			const nodePosition = getProviderNodePosition(index, totalProviders);
-
-			// Wrapper for provider click that includes zoom functionality
-			const handleProviderClickWithZoom = () => {
-				const centerX = nodePosition.x + CARD_WIDTH / 2;
-				const centerY = nodePosition.y + CARD_WIDTH / 2;
-				setCenter(centerX, centerY, { zoom: 1.5, duration: 300 });
-				handleProviderClick(provider.name);
-			};
-
-			return {
+			newNodes.push({
 				id: provider.name,
 				type: "provider",
-				position: nodePosition,
+				position,
 				data: {
 					providerName: provider.name,
 					isCustom: provider.isCustom,
 					isConfigured: provider.isConfigured,
 					config: provider.config,
-					onClick: handleProviderClickWithZoom,
-					handlePosition: providerHandlePosition,
-					adaptiveHandlePosition,
+					onClick: () => handleProviderClick(provider.name),
+					// Store handle IDs for edge connections
+					providerHandleId: handlePositions.providerHandle,
+					adaptiveHandleId: handlePositions.adaptiveHandle,
 				},
 				draggable: true,
-			};
+			});
 		});
 
-		return [adaptiveNode, ...providerNodes];
+		// Update next position index
+		nextPositionIndex.current = allProviders.length;
+
+		setNodes(newNodes);
 	}, [
 		allProviders,
 		adaptiveConfig,
 		adaptiveNodeHighlight,
 		handleProviderClick,
 		handleAdaptiveClick,
-		setCenter,
+		setNodes,
 	]);
 
-	const [nodes, setNodes] = useState<Node[]>(initialNodes);
-
-	// Update nodes when initialNodes changes (when providers are added/removed)
+	// Generate edges based on enabled providers
 	useEffect(() => {
-		setNodes(initialNodes);
-	}, [initialNodes]);
-
-	// Create edges from adaptive node to providers
-	const edges = useMemo<Edge[]>(() => {
-		const generatedEdges = allProviders
+		const newEdges: Edge[] = allProviders
 			.filter((provider) => provider.config?.enabled !== false)
 			.map((provider) => {
+				// Find the node to get handle IDs
 				const providerNode = nodes.find((n) => n.id === provider.name);
 				const nodeData = providerNode?.data as ProviderNodeData;
-				const providerHandlePosition = nodeData?.handlePosition || "top";
-				const adaptiveHandlePosition =
-					nodeData?.adaptiveHandlePosition || "bottom";
+				const providerHandleId = nodeData?.providerHandleId || "left";
+				const adaptiveHandleId = nodeData?.adaptiveHandleId || "right";
 
 				return {
 					id: `adaptive-${provider.name}`,
 					source: "adaptive",
 					target: provider.name,
-					sourceHandle: adaptiveHandlePosition,
-					targetHandle: providerHandlePosition,
+					sourceHandle: adaptiveHandleId,
+					targetHandle: providerHandleId,
 					type: "default",
 					animated: true,
 					style: {
@@ -444,13 +443,24 @@ function ArchitectureCanvasInner({
 					},
 				};
 			});
+		setEdges(newEdges);
+	}, [allProviders, nodes, setEdges]);
 
-		return generatedEdges;
-	}, [allProviders, nodes]);
-
-	const onNodesChange: OnNodesChange = useCallback((changes: NodeChange[]) => {
-		setNodes((nds) => applyNodeChanges(changes, nds));
-	}, []);
+	// Fit view on initial mount
+	useEffect(() => {
+		if (!hasInitialFit && nodes.length > 0) {
+			setTimeout(() => {
+				fitView({
+					padding: 0.3,
+					includeHiddenNodes: false,
+					minZoom: 0.4,
+					maxZoom: 1.2,
+					duration: 300,
+				});
+				setHasInitialFit(true);
+			}, 100);
+		}
+	}, [hasInitialFit, nodes.length, fitView]);
 
 	// Handle context menu on canvas background (pane)
 	const handlePaneContextMenu = useCallback((event: React.MouseEvent) => {
@@ -496,17 +506,10 @@ function ArchitectureCanvasInner({
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}
-				onNodesChange={onNodesChange}
+				onNodesChange={handleNodesChange}
 				onPaneContextMenu={handlePaneContextMenu}
 				onNodeContextMenu={handleNodeContextMenu}
 				nodeTypes={nodeTypes}
-				fitView
-				fitViewOptions={{
-					padding: 0.3, // Increased padding for better framing
-					includeHiddenNodes: false,
-					minZoom: 0.4, // Ensure we don't zoom out too far on small layouts
-					maxZoom: 1.2, // Better initial zoom for small provider counts
-				}}
 				minZoom={0.2}
 				maxZoom={1.5}
 				defaultViewport={{ x: 0, y: 0, zoom: 0.8 }} // Higher default zoom for tighter layouts
@@ -578,6 +581,7 @@ function ArchitectureCanvasInner({
 				onOpenChange={setShowAddDialog}
 				level="project"
 				projectId={projectId}
+				configuredProviders={providers.map((p) => p.provider_name)}
 			/>
 
 			{currentProvider && (

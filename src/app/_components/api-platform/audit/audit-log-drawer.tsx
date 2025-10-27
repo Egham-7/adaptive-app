@@ -28,6 +28,7 @@ import {
 	initialAuditLogFilters,
 } from "@/types/audit-log";
 import { AuditLogEntry } from "./audit-log-entry";
+import { UserDisplay } from "./user-display";
 
 interface AuditLogDrawerProps {
 	open: boolean;
@@ -214,14 +215,23 @@ export function AuditLogDrawer({
 											value={filters.users[0] || "all"}
 											onValueChange={setUserFilter}
 										>
-											<SelectTrigger aria-label="Select user filter">
-												<SelectValue placeholder="All users" />
+											<SelectTrigger
+												aria-label="Select user filter"
+												className="w-full"
+											>
+												<SelectValue placeholder="All users">
+													{filters.users[0] ? (
+														<UserDisplay userId={filters.users[0]} />
+													) : (
+														"All users"
+													)}
+												</SelectValue>
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="all">All users</SelectItem>
 												{uniqueUsers.map((user) => (
 													<SelectItem key={user} value={user}>
-														{user}
+														<UserDisplay userId={user} />
 													</SelectItem>
 												))}
 											</SelectContent>

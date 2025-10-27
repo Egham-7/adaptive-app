@@ -335,7 +335,7 @@ export function ProviderConfigSheet({
 								<Button
 									type="submit"
 									className="flex-1"
-									disabled={!isValid || !isDirty || isLoading}
+									disabled={!isValid || isLoading}
 								>
 									{saveState === "loading"
 										? "Saving..."

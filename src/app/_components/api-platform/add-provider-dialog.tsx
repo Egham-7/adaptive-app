@@ -81,6 +81,7 @@ interface AddProviderDialogProps {
 	level: "project" | "organization";
 	projectId?: number;
 	organizationId?: string;
+	configuredProviders?: string[];
 }
 
 export function AddProviderDialog({
@@ -89,6 +90,7 @@ export function AddProviderDialog({
 	level,
 	projectId,
 	organizationId,
+	configuredProviders = [],
 }: AddProviderDialogProps) {
 	const [showApiKey, setShowApiKey] = useState(false);
 
@@ -108,21 +110,24 @@ export function AddProviderDialog({
 	const isLoading =
 		createProjectProvider.isPending || createOrgProvider.isPending;
 
-	const builtInProviders: ComboboxOption[] = Object.entries(
-		PROVIDER_METADATA,
-	).map(([key, metadata]) => ({
-		value: key,
-		label: metadata.displayName,
-		icon: metadata.logo ? (
-			<Image
-				src={metadata.logo}
-				alt=""
-				width={16}
-				height={16}
-				className="rounded"
-			/>
-		) : undefined,
-	}));
+	const builtInProviders: ComboboxOption[] = Object.entries(PROVIDER_METADATA)
+		.filter(([key]) => {
+			const isConfigured = configuredProviders.includes(key);
+			return !isConfigured;
+		})
+		.map(([key, metadata]) => ({
+			value: key,
+			label: metadata.displayName,
+			icon: metadata.logo ? (
+				<Image
+					src={metadata.logo}
+					alt=""
+					width={16}
+					height={16}
+					className="rounded"
+				/>
+			) : undefined,
+		}));
 
 	const selectedProvider = form.watch("provider");
 	const metadata =

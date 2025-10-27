@@ -16,7 +16,6 @@ interface ProviderNodeCardProps {
 	isConfigured: boolean;
 	config?: ProviderConfigApiResponse;
 	onClick: () => void;
-	handlePosition: "top" | "right" | "bottom" | "left";
 }
 
 export function ProviderNodeCard({
@@ -25,20 +24,12 @@ export function ProviderNodeCard({
 	isConfigured,
 	config,
 	onClick,
-	handlePosition,
 }: ProviderNodeCardProps) {
 	const metadata = !isCustom
 		? PROVIDER_METADATA[providerName as ProviderName]
 		: null;
 
 	const isOrgLevel = config?.source === "organization";
-
-	const positionMap = {
-		top: Position.Top,
-		right: Position.Right,
-		bottom: Position.Bottom,
-		left: Position.Left,
-	};
 
 	const handleClick = (e: React.MouseEvent) => {
 		// Don't trigger onClick on right-click (context menu)
@@ -50,9 +41,29 @@ export function ProviderNodeCard({
 
 	return (
 		<>
+			{/* Target handles for connections from adaptive router - all 4 sides */}
 			<Handle
 				type="target"
-				position={positionMap[handlePosition]}
+				position={Position.Top}
+				id="top"
+				style={{ opacity: 0 }}
+			/>
+			<Handle
+				type="target"
+				position={Position.Right}
+				id="right"
+				style={{ opacity: 0 }}
+			/>
+			<Handle
+				type="target"
+				position={Position.Bottom}
+				id="bottom"
+				style={{ opacity: 0 }}
+			/>
+			<Handle
+				type="target"
+				position={Position.Left}
+				id="left"
 				style={{ opacity: 0 }}
 			/>
 
