@@ -59,7 +59,7 @@ export function ConnectDialog({ projectId }: ConnectDialogProps) {
 					Connect
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="max-h-[90vh] w-full overflow-y-auto">
+			<DialogContent className="w-full">
 				<DialogHeader>
 					<DialogTitle>Connect to Adaptive API</DialogTitle>
 					<DialogDescription>
