@@ -56,15 +56,15 @@ if (!process.env.EXA_API_KEY) {
 }
 
 // Utility functions
-function createInternalAdaptive() {
+function createUserAdaptive(clerkToken: string) {
 	return createAdaptive({
 		baseURL: `${process.env.ADAPTIVE_API_BASE_URL}/v1`,
-		apiKey: "internal", // Internal communication - no real API key needed
+		apiKey: clerkToken, // Use user's Clerk token for authentication
 	});
 }
 
-function createInternalModel() {
-	const adaptive = createInternalAdaptive();
+function createUserModel(clerkToken: string) {
+	const adaptive = createUserAdaptive(clerkToken);
 	const baseModel = adaptive.chat();
 
 	return wrapLanguageModel({
@@ -116,9 +116,15 @@ async function webSearch(query: string): Promise<
 
 export async function POST(req: Request) {
 	// Authentication
-	const { userId } = await auth();
+	const { userId, getToken } = await auth();
 	if (!userId) {
 		return new Response("Unauthorized", { status: 401 });
+	}
+
+	// Get Clerk token for authenticated API calls
+	const clerkToken = await getToken();
+	if (!clerkToken) {
+		return new Response("Unauthorized - No token", { status: 401 });
 	}
 
 	// Parse and validate request body
@@ -243,7 +249,7 @@ export async function POST(req: Request) {
 		let modelId: string | undefined;
 
 		// Create authenticated model for this user
-		const adaptiveModelWithReasoning = createInternalModel();
+		const adaptiveModelWithReasoning = createUserModel(clerkToken);
 
 		const result = streamText({
 			model: adaptiveModelWithReasoning,
@@ -270,7 +276,7 @@ export async function POST(req: Request) {
 				// Generate title for the first message
 				if (isFirstMessage) {
 					try {
-						const titleAdaptive = createInternalAdaptive();
+						const titleAdaptive = createUserAdaptive(clerkToken);
 						const titleModel = titleAdaptive.chat();
 
 						const titleResult = await generateText({
