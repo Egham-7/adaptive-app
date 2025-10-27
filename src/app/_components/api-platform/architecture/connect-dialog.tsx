@@ -59,7 +59,7 @@ export function ConnectDialog({ projectId }: ConnectDialogProps) {
 					Connect
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="w-full">
+			<DialogContent className="max-w-4xl overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>Connect to Adaptive API</DialogTitle>
 					<DialogDescription>
@@ -69,7 +69,7 @@ export function ConnectDialog({ projectId }: ConnectDialogProps) {
 					</DialogDescription>
 				</DialogHeader>
 
-				<div className="space-y-4">
+				<div className="max-w-full space-y-4 overflow-hidden">
 					{/* API Key Creation Section */}
 					<div className="space-y-3 rounded-lg border bg-muted/30 p-4">
 						{!showCreateForm && !createdApiKey && (
@@ -105,14 +105,12 @@ export function ConnectDialog({ projectId }: ConnectDialogProps) {
 										onClick={handleCreateApiKey}
 										disabled={!apiKeyName.trim() || createApiKey.isPending}
 										size="sm"
+										className="flex-1"
 									>
-										{createApiKey.isPending ? "Creating..." : "Create"}
+										{createApiKey.isPending ? "Creating..." : "Create Key"}
 									</Button>
 									<Button
-										onClick={() => {
-											setShowCreateForm(false);
-											setApiKeyName("");
-										}}
+										onClick={() => setShowCreateForm(false)}
 										variant="outline"
 										size="sm"
 									>

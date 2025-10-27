@@ -211,6 +211,7 @@ export const OrganizationProvidersTab: React.FC<
 					onOpenChange={setCreateDialogOpen}
 					level="organization"
 					organizationId={organizationId}
+					configuredProviders={providerNames}
 				/>
 
 				{/* Edit Provider Dialog */}
