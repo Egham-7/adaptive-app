@@ -15,7 +15,6 @@ interface QuickstartExamplesProps {
   showTitle?: boolean;
   title?: string;
   description?: string;
-  provider?: "openai" | "anthropic" | "gemini";
 }
 
 const API_BASE_URL = "https://api.llmadaptive.uk/v1";
@@ -26,19 +25,7 @@ export function QuickstartExamples({
   showTitle = true,
   title = "🚀 Quick Start",
   description = "Test your API key with these examples",
-  provider,
 }: QuickstartExamplesProps) {
-  // Determine default tab and available tabs based on provider filter
-  const getDefaultTab = () => {
-    if (provider === "anthropic") return "messages";
-    if (provider === "gemini") return "gemini-chat";
-    return "chat-completions";
-  };
-
-  const showChatCompletions = !provider || provider === "openai";
-  const showMessages = !provider || provider === "anthropic";
-  const showGemini = !provider || provider === "gemini";
-
   return (
     <div className={`space-y-4 ${className}`}>
       {showTitle && (
@@ -48,17 +35,14 @@ export function QuickstartExamples({
         </div>
       )}
 
-      <Tabs defaultValue={getDefaultTab()} className="w-full">
-        {!provider && (
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="chat-completions">Chat Completions</TabsTrigger>
-            <TabsTrigger value="messages">Anthropic Messages</TabsTrigger>
-            <TabsTrigger value="gemini-chat">Gemini Chat</TabsTrigger>
-          </TabsList>
-        )}
+      <Tabs defaultValue="chat-completions" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="chat-completions">OpenAI</TabsTrigger>
+          <TabsTrigger value="messages">Anthropic</TabsTrigger>
+          <TabsTrigger value="gemini-chat">Gemini</TabsTrigger>
+        </TabsList>
 
-        {showChatCompletions && (
-          <TabsContent value="chat-completions" className="mt-4">
+        <TabsContent value="chat-completions" className="mt-4">
             <Tabs defaultValue="curl" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="curl">cURL</TabsTrigger>
@@ -261,11 +245,9 @@ print(completion.choices[0].message.content)`}
               </div>
             </TabsContent>
           </Tabs>
-          </TabsContent>
-        )}
+        </TabsContent>
 
-        {showMessages && (
-          <TabsContent value="messages" className="mt-4">
+        <TabsContent value="messages" className="mt-4">
             <Tabs defaultValue="curl" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="curl">cURL</TabsTrigger>
@@ -464,11 +446,9 @@ print(message.content[0].text)`}
               </div>
             </TabsContent>
           </Tabs>
-          </TabsContent>
-        )}
+        </TabsContent>
 
-        {showGemini && (
-          <TabsContent value="gemini-chat" className="mt-4">
+        <TabsContent value="gemini-chat" className="mt-4">
             <Tabs defaultValue="curl" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="curl">cURL</TabsTrigger>
@@ -673,8 +653,7 @@ print(completion.choices[0].message.content)`}
               </div>
             </TabsContent>
           </Tabs>
-          </TabsContent>
-        )}
+        </TabsContent>
       </Tabs>
     </div>
   );
