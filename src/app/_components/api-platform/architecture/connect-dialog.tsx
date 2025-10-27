@@ -123,22 +123,10 @@ export function ConnectDialog({ projectId }: ConnectDialogProps) {
 						)}
 
 						{createdApiKey && (
-							<div className="space-y-2">
-								<p className="font-medium text-green-600 text-sm dark:text-green-400">
-									✓ API Key created! The examples below are now autofilled with
-									your key.
-								</p>
-								<Button
-									onClick={() => {
-										setCreatedApiKey(null);
-										setShowCreateForm(false);
-									}}
-									variant="outline"
-									size="sm"
-								>
-									Use Placeholder Instead
-								</Button>
-							</div>
+							<p className="font-medium text-green-600 text-sm dark:text-green-400">
+								✓ API Key created! The examples below are now autofilled with
+								your key.
+							</p>
 						)}
 					</div>
 
