@@ -57,6 +57,7 @@ import { AuditLogDrawer } from "../audit/audit-log-drawer";
 import { AdaptiveConfigSheet } from "./adaptive-config-sheet";
 import { AdaptiveNodeCard } from "./adaptive-node-card";
 import { CanvasControls } from "./canvas-controls";
+import { ConnectDialog } from "./connect-dialog";
 import { ProviderConfigSheet } from "./provider-config-sheet";
 import { ProviderNodeCard } from "./provider-node-card";
 
@@ -471,7 +472,8 @@ function ArchitectureCanvasInner({
 
 	return (
 		<div className="relative h-screen w-full overflow-hidden rounded-lg border">
-			<div className="absolute top-4 right-4 z-10">
+			<div className="absolute top-4 right-4 z-10 flex gap-2">
+				<ConnectDialog projectId={projectId} />
 				<Button
 					onClick={() => setShowAddDialog(true)}
 					variant="default"

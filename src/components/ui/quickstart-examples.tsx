@@ -1,5 +1,7 @@
 "use client";
 
+import { SiOpenai, SiPython, SiJavascript, SiGoogle, SiAnthropic } from "react-icons/si";
+import { FaTerminal } from "react-icons/fa";
 import { Badge } from "@/components/ui/badge";
 import {
   CodeBlock,
@@ -8,6 +10,12 @@ import {
 } from "@/components/ui/code-block";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface QuickstartExamplesProps {
   apiKey: string;
@@ -36,18 +44,81 @@ export function QuickstartExamples({
       )}
 
       <Tabs defaultValue="chat-completions" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="chat-completions">Chat Completions</TabsTrigger>
-          <TabsTrigger value="messages">Anthropic Messages</TabsTrigger>
-        </TabsList>
+        <TooltipProvider>
+          <TabsList className="flex w-full gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="chat-completions">
+                  <SiOpenai className="h-5 w-5" />
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>OpenAI</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="messages">
+                  <SiAnthropic className="h-5 w-5" />
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Anthropic</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="gemini-chat">
+                  <SiGoogle className="h-5 w-5" />
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Gemini</p>
+              </TooltipContent>
+            </Tooltip>
+          </TabsList>
+        </TooltipProvider>
 
         <TabsContent value="chat-completions" className="mt-4">
-          <Tabs defaultValue="curl" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="curl">cURL</TabsTrigger>
-              <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-              <TabsTrigger value="python">Python</TabsTrigger>
-            </TabsList>
+            <Tabs defaultValue="curl" className="w-full">
+              <TooltipProvider>
+                <TabsList className="flex w-full gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="curl">
+                        <FaTerminal className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>cURL</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="javascript">
+                        <SiJavascript className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>JavaScript</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="python">
+                        <SiPython className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Python</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TabsList>
+              </TooltipProvider>
 
             <TabsContent value="curl" className="mt-4">
               <CodeBlock>
@@ -247,12 +318,43 @@ print(completion.choices[0].message.content)`}
         </TabsContent>
 
         <TabsContent value="messages" className="mt-4">
-          <Tabs defaultValue="curl" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="curl">cURL</TabsTrigger>
-              <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-              <TabsTrigger value="python">Python</TabsTrigger>
-            </TabsList>
+            <Tabs defaultValue="curl" className="w-full">
+              <TooltipProvider>
+                <TabsList className="flex w-full gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="curl">
+                        <FaTerminal className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>cURL</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="javascript">
+                        <SiJavascript className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>JavaScript</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="python">
+                        <SiPython className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Python</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TabsList>
+              </TooltipProvider>
 
             <TabsContent value="curl" className="mt-4">
               <CodeBlock>
@@ -439,6 +541,244 @@ message = client.messages.create(
 )
 
 print(message.content[0].text)`}
+                    language="python"
+                  />
+                </CodeBlock>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="gemini-chat" className="mt-4">
+            <Tabs defaultValue="curl" className="w-full">
+              <TooltipProvider>
+                <TabsList className="flex w-full gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="curl">
+                        <FaTerminal className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>cURL</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="javascript">
+                        <SiJavascript className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>JavaScript</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="python">
+                        <SiPython className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Python</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TabsList>
+              </TooltipProvider>
+
+            <TabsContent value="curl" className="mt-4">
+              <CodeBlock>
+                <CodeBlockGroup className="border-b px-4 py-2">
+                  <span className="font-medium text-sm">
+                    Gemini via OpenAI-compatible API
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      bash
+                    </Badge>
+                    <CopyButton
+                      content={`curl -X POST "${API_BASE_URL}/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer ${apiKey}" \\
+  -d '{
+    "model": "gemini-pro",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! How are you today?"
+      }
+    ],
+    "max_tokens": 150,
+    "temperature": 0.7
+  }'`}
+                      copyMessage="cURL command copied!"
+                    />
+                  </div>
+                </CodeBlockGroup>
+                <CodeBlockCode
+                  code={`curl -X POST "${API_BASE_URL}/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer ${apiKey}" \\
+  -d '{
+    "model": "gemini-pro",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! How are you today?"
+      }
+    ],
+    "max_tokens": 150,
+    "temperature": 0.7
+  }'`}
+                  language="bash"
+                />
+              </CodeBlock>
+            </TabsContent>
+
+            <TabsContent value="javascript" className="mt-4">
+              <div className="space-y-4">
+                <div className="rounded-lg border bg-muted/50 p-3">
+                  <p className="text-sm font-medium">
+                    Install the OpenAI SDK (Gemini uses OpenAI-compatible format):
+                  </p>
+                  <code className="mt-1 block text-muted-foreground text-sm">
+                    npm install openai
+                  </code>
+                </div>
+                <CodeBlock>
+                  <CodeBlockGroup className="border-b px-4 py-2">
+                    <span className="font-medium text-sm">
+                      JavaScript/Node.js
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        javascript
+                      </Badge>
+                      <CopyButton
+                        content={`import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: '${apiKey}',
+  baseURL: '${API_BASE_URL}',
+});
+
+async function main() {
+  const completion = await client.chat.completions.create({
+    messages: [
+      {
+        role: 'user',
+        content: 'Hello! How are you today?'
+      }
+    ],
+    model: 'gemini-pro',
+    max_tokens: 150,
+    temperature: 0.7,
+  });
+
+  console.log(completion.choices[0]);
+}
+
+main();`}
+                        copyMessage="JavaScript code copied!"
+                      />
+                    </div>
+                  </CodeBlockGroup>
+                  <CodeBlockCode
+                    code={`import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: '${apiKey}',
+  baseURL: '${API_BASE_URL}',
+});
+
+async function main() {
+  const completion = await client.chat.completions.create({
+    messages: [
+      {
+        role: 'user',
+        content: 'Hello! How are you today?'
+      }
+    ],
+    model: 'gemini-pro',
+    max_tokens: 150,
+    temperature: 0.7,
+  });
+
+  console.log(completion.choices[0]);
+}
+
+main();`}
+                    language="javascript"
+                  />
+                </CodeBlock>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="python" className="mt-4">
+              <div className="space-y-4">
+                <div className="rounded-lg border bg-muted/50 p-3">
+                  <p className="text-sm font-medium">
+                    Install the OpenAI SDK (Gemini uses OpenAI-compatible format):
+                  </p>
+                  <code className="mt-1 block text-muted-foreground text-sm">
+                    pip install openai
+                  </code>
+                </div>
+                <CodeBlock>
+                  <CodeBlockGroup className="border-b px-4 py-2">
+                    <span className="font-medium text-sm">Python</span>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        python
+                      </Badge>
+                      <CopyButton
+                        content={`from openai import OpenAI
+
+client = OpenAI(
+    api_key="${apiKey}",
+    base_url="${API_BASE_URL}"
+)
+
+completion = client.chat.completions.create(
+    model="gemini-pro",
+    messages=[
+        {
+            "role": "user",
+            "content": "Hello! How are you today?"
+        }
+    ],
+    max_tokens=150,
+    temperature=0.7
+)
+
+print(completion.choices[0].message.content)`}
+                        copyMessage="Python code copied!"
+                      />
+                    </div>
+                  </CodeBlockGroup>
+                  <CodeBlockCode
+                    code={`from openai import OpenAI
+
+client = OpenAI(
+    api_key="${apiKey}",
+    base_url="${API_BASE_URL}"
+)
+
+completion = client.chat.completions.create(
+    model="gemini-pro",
+    messages=[
+        {
+            "role": "user",
+            "content": "Hello! How are you today?"
+        }
+    ],
+    max_tokens=150,
+    temperature=0.7
+)
+
+print(completion.choices[0].message.content)`}
                     language="python"
                   />
                 </CodeBlock>
