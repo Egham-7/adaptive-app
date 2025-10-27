@@ -304,69 +304,40 @@ export function AdaptiveConfigSheet({
 								/>
 
 								{form.watch("model_router_config.cache.enabled") && (
-									<>
-										<FormField
-											control={form.control}
-											name="model_router_config.cache.capacity"
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Cache Capacity</FormLabel>
-													<FormControl>
-														<Input
-															type="number"
-															placeholder="1000"
-															min={1}
-															max={100000}
-															{...field}
-															onChange={(e) =>
-																field.onChange(Number(e.target.value))
+									<FormField
+										control={form.control}
+										name="model_router_config.cache.semantic_threshold"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Semantic Similarity Threshold</FormLabel>
+												<FormControl>
+													<div className="space-y-2">
+														<Slider
+															min={0}
+															max={1}
+															step={0.05}
+															value={[field.value ?? 0.95]}
+															onValueChange={(value) =>
+																field.onChange(value[0])
 															}
 															disabled={isFormReadOnly}
 														/>
-													</FormControl>
-													<FormDescription>
-														Maximum number of cached items (1-100,000)
-													</FormDescription>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-
-										<FormField
-											control={form.control}
-											name="model_router_config.cache.semantic_threshold"
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Semantic Similarity Threshold</FormLabel>
-													<FormControl>
-														<div className="space-y-2">
-															<Slider
-																min={0}
-																max={1}
-																step={0.05}
-																value={[field.value ?? 0.95]}
-																onValueChange={(value) =>
-																	field.onChange(value[0])
-																}
-																disabled={isFormReadOnly}
-															/>
-															<div className="flex justify-between text-muted-foreground text-xs">
-																<span>Less Similar (0.0)</span>
-																<span className="font-medium">
-																	{field.value?.toFixed(2) ?? "0.95"}
-																</span>
-																<span>Exact Match (1.0)</span>
-															</div>
+														<div className="flex justify-between text-muted-foreground text-xs">
+															<span>Less Similar (0.0)</span>
+															<span className="font-medium">
+																{field.value?.toFixed(2) ?? "0.95"}
+															</span>
+															<span>Exact Match (1.0)</span>
 														</div>
-													</FormControl>
-													<FormDescription>
-														Minimum similarity score for cache hits
-													</FormDescription>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-									</>
+													</div>
+												</FormControl>
+												<FormDescription>
+													Minimum similarity score for cache hits
+												</FormDescription>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 								)}
 							</div>
 
