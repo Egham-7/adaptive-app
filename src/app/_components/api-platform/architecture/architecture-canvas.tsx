@@ -242,8 +242,8 @@ function ArchitectureCanvasInner({
 				},
 			];
 
-			// Only show delete for project-level configs
-			if (!isOrgLevel) {
+			// Only show delete for project-level configs that are actually configured
+			if (!isOrgLevel && provider?.isConfigured) {
 				commands.push({
 					id: "delete-provider",
 					label: "Delete Provider",
