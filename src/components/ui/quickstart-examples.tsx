@@ -1,5 +1,7 @@
 "use client";
 
+import { SiOpenai, SiPython, SiJavascript, SiGoogle, SiAnthropic } from "react-icons/si";
+import { FaTerminal } from "react-icons/fa";
 import { Badge } from "@/components/ui/badge";
 import {
   CodeBlock,
@@ -8,6 +10,12 @@ import {
 } from "@/components/ui/code-block";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface QuickstartExamplesProps {
   apiKey: string;
@@ -36,19 +44,81 @@ export function QuickstartExamples({
       )}
 
       <Tabs defaultValue="chat-completions" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="chat-completions">OpenAI</TabsTrigger>
-          <TabsTrigger value="messages">Anthropic</TabsTrigger>
-          <TabsTrigger value="gemini-chat">Gemini</TabsTrigger>
-        </TabsList>
+        <TooltipProvider>
+          <TabsList className="grid w-full grid-cols-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="chat-completions">
+                  <SiOpenai className="h-5 w-5" />
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>OpenAI</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="messages">
+                  <SiAnthropic className="h-5 w-5" />
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Anthropic</p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger value="gemini-chat">
+                  <SiGoogle className="h-5 w-5" />
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Gemini</p>
+              </TooltipContent>
+            </Tooltip>
+          </TabsList>
+        </TooltipProvider>
 
         <TabsContent value="chat-completions" className="mt-4">
             <Tabs defaultValue="curl" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="curl">cURL</TabsTrigger>
-                <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-                <TabsTrigger value="python">Python</TabsTrigger>
-              </TabsList>
+              <TooltipProvider>
+                <TabsList className="grid w-full grid-cols-3">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="curl">
+                        <FaTerminal className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>cURL</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="javascript">
+                        <SiJavascript className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>JavaScript</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="python">
+                        <SiPython className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Python</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TabsList>
+              </TooltipProvider>
 
             <TabsContent value="curl" className="mt-4">
               <CodeBlock>
@@ -249,11 +319,42 @@ print(completion.choices[0].message.content)`}
 
         <TabsContent value="messages" className="mt-4">
             <Tabs defaultValue="curl" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="curl">cURL</TabsTrigger>
-                <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-                <TabsTrigger value="python">Python</TabsTrigger>
-              </TabsList>
+              <TooltipProvider>
+                <TabsList className="grid w-full grid-cols-3">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="curl">
+                        <FaTerminal className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>cURL</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="javascript">
+                        <SiJavascript className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>JavaScript</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="python">
+                        <SiPython className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Python</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TabsList>
+              </TooltipProvider>
 
             <TabsContent value="curl" className="mt-4">
               <CodeBlock>
@@ -450,11 +551,42 @@ print(message.content[0].text)`}
 
         <TabsContent value="gemini-chat" className="mt-4">
             <Tabs defaultValue="curl" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="curl">cURL</TabsTrigger>
-                <TabsTrigger value="javascript">JavaScript</TabsTrigger>
-                <TabsTrigger value="python">Python</TabsTrigger>
-              </TabsList>
+              <TooltipProvider>
+                <TabsList className="grid w-full grid-cols-3">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="curl">
+                        <FaTerminal className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>cURL</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="javascript">
+                        <SiJavascript className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>JavaScript</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger value="python">
+                        <SiPython className="h-4 w-4" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Python</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TabsList>
+              </TooltipProvider>
 
             <TabsContent value="curl" className="mt-4">
               <CodeBlock>
