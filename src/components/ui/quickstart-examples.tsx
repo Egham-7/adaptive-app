@@ -1,6 +1,12 @@
 "use client";
 
-import { SiOpenai, SiPython, SiJavascript, SiGoogle, SiAnthropic } from "react-icons/si";
+import {
+  SiOpenai,
+  SiPython,
+  SiJavascript,
+  SiGoogle,
+  SiAnthropic,
+} from "react-icons/si";
 import { FaTerminal } from "react-icons/fa";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { env } from "@/env";
 
 interface QuickstartExamplesProps {
   apiKey: string;
@@ -25,7 +32,7 @@ interface QuickstartExamplesProps {
   description?: string;
 }
 
-const API_BASE_URL = "https://api.llmadaptive.uk/v1";
+const API_BASE_URL = env.ADAPTIVE_API_BASE_URL;
 
 export function QuickstartExamples({
   apiKey,
@@ -82,43 +89,43 @@ export function QuickstartExamples({
         </TooltipProvider>
 
         <TabsContent value="chat-completions" className="mt-4">
-            <Tabs defaultValue="curl" className="w-full">
-              <TooltipProvider>
-                <TabsList className="flex w-full gap-1">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger value="curl">
-                        <FaTerminal className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>cURL</p>
-                    </TooltipContent>
-                  </Tooltip>
+          <Tabs defaultValue="curl" className="w-full">
+            <TooltipProvider>
+              <TabsList className="flex w-full gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="curl">
+                      <FaTerminal className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>cURL</p>
+                  </TooltipContent>
+                </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger value="javascript">
-                        <SiJavascript className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>JavaScript</p>
-                    </TooltipContent>
-                  </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="javascript">
+                      <SiJavascript className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>JavaScript</p>
+                  </TooltipContent>
+                </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger value="python">
-                        <SiPython className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Python</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TabsList>
-              </TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="python">
+                      <SiPython className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Python</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TabsList>
+            </TooltipProvider>
 
             <TabsContent value="curl" className="mt-4">
               <CodeBlock>
@@ -170,9 +177,7 @@ export function QuickstartExamples({
             <TabsContent value="javascript" className="mt-4">
               <div className="space-y-4">
                 <div className="rounded-lg border bg-muted/50 p-3">
-                  <p className="text-sm font-medium">
-                    Install the OpenAI SDK:
-                  </p>
+                  <p className="text-sm font-medium">Install the OpenAI SDK:</p>
                   <code className="mt-1 block text-muted-foreground text-sm">
                     npm install openai
                   </code>
@@ -249,9 +254,7 @@ main();`}
             <TabsContent value="python" className="mt-4">
               <div className="space-y-4">
                 <div className="rounded-lg border bg-muted/50 p-3">
-                  <p className="text-sm font-medium">
-                    Install the OpenAI SDK:
-                  </p>
+                  <p className="text-sm font-medium">Install the OpenAI SDK:</p>
                   <code className="mt-1 block text-muted-foreground text-sm">
                     pip install openai
                   </code>
@@ -318,43 +321,43 @@ print(completion.choices[0].message.content)`}
         </TabsContent>
 
         <TabsContent value="messages" className="mt-4">
-            <Tabs defaultValue="curl" className="w-full">
-              <TooltipProvider>
-                <TabsList className="flex w-full gap-1">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger value="curl">
-                        <FaTerminal className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>cURL</p>
-                    </TooltipContent>
-                  </Tooltip>
+          <Tabs defaultValue="curl" className="w-full">
+            <TooltipProvider>
+              <TabsList className="flex w-full gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="curl">
+                      <FaTerminal className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>cURL</p>
+                  </TooltipContent>
+                </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger value="javascript">
-                        <SiJavascript className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>JavaScript</p>
-                    </TooltipContent>
-                  </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="javascript">
+                      <SiJavascript className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>JavaScript</p>
+                  </TooltipContent>
+                </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger value="python">
-                        <SiPython className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Python</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TabsList>
-              </TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="python">
+                      <SiPython className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Python</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TabsList>
+            </TooltipProvider>
 
             <TabsContent value="curl" className="mt-4">
               <CodeBlock>
@@ -550,43 +553,43 @@ print(message.content[0].text)`}
         </TabsContent>
 
         <TabsContent value="gemini-chat" className="mt-4">
-            <Tabs defaultValue="curl" className="w-full">
-              <TooltipProvider>
-                <TabsList className="flex w-full gap-1">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger value="curl">
-                        <FaTerminal className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>cURL</p>
-                    </TooltipContent>
-                  </Tooltip>
+          <Tabs defaultValue="curl" className="w-full">
+            <TooltipProvider>
+              <TabsList className="flex w-full gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="curl">
+                      <FaTerminal className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>cURL</p>
+                  </TooltipContent>
+                </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger value="javascript">
-                        <SiJavascript className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>JavaScript</p>
-                    </TooltipContent>
-                  </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="javascript">
+                      <SiJavascript className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>JavaScript</p>
+                  </TooltipContent>
+                </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <TabsTrigger value="python">
-                        <SiPython className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Python</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TabsList>
-              </TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger value="python">
+                      <SiPython className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Python</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TabsList>
+            </TooltipProvider>
 
             <TabsContent value="curl" className="mt-4">
               <CodeBlock>
@@ -641,7 +644,8 @@ print(message.content[0].text)`}
               <div className="space-y-4">
                 <div className="rounded-lg border bg-muted/50 p-3">
                   <p className="text-sm font-medium">
-                    Install the OpenAI SDK (Gemini uses OpenAI-compatible format):
+                    Install the OpenAI SDK (Gemini uses OpenAI-compatible
+                    format):
                   </p>
                   <code className="mt-1 block text-muted-foreground text-sm">
                     npm install openai
@@ -720,7 +724,8 @@ main();`}
               <div className="space-y-4">
                 <div className="rounded-lg border bg-muted/50 p-3">
                   <p className="text-sm font-medium">
-                    Install the OpenAI SDK (Gemini uses OpenAI-compatible format):
+                    Install the OpenAI SDK (Gemini uses OpenAI-compatible
+                    format):
                   </p>
                   <code className="mt-1 block text-muted-foreground text-sm">
                     pip install openai
@@ -790,4 +795,3 @@ print(completion.choices[0].message.content)`}
     </div>
   );
 }
-
