@@ -315,6 +315,8 @@ export function AdaptiveConfigSheet({
 														<Input
 															type="number"
 															placeholder="1000"
+															min={1}
+															max={100000}
 															{...field}
 															onChange={(e) =>
 																field.onChange(Number(e.target.value))
@@ -323,7 +325,7 @@ export function AdaptiveConfigSheet({
 														/>
 													</FormControl>
 													<FormDescription>
-														Maximum number of cached items (LRU eviction)
+														Maximum number of cached items (1-100,000)
 													</FormDescription>
 													<FormMessage />
 												</FormItem>
@@ -420,6 +422,8 @@ export function AdaptiveConfigSheet({
 												<Input
 													type="number"
 													placeholder="30000"
+													min={1000}
+													max={300000}
 													{...field}
 													onChange={(e) =>
 														field.onChange(Number(e.target.value))
@@ -428,7 +432,7 @@ export function AdaptiveConfigSheet({
 												/>
 											</FormControl>
 											<FormDescription>
-												Request timeout in milliseconds
+												Request timeout in milliseconds (1s-5min)
 											</FormDescription>
 											<FormMessage />
 										</FormItem>
@@ -445,6 +449,8 @@ export function AdaptiveConfigSheet({
 												<Input
 													type="number"
 													placeholder="2"
+													min={0}
+													max={10}
 													{...field}
 													onChange={(e) =>
 														field.onChange(Number(e.target.value))
@@ -453,7 +459,7 @@ export function AdaptiveConfigSheet({
 												/>
 											</FormControl>
 											<FormDescription>
-												Maximum number of retry attempts
+												Maximum number of retry attempts (0-10)
 											</FormDescription>
 											<FormMessage />
 										</FormItem>
