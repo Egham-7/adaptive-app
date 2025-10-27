@@ -217,7 +217,7 @@ export function EditProviderDialog({
 										</div>
 									</FormControl>
 									<FormDescription>
-										Leave empty to keep existing or inherit from YAML config
+										Leave empty to keep existing value
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -285,9 +285,7 @@ export function EditProviderDialog({
 											{...field}
 										/>
 									</FormControl>
-									<FormDescription>
-										Leave empty to inherit from YAML config
-									</FormDescription>
+									<FormDescription>Leave empty to use default</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}

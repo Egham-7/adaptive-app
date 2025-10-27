@@ -19,7 +19,7 @@ export type FallbackMode = (typeof fallbackModes)[number];
 /**
  * Configuration source hierarchy
  */
-export const configSources = ["project", "organization", "yaml"] as const;
+export const configSources = ["project", "organization"] as const;
 export type ConfigSource = (typeof configSources)[number];
 
 // ============================================================================

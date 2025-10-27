@@ -67,10 +67,7 @@ export function AdaptiveConfigTab({
 
 	const utils = api.useUtils();
 
-	// Determine if we should create or update based on config source
-	const isYamlConfig = config?.source === "yaml";
-
-	// Create mutation (for yaml configs that don't exist in DB)
+	// Create mutation (when no config exists in DB)
 	const createMutation =
 		api.adaptiveConfig.createOrganizationAdaptiveConfig.useMutation({
 			onSuccess: () => {
@@ -113,11 +110,11 @@ export function AdaptiveConfigTab({
 		},
 	});
 
-	// Handle save - use create for yaml configs, update for db configs
+	// Handle save - use create when no config exists, update otherwise
 	const onSubmit = form.handleSubmit((data) => {
 		if (!isAdmin) return;
 
-		if (isYamlConfig) {
+		if (!config) {
 			// Create new config in database
 			createMutation.mutate({ organizationId, data });
 		} else {
@@ -178,11 +175,8 @@ export function AdaptiveConfigTab({
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
-					<Badge
-						variant={isYamlConfig ? "outline" : "secondary"}
-						className="capitalize"
-					>
-						{isYamlConfig ? "Default" : config.source || "api"}
+					<Badge variant="secondary" className="capitalize">
+						{config?.source || "api"}
 					</Badge>
 					<Button
 						variant="outline"
@@ -195,18 +189,6 @@ export function AdaptiveConfigTab({
 					</Button>
 				</div>
 			</div>
-
-			{/* YAML Config Warning */}
-			{isYamlConfig && isAdmin && (
-				<Alert>
-					<AlertCircle className="h-4 w-4" />
-					<AlertDescription>
-						You are viewing default configuration values from YAML. To customize
-						and persist these settings to the database, make your changes and
-						click "Save Configuration".
-					</AlertDescription>
-				</Alert>
-			)}
 
 			{/* Admin warning */}
 			{!isAdmin && (
@@ -236,9 +218,7 @@ export function AdaptiveConfigTab({
 									Model Router Configuration
 								</span>
 								{config.model_router_config && (
-									<Badge variant="outline">
-										{isYamlConfig ? "Default" : "Configured"}
-									</Badge>
+									<Badge variant="outline">Configured</Badge>
 								)}
 							</div>
 						</AccordionTrigger>
@@ -325,9 +305,7 @@ export function AdaptiveConfigTab({
 							<div className="flex items-center gap-2">
 								<span className="font-semibold">Fallback Configuration</span>
 								{config.fallback_config && (
-									<Badge variant="outline">
-										{isYamlConfig ? "Default" : "Configured"}
-									</Badge>
+									<Badge variant="outline">Configured</Badge>
 								)}
 							</div>
 						</AccordionTrigger>
@@ -423,14 +401,14 @@ export function AdaptiveConfigTab({
 				{(createMutation.isSuccess || updateMutation.isSuccess) && (
 					<Alert className="border-green-200 bg-green-50 text-green-900">
 						<AlertDescription>
-							Configuration {isYamlConfig ? "created" : "updated"} successfully!
+							Configuration {config ? "updated" : "created"} successfully!
 						</AlertDescription>
 					</Alert>
 				)}
 				{(createMutation.isError || updateMutation.isError) && (
 					<Alert variant="destructive">
 						<AlertDescription>
-							Failed to {isYamlConfig ? "create" : "update"} configuration:{" "}
+							Failed to {config ? "update" : "create"} configuration:{" "}
 							{createMutation.error?.message || updateMutation.error?.message}
 						</AlertDescription>
 					</Alert>

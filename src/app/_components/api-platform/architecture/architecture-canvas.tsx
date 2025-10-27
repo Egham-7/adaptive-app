@@ -68,7 +68,7 @@ const RADIUS = 650; // Radius for circular arrangement (increased to prevent ove
 
 interface AdaptiveNodeData {
 	isConfigured: boolean;
-	configSource?: "project" | "organization" | "yaml";
+	configSource: "project" | "organization";
 	onClick: () => void;
 	highlight: boolean;
 }
@@ -117,29 +117,13 @@ const getProviderNodePosition = (index: number, total: number) => {
 const combineProviders = (
 	providers: ProviderConfigApiResponse[],
 ): ProviderInfo[] => {
-	const defaultProviders = Object.keys(PROVIDER_METADATA) as ProviderName[];
-
-	const customProviders = providers.filter(
-		(p) => !PROVIDER_METADATA[p.provider_name as ProviderName],
-	);
-
-	return [
-		...defaultProviders.map((name) => {
-			const config = providers.find((p) => p.provider_name === name);
-			return {
-				name,
-				isCustom: false,
-				isConfigured: !!config,
-				config,
-			};
-		}),
-		...customProviders.map((config) => ({
-			name: config.provider_name,
-			isCustom: true,
-			isConfigured: true,
-			config,
-		})),
-	];
+	// Only return providers that are in the response (configured)
+	return providers.map((config) => ({
+		name: config.provider_name,
+		isCustom: !PROVIDER_METADATA[config.provider_name as ProviderName],
+		isConfigured: true,
+		config,
+	}));
 };
 
 // Inner component that uses useReactFlow hook
@@ -301,16 +285,18 @@ function ArchitectureCanvasInner({
 			handleAdaptiveClick();
 		};
 
-		// Create adaptive node (centered)
+		// Always create adaptive node, but mark as configured only if config exists
+		const isAdaptiveConfigured =
+			adaptiveConfig?.source === "project" ||
+			adaptiveConfig?.source === "organization";
+
 		const adaptiveNode: Node = {
 			id: "adaptive",
 			type: "adaptive",
 			position: getAdaptiveNodePosition(),
 			data: {
-				isConfigured:
-					adaptiveConfig?.source === "project" ||
-					adaptiveConfig?.source === "organization",
-				configSource: adaptiveConfig?.source,
+				isConfigured: isAdaptiveConfigured,
+				configSource: isAdaptiveConfigured ? adaptiveConfig.source : "project",
 				onClick: handleAdaptiveClickWithZoom,
 				highlight: adaptiveNodeHighlight,
 			},
@@ -395,11 +381,7 @@ function ArchitectureCanvasInner({
 	// Create edges from adaptive node to providers
 	const edges = useMemo<Edge[]>(() => {
 		const generatedEdges = allProviders
-			.filter((provider) => {
-				if (!provider.isConfigured) return true;
-				if (provider.config?.enabled) return true;
-				return false;
-			})
+			.filter((provider) => provider.config?.enabled !== false)
 			.map((provider) => {
 				const providerNode = nodes.find((n) => n.id === provider.name);
 				const nodeData = providerNode?.data as ProviderNodeData;
@@ -425,16 +407,6 @@ function ArchitectureCanvasInner({
 					},
 				};
 			});
-
-		console.log("Generated edges:", generatedEdges);
-		console.log(
-			"All providers:",
-			allProviders.map((p) => p.name),
-		);
-		console.log(
-			"Nodes:",
-			nodes.map((n) => n.id),
-		);
 
 		return generatedEdges;
 	}, [allProviders, nodes]);

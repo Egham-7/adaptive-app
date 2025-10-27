@@ -7,7 +7,7 @@ import { cn } from "@/lib/shared/utils";
 
 interface AdaptiveNodeCardProps {
 	isConfigured: boolean;
-	configSource?: "project" | "organization" | "yaml";
+	configSource: "project" | "organization";
 	onClick: () => void;
 	highlight?: boolean;
 }
@@ -28,18 +28,14 @@ export function AdaptiveNodeCard({
 
 	// Determine status text based on config source
 	const getStatusText = () => {
+		if (!isConfigured) return "Click to Configure";
 		if (configSource === "project") return "Project Config";
-		if (configSource === "organization") return "Org-level Config";
-		if (configSource === "yaml") return "Default Config";
-		return "Click to Configure";
+		return "Org-level Config";
 	};
 
 	// Determine badge text based on config source
 	const getBadgeText = () => {
-		if (configSource === "project") return "Project";
-		if (configSource === "organization") return "Organization";
-		if (configSource === "yaml") return "Default";
-		return "Active";
+		return configSource === "project" ? "Project" : "Organization";
 	};
 
 	return (
@@ -95,28 +91,11 @@ export function AdaptiveNodeCard({
 				</div>
 
 				{/* Status Badge */}
-				{configSource && (
+				{isConfigured && (
 					<div className="absolute top-3 left-3">
-						<div
-							className={cn(
-								"flex items-center gap-1.5 rounded-full border px-2 py-1 shadow-sm",
-								isConfigured
-									? "border-success/20 bg-success/10"
-									: "border-muted-foreground/20 bg-muted-foreground/10",
-							)}
-						>
-							<Check
-								className={cn(
-									"h-3 w-3",
-									isConfigured ? "text-success" : "text-muted-foreground",
-								)}
-							/>
-							<span
-								className={cn(
-									"font-medium text-xs",
-									isConfigured ? "text-success" : "text-muted-foreground",
-								)}
-							>
+						<div className="flex items-center gap-1.5 rounded-full border border-success/20 bg-success/10 px-2 py-1 shadow-sm">
+							<Check className="h-3 w-3 text-success" />
+							<span className="font-medium text-success text-xs">
 								{getBadgeText()}
 							</span>
 						</div>
@@ -159,9 +138,7 @@ export function AdaptiveNodeCard({
 							"rounded-full px-4 py-1.5 font-semibold text-xs transition-colors",
 							isConfigured
 								? "bg-success/20 text-success"
-								: configSource === "yaml"
-									? "bg-muted text-muted-foreground"
-									: "bg-muted-foreground/20 text-muted-foreground",
+								: "bg-muted-foreground/20 text-muted-foreground",
 						)}
 					>
 						{getStatusText()}
