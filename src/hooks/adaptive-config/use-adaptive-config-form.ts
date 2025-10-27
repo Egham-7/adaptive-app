@@ -69,12 +69,10 @@ export function useAdaptiveConfigForm({
 
 	const onSubmit = async (data: AdaptiveConfigFormData) => {
 		try {
-			// If source is "yaml" or "organization", there's no project-level config yet
+			// If source is "organization", there's no project-level config yet
 			// So we should CREATE, not UPDATE
 			const shouldCreate =
-				!existingConfig ||
-				existingConfig.source === "yaml" ||
-				existingConfig.source === "organization";
+				!existingConfig || existingConfig.source === "organization";
 
 			if (shouldCreate) {
 				await createMutation.mutateAsync({

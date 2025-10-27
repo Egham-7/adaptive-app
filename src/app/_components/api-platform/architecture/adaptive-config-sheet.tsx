@@ -304,67 +304,40 @@ export function AdaptiveConfigSheet({
 								/>
 
 								{form.watch("model_router_config.cache.enabled") && (
-									<>
-										<FormField
-											control={form.control}
-											name="model_router_config.cache.capacity"
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Cache Capacity</FormLabel>
-													<FormControl>
-														<Input
-															type="number"
-															placeholder="1000"
-															{...field}
-															onChange={(e) =>
-																field.onChange(Number(e.target.value))
+									<FormField
+										control={form.control}
+										name="model_router_config.cache.semantic_threshold"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Semantic Similarity Threshold</FormLabel>
+												<FormControl>
+													<div className="space-y-2">
+														<Slider
+															min={0}
+															max={1}
+															step={0.05}
+															value={[field.value ?? 0.95]}
+															onValueChange={(value) =>
+																field.onChange(value[0])
 															}
 															disabled={isFormReadOnly}
 														/>
-													</FormControl>
-													<FormDescription>
-														Maximum number of cached items (LRU eviction)
-													</FormDescription>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-
-										<FormField
-											control={form.control}
-											name="model_router_config.cache.semantic_threshold"
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Semantic Similarity Threshold</FormLabel>
-													<FormControl>
-														<div className="space-y-2">
-															<Slider
-																min={0}
-																max={1}
-																step={0.05}
-																value={[field.value ?? 0.95]}
-																onValueChange={(value) =>
-																	field.onChange(value[0])
-																}
-																disabled={isFormReadOnly}
-															/>
-															<div className="flex justify-between text-muted-foreground text-xs">
-																<span>Less Similar (0.0)</span>
-																<span className="font-medium">
-																	{field.value?.toFixed(2) ?? "0.95"}
-																</span>
-																<span>Exact Match (1.0)</span>
-															</div>
+														<div className="flex justify-between text-muted-foreground text-xs">
+															<span>Less Similar (0.0)</span>
+															<span className="font-medium">
+																{field.value?.toFixed(2) ?? "0.95"}
+															</span>
+															<span>Exact Match (1.0)</span>
 														</div>
-													</FormControl>
-													<FormDescription>
-														Minimum similarity score for cache hits
-													</FormDescription>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-									</>
+													</div>
+												</FormControl>
+												<FormDescription>
+													Minimum similarity score for cache hits
+												</FormDescription>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
 								)}
 							</div>
 
@@ -420,6 +393,8 @@ export function AdaptiveConfigSheet({
 												<Input
 													type="number"
 													placeholder="30000"
+													min={1000}
+													max={300000}
 													{...field}
 													onChange={(e) =>
 														field.onChange(Number(e.target.value))
@@ -428,7 +403,7 @@ export function AdaptiveConfigSheet({
 												/>
 											</FormControl>
 											<FormDescription>
-												Request timeout in milliseconds
+												Request timeout in milliseconds (1s-5min)
 											</FormDescription>
 											<FormMessage />
 										</FormItem>
@@ -445,6 +420,8 @@ export function AdaptiveConfigSheet({
 												<Input
 													type="number"
 													placeholder="2"
+													min={0}
+													max={10}
 													{...field}
 													onChange={(e) =>
 														field.onChange(Number(e.target.value))
@@ -453,7 +430,7 @@ export function AdaptiveConfigSheet({
 												/>
 											</FormControl>
 											<FormDescription>
-												Maximum number of retry attempts
+												Maximum number of retry attempts (0-10)
 											</FormDescription>
 											<FormMessage />
 										</FormItem>

@@ -182,7 +182,6 @@ export const OrganizationProvidersTab: React.FC<
 								baseUrl={config?.base_url}
 								enabled={config?.enabled}
 								source={config?.source}
-								level="organization"
 								isLoading={loadingProviders.has(providerName)}
 								onConfigure={handleConfigureProvider}
 								onEdit={

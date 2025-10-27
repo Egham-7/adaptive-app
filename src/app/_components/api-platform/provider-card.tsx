@@ -28,7 +28,6 @@ interface ProviderCardProps {
 	onDelete?: () => void;
 	onToggle?: (enabled: boolean) => void;
 	onViewHistory?: () => void;
-	level?: "project" | "organization";
 }
 
 export function ProviderCard({
@@ -44,7 +43,6 @@ export function ProviderCard({
 	onDelete,
 	onToggle,
 	onViewHistory,
-	level = "project",
 }: ProviderCardProps) {
 	const metadata = PROVIDER_METADATA[providerName as ProviderName];
 	const isCustomProvider = !metadata;
@@ -65,7 +63,7 @@ export function ProviderCard({
 			)}
 			{!isLoading && isInherited && (
 				<div className="absolute top-2 right-2 rounded-md bg-blue-100 px-2 py-1 text-blue-700 text-xs dark:bg-blue-900 dark:text-blue-300">
-					Inherited from {level === "project" ? "organization" : "YAML"}
+					Inherited from organization
 				</div>
 			)}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ReactFlow, {
 	applyNodeChanges,
 	Background,
@@ -61,14 +61,28 @@ import { ConnectDialog } from "./connect-dialog";
 import { ProviderConfigSheet } from "./provider-config-sheet";
 import { ProviderNodeCard } from "./provider-node-card";
 
-const CARD_WIDTH = 280;
+const CARD_WIDTH = 260; // Match actual provider card width
+const CARD_HEIGHT = 200; // Approximate card height for collision detection
 const ADAPTIVE_NODE_SIZE = 320;
-const _CARD_GAP = 100;
-const RADIUS = 650; // Radius for circular arrangement (increased to prevent overlap)
+
+/**
+ * Calculate optimal radius based on number of providers
+ * For small counts (1-3): tighter circle for better visual cohesion
+ * For larger counts (4+): wider circle to prevent overlap
+ */
+const getOptimalRadius = (providerCount: number): number => {
+	if (providerCount === 0) return 400;
+	if (providerCount === 1) return 350; // Single provider close to center
+	if (providerCount === 2) return 400; // Two providers at reasonable distance
+	if (providerCount === 3) return 450; // Three providers form compact triangle
+	if (providerCount <= 6) return 550; // Medium circle for 4-6 providers
+	if (providerCount <= 9) return 650; // Larger circle for 7-9 providers
+	return 750; // Extra large for 10+ providers
+};
 
 interface AdaptiveNodeData {
 	isConfigured: boolean;
-	configSource?: "project" | "organization" | "yaml";
+	configSource: "project" | "organization";
 	onClick: () => void;
 	highlight: boolean;
 }
@@ -105,41 +119,43 @@ const getAdaptiveNodePosition = () => ({
 
 /**
  * Calculate positions for provider nodes in a circle around the adaptive node
- * Places nodes evenly around the circle, accounting for card width
+ * Uses adaptive radius and optimized starting angle for visual balance
  */
 const getProviderNodePosition = (index: number, total: number) => {
-	const angle = (index / total) * 2 * Math.PI - Math.PI / 2; // Start from top
-	const x = Math.cos(angle) * RADIUS - CARD_WIDTH / 2;
-	const y = Math.sin(angle) * RADIUS - CARD_WIDTH / 2;
+	const radius = getOptimalRadius(total);
+
+	// Optimize starting angle based on provider count for better symmetry
+	let startAngle = -Math.PI / 2; // Default: start from top (12 o'clock)
+
+	if (total === 1) {
+		startAngle = -Math.PI / 2; // Single provider at top
+	} else if (total === 2) {
+		startAngle = 0; // Two providers at 3 and 9 o'clock (horizontal)
+	} else if (total === 3) {
+		startAngle = -Math.PI / 2; // Three providers: top and bottom corners
+	} else if (total === 4) {
+		startAngle = -Math.PI / 4; // Four providers: diagonal alignment
+	}
+
+	const angle = startAngle + (index / total) * 2 * Math.PI;
+
+	// Center the card on the calculated position
+	const x = Math.cos(angle) * radius - CARD_WIDTH / 2;
+	const y = Math.sin(angle) * radius - CARD_HEIGHT / 2;
+
 	return { x, y };
 };
 
 const combineProviders = (
 	providers: ProviderConfigApiResponse[],
 ): ProviderInfo[] => {
-	const defaultProviders = Object.keys(PROVIDER_METADATA) as ProviderName[];
-
-	const customProviders = providers.filter(
-		(p) => !PROVIDER_METADATA[p.provider_name as ProviderName],
-	);
-
-	return [
-		...defaultProviders.map((name) => {
-			const config = providers.find((p) => p.provider_name === name);
-			return {
-				name,
-				isCustom: false,
-				isConfigured: !!config,
-				config,
-			};
-		}),
-		...customProviders.map((config) => ({
-			name: config.provider_name,
-			isCustom: true,
-			isConfigured: true,
-			config,
-		})),
-	];
+	// Only return providers that are in the response (configured)
+	return providers.map((config) => ({
+		name: config.provider_name,
+		isCustom: !PROVIDER_METADATA[config.provider_name as ProviderName],
+		isConfigured: true,
+		config,
+	}));
 };
 
 // Inner component that uses useReactFlow hook
@@ -190,8 +206,12 @@ function ArchitectureCanvasInner({
 
 	const handleSheetClose = useCallback(() => {
 		// Zoom back out to fit all content when closing any sheet
-		setCenter(0, 0, { zoom: 0.6, duration: 300 });
-	}, [setCenter]);
+		// Use adaptive zoom: smaller layouts need less zoom-out
+		const providerCount = allProviders.length;
+		const targetZoom =
+			providerCount <= 3 ? 0.8 : providerCount <= 6 ? 0.7 : 0.6;
+		setCenter(0, 0, { zoom: targetZoom, duration: 300 });
+	}, [setCenter, allProviders.length]);
 
 	const handleAdaptiveSaveSuccess = useCallback(() => {
 		// Trigger highlight animation
@@ -242,8 +262,8 @@ function ArchitectureCanvasInner({
 				},
 			];
 
-			// Only show delete for project-level configs
-			if (!isOrgLevel) {
+			// Only show delete for project-level configs that are actually configured
+			if (!isOrgLevel && provider?.isConfigured) {
 				commands.push({
 					id: "delete-provider",
 					label: "Delete Provider",
@@ -301,16 +321,18 @@ function ArchitectureCanvasInner({
 			handleAdaptiveClick();
 		};
 
-		// Create adaptive node (centered)
+		// Always create adaptive node, but mark as configured only if config exists
+		const isAdaptiveConfigured =
+			adaptiveConfig?.source === "project" ||
+			adaptiveConfig?.source === "organization";
+
 		const adaptiveNode: Node = {
 			id: "adaptive",
 			type: "adaptive",
 			position: getAdaptiveNodePosition(),
 			data: {
-				isConfigured:
-					adaptiveConfig?.source === "project" ||
-					adaptiveConfig?.source === "organization",
-				configSource: adaptiveConfig?.source,
+				isConfigured: isAdaptiveConfigured,
+				configSource: isAdaptiveConfigured ? adaptiveConfig.source : "project",
 				onClick: handleAdaptiveClickWithZoom,
 				highlight: adaptiveNodeHighlight,
 			},
@@ -388,18 +410,15 @@ function ArchitectureCanvasInner({
 
 	const [nodes, setNodes] = useState<Node[]>(initialNodes);
 
-	useMemo(() => {
+	// Update nodes when initialNodes changes (when providers are added/removed)
+	useEffect(() => {
 		setNodes(initialNodes);
 	}, [initialNodes]);
 
 	// Create edges from adaptive node to providers
 	const edges = useMemo<Edge[]>(() => {
 		const generatedEdges = allProviders
-			.filter((provider) => {
-				if (!provider.isConfigured) return true;
-				if (provider.config?.enabled) return true;
-				return false;
-			})
+			.filter((provider) => provider.config?.enabled !== false)
 			.map((provider) => {
 				const providerNode = nodes.find((n) => n.id === provider.name);
 				const nodeData = providerNode?.data as ProviderNodeData;
@@ -425,16 +444,6 @@ function ArchitectureCanvasInner({
 					},
 				};
 			});
-
-		console.log("Generated edges:", generatedEdges);
-		console.log(
-			"All providers:",
-			allProviders.map((p) => p.name),
-		);
-		console.log(
-			"Nodes:",
-			nodes.map((n) => n.id),
-		);
 
 		return generatedEdges;
 	}, [allProviders, nodes]);
@@ -493,12 +502,14 @@ function ArchitectureCanvasInner({
 				nodeTypes={nodeTypes}
 				fitView
 				fitViewOptions={{
-					padding: 0.2,
+					padding: 0.3, // Increased padding for better framing
 					includeHiddenNodes: false,
+					minZoom: 0.4, // Ensure we don't zoom out too far on small layouts
+					maxZoom: 1.2, // Better initial zoom for small provider counts
 				}}
 				minZoom={0.2}
 				maxZoom={1.5}
-				defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+				defaultViewport={{ x: 0, y: 0, zoom: 0.8 }} // Higher default zoom for tighter layouts
 				panOnScroll
 				panOnDrag
 				zoomOnScroll
