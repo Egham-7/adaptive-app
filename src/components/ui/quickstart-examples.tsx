@@ -45,7 +45,7 @@ export function QuickstartExamples({
 
       <Tabs defaultValue="chat-completions" className="w-full">
         <TooltipProvider>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="flex w-full gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
                 <TabsTrigger value="chat-completions">
@@ -84,7 +84,7 @@ export function QuickstartExamples({
         <TabsContent value="chat-completions" className="mt-4">
             <Tabs defaultValue="curl" className="w-full">
               <TooltipProvider>
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="flex w-full gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <TabsTrigger value="curl">
@@ -320,7 +320,7 @@ print(completion.choices[0].message.content)`}
         <TabsContent value="messages" className="mt-4">
             <Tabs defaultValue="curl" className="w-full">
               <TooltipProvider>
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="flex w-full gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <TabsTrigger value="curl">
@@ -552,7 +552,7 @@ print(message.content[0].text)`}
         <TabsContent value="gemini-chat" className="mt-4">
             <Tabs defaultValue="curl" className="w-full">
               <TooltipProvider>
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="flex w-full gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <TabsTrigger value="curl">
