@@ -160,7 +160,7 @@ function ArchitectureCanvasInner({
 	const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 	const [historySheetOpen, setHistorySheetOpen] = useState(false);
 	const [hasInitialFit, setHasInitialFit] = useState(false);
-	const { setCenter, fitView } = useReactFlow();
+	const { fitView } = useReactFlow();
 
 	// Fetch adaptive config
 	const { data: adaptiveConfig } = useProjectAdaptiveConfig(projectId);
