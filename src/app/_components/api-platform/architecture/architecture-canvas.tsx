@@ -582,6 +582,12 @@ function ArchitectureCanvasInner({
 				level="project"
 				projectId={projectId}
 				configuredProviders={providers.map((p) => p.provider_name)}
+				onSuccess={() => {
+					fitView({
+						padding: 0.3,
+						duration: 300,
+					});
+				}}
 			/>
 
 			{currentProvider && (
