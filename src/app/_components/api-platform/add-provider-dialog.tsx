@@ -82,6 +82,7 @@ interface AddProviderDialogProps {
 	projectId?: number;
 	organizationId?: string;
 	configuredProviders?: string[];
+	onSuccess?: () => void;
 }
 
 export function AddProviderDialog({
@@ -91,6 +92,7 @@ export function AddProviderDialog({
 	projectId,
 	organizationId,
 	configuredProviders = [],
+	onSuccess,
 }: AddProviderDialogProps) {
 	const [showApiKey, setShowApiKey] = useState(false);
 
@@ -170,6 +172,7 @@ export function AddProviderDialog({
 				{
 					onSuccess: () => {
 						onOpenChange(false);
+						onSuccess?.();
 					},
 				},
 			);
@@ -179,6 +182,7 @@ export function AddProviderDialog({
 				{
 					onSuccess: () => {
 						onOpenChange(false);
+						onSuccess?.();
 					},
 				},
 			);
