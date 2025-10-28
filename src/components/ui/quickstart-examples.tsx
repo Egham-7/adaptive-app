@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { env } from "@/env";
+import { type IconType } from "react-icons";
 
 interface QuickstartExamplesProps {
   apiKey: string;
@@ -34,6 +35,315 @@ interface QuickstartExamplesProps {
 
 const API_BASE_URL = env.NEXT_PUBLIC_ADAPTIVE_API_BASE_URL;
 
+// Provider configuration
+interface Provider {
+  id: string;
+  name: string;
+  icon: IconType;
+}
+
+const PROVIDERS: Provider[] = [
+  { id: "chat-completions", name: "OpenAI", icon: SiOpenai },
+  { id: "messages", name: "Anthropic", icon: SiAnthropic },
+  { id: "gemini-chat", name: "Gemini", icon: SiGoogle },
+];
+
+// Language configuration
+interface Language {
+  id: string;
+  name: string;
+  icon: IconType;
+  badge: string;
+}
+
+const LANGUAGES: Language[] = [
+  { id: "curl", name: "cURL", icon: FaTerminal, badge: "bash" },
+  {
+    id: "javascript",
+    name: "JavaScript",
+    icon: SiJavascript,
+    badge: "javascript",
+  },
+  { id: "python", name: "Python", icon: SiPython, badge: "python" },
+];
+
+// Code example configuration
+interface CodeExample {
+  title: string;
+  installNote?: {
+    text: string;
+    command: string;
+  };
+  code: (apiKey: string, apiBaseUrl: string) => string;
+  language: string;
+}
+
+type CodeExamples = {
+  [provider: string]: {
+    [language: string]: CodeExample;
+  };
+};
+
+const getCodeExamples = (): CodeExamples => ({
+  "chat-completions": {
+    curl: {
+      title: "Test with cURL",
+      code: (
+        apiKey,
+        apiBaseUrl,
+      ) => `curl -X POST "${apiBaseUrl}/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer ${apiKey}" \\
+  -d '{
+    "model": "",
+    "messages": [
+      {
+        "role": "user", 
+        "content": "Hello! How are you today?"
+      }
+    ],
+    "max_tokens": 150,
+    "temperature": 0.7
+  }'`,
+      language: "bash",
+    },
+    javascript: {
+      title: "JavaScript/Node.js",
+      installNote: {
+        text: "Install the OpenAI SDK:",
+        command: "npm install openai",
+      },
+      code: (apiKey, apiBaseUrl) => `import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: '${apiKey}',
+  baseURL: '${apiBaseUrl}',
+});
+
+async function main() {
+  const completion = await client.chat.completions.create({
+    messages: [
+      { 
+        role: 'user', 
+        content: 'Hello! How are you today?' 
+      }
+    ],
+    model: '',
+    max_tokens: 150,
+    temperature: 0.7,
+  });
+
+  console.log(completion.choices[0]);
+}
+
+main();`,
+      language: "javascript",
+    },
+    python: {
+      title: "Python",
+      installNote: {
+        text: "Install the OpenAI SDK:",
+        command: "pip install openai",
+      },
+      code: (apiKey, apiBaseUrl) => `from openai import OpenAI
+
+client = OpenAI(
+    api_key="${apiKey}",
+    base_url="${apiBaseUrl}"
+)
+
+completion = client.chat.completions.create(
+    model="",
+    messages=[
+        {
+            "role": "user",
+            "content": "Hello! How are you today?"
+        }
+    ],
+    max_tokens=150,
+    temperature=0.7
+)
+
+print(completion.choices[0].message.content)`,
+      language: "python",
+    },
+  },
+  messages: {
+    curl: {
+      title: "Anthropic Messages API",
+      code: (apiKey, apiBaseUrl) => `curl -X POST "${apiBaseUrl}/messages" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer ${apiKey}" \\
+  -d '{
+    "model": "",
+    "max_tokens": 150,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! How are you today?"
+      }
+    ]
+  }'`,
+      language: "bash",
+    },
+    javascript: {
+      title: "JavaScript/Node.js",
+      installNote: {
+        text: "Install the Anthropic SDK:",
+        command: "npm install @anthropic-ai/sdk",
+      },
+      code: (apiKey, apiBaseUrl) => `import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic({
+  apiKey: '${apiKey}',
+  baseURL: '${apiBaseUrl}',
+});
+
+async function main() {
+  const message = await client.messages.create({
+    model: '',
+    max_tokens: 150,
+    messages: [
+      {
+        role: 'user',
+        content: 'Hello! How are you today?'
+      }
+    ]
+  });
+
+  console.log(message.content[0]);
+}
+
+main();`,
+      language: "javascript",
+    },
+    python: {
+      title: "Python",
+      installNote: {
+        text: "Install the Anthropic SDK:",
+        command: "pip install anthropic",
+      },
+      code: (apiKey, apiBaseUrl) => `import anthropic
+
+client = anthropic.Anthropic(
+    api_key="${apiKey}",
+    base_url="${apiBaseUrl}"
+)
+
+message = client.messages.create(
+    model="",
+    max_tokens=150,
+    messages=[
+        {
+            "role": "user",
+            "content": "Hello! How are you today?"
+        }
+    ]
+)
+
+print(message.content[0].text)`,
+      language: "python",
+    },
+  },
+  "gemini-chat": {
+    curl: {
+      title: "Gemini Native API",
+      code: (
+        apiKey,
+        apiBaseUrl,
+      ) => `curl -X POST "${apiBaseUrl}/v1beta/models/gemini-2.5-pro:generateContent" \\
+  -H "Content-Type: application/json" \\
+  -H "x-goog-api-key: ${apiKey}" \\
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Hello! How are you today?"
+          }
+        ]
+      }
+    ],
+    "config": {
+      "temperature": 0.7,
+      "maxOutputTokens": 150
+    }
+  }'`,
+      language: "bash",
+    },
+    javascript: {
+      title: "JavaScript/Node.js",
+      installNote: {
+        text: "Use native Gemini API format with fetch:",
+        command: "No SDK installation required",
+      },
+      code: (apiKey, apiBaseUrl) => `const response = await fetch(
+  '${apiBaseUrl}/v1beta/models/gemini-2.5-pro:generateContent',
+  {
+    method: 'POST',
+    headers: {
+      'x-goog-api-key': '${apiKey}',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: 'Hello! How are you today?' }
+          ]
+        }
+      ],
+      config: {
+        temperature: 0.7,
+        maxOutputTokens: 150
+      }
+    })
+  }
+);
+
+const data = await response.json();
+console.log(data.candidates[0].content.parts[0].text);`,
+      language: "javascript",
+    },
+    python: {
+      title: "Python",
+      installNote: {
+        text: "Use native Gemini API format with requests:",
+        command: "pip install requests",
+      },
+      code: (apiKey, apiBaseUrl) => `import requests
+
+response = requests.post(
+    '${apiBaseUrl}/v1beta/models/intelligent-routing:generateContent',
+    headers={
+        'x-goog-api-key': '${apiKey}',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'contents': [
+            {
+                'role': 'user',
+                'parts': [
+                    {'text': 'Hello! How are you today?'}
+                ]
+            }
+        ],
+        'config': {
+            'temperature': 0.7,
+            'maxOutputTokens': 150
+        }
+    }
+)
+
+data = response.json()
+print(data['candidates'][0]['content']['parts'][0]['text'])`,
+      language: "python",
+    },
+  },
+});
+
 export function QuickstartExamples({
   apiKey,
   className = "",
@@ -41,6 +351,8 @@ export function QuickstartExamples({
   title = "🚀 Quick Start",
   description = "Test your API key with these examples",
 }: QuickstartExamplesProps) {
+  const codeExamples = getCodeExamples();
+
   return (
     <div className={`space-y-4 ${className}`}>
       {showTitle && (
@@ -53,768 +365,91 @@ export function QuickstartExamples({
       <Tabs defaultValue="chat-completions" className="w-full">
         <TooltipProvider>
           <TabsList className="flex w-full gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <TabsTrigger value="chat-completions">
-                  <SiOpenai className="h-5 w-5" />
-                </TabsTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>OpenAI</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <TabsTrigger value="messages">
-                  <SiAnthropic className="h-5 w-5" />
-                </TabsTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Anthropic</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <TabsTrigger value="gemini-chat">
-                  <SiGoogle className="h-5 w-5" />
-                </TabsTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Gemini</p>
-              </TooltipContent>
-            </Tooltip>
+            {PROVIDERS.map((provider) => (
+              <Tooltip key={provider.id}>
+                <TooltipTrigger asChild>
+                  <TabsTrigger value={provider.id}>
+                    <provider.icon className="h-5 w-5" />
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{provider.name}</p>
+                </TooltipContent>
+              </Tooltip>
+            ))}
           </TabsList>
         </TooltipProvider>
 
-        <TabsContent value="chat-completions" className="mt-4">
-          <Tabs defaultValue="curl" className="w-full">
-            <TooltipProvider>
-              <TabsList className="flex w-full gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="curl">
-                      <FaTerminal className="h-4 w-4" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>cURL</p>
-                  </TooltipContent>
-                </Tooltip>
+        {PROVIDERS.map((provider) => (
+          <TabsContent key={provider.id} value={provider.id} className="mt-4">
+            <Tabs defaultValue="curl" className="w-full">
+              <TooltipProvider>
+                <TabsList className="flex w-full gap-1">
+                  {LANGUAGES.map((language) => (
+                    <Tooltip key={language.id}>
+                      <TooltipTrigger asChild>
+                        <TabsTrigger value={language.id}>
+                          <language.icon className="h-4 w-4" />
+                        </TabsTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{language.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </TabsList>
+              </TooltipProvider>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="javascript">
-                      <SiJavascript className="h-4 w-4" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>JavaScript</p>
-                  </TooltipContent>
-                </Tooltip>
+              {LANGUAGES.map((language) => {
+                const example = codeExamples[provider.id]?.[language.id];
+                if (!example) return null;
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="python">
-                      <SiPython className="h-4 w-4" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Python</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TabsList>
-            </TooltipProvider>
+                const code = example.code(apiKey, API_BASE_URL);
 
-            <TabsContent value="curl" className="mt-4 w-96">
-              <CodeBlock>
-                <CodeBlockGroup className="border-b px-4 py-2">
-                  <span className="font-medium text-sm">Test with cURL</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      bash
-                    </Badge>
-                    <CopyButton
-                      content={`curl -X POST "${API_BASE_URL}/chat/completions" \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer ${apiKey}" \\
-  -d '{
-    "model": "",
-    "messages": [
-      {
-        "role": "user", 
-        "content": "Hello! How are you today?"
-      }
-    ],
-    "max_tokens": 150,
-    "temperature": 0.7
-  }'`}
-                      copyMessage="cURL command copied!"
-                    />
-                  </div>
-                </CodeBlockGroup>
-                <CodeBlockCode
-                  code={`curl -X POST "${API_BASE_URL}/chat/completions" \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer ${apiKey}" \\
-  -d '{
-    "model": "",
-    "messages": [
-      {
-        "role": "user", 
-        "content": "Hello! How are you today?"
-      }
-    ],
-    "max_tokens": 150,
-    "temperature": 0.7
-  }'`}
-                  language="bash"
-                />
-              </CodeBlock>
-            </TabsContent>
-
-            <TabsContent value="javascript" className="mt-4">
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/50 p-3">
-                  <p className="text-sm font-medium">Install the OpenAI SDK:</p>
-                  <code className="mt-1 block text-muted-foreground text-sm">
-                    npm install openai
-                  </code>
-                </div>
-                <CodeBlock>
-                  <CodeBlockGroup className="border-b px-4 py-2">
-                    <span className="font-medium text-sm">
-                      JavaScript/Node.js
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        javascript
-                      </Badge>
-                      <CopyButton
-                        content={`import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}',
-});
-
-async function main() {
-  const completion = await client.chat.completions.create({
-    messages: [
-      { 
-        role: 'user', 
-        content: 'Hello! How are you today?' 
-      }
-    ],
-    model: '',
-    max_tokens: 150,
-    temperature: 0.7,
-  });
-
-  console.log(completion.choices[0]);
-}
-
-main();`}
-                        copyMessage="JavaScript code copied!"
-                      />
+                return (
+                  <TabsContent
+                    key={language.id}
+                    value={language.id}
+                    className="mt-4"
+                  >
+                    <div className="space-y-4">
+                      {example.installNote && (
+                        <div className="rounded-lg border bg-muted/50 p-3">
+                          <p className="text-sm font-medium">
+                            {example.installNote.text}
+                          </p>
+                          <code className="mt-1 block text-muted-foreground text-sm">
+                            {example.installNote.command}
+                          </code>
+                        </div>
+                      )}
+                      <CodeBlock>
+                        <CodeBlockGroup className="border-b px-4 py-2">
+                          <span className="font-medium text-sm">
+                            {example.title}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {language.badge}
+                            </Badge>
+                            <CopyButton
+                              content={code}
+                              copyMessage={`${language.name} code copied!`}
+                            />
+                          </div>
+                        </CodeBlockGroup>
+                        <CodeBlockCode
+                          code={code}
+                          language={example.language}
+                        />
+                      </CodeBlock>
                     </div>
-                  </CodeBlockGroup>
-                  <CodeBlockCode
-                    code={`import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}',
-});
-
-async function main() {
-  const completion = await client.chat.completions.create({
-    messages: [
-      { 
-        role: 'user', 
-        content: 'Hello! How are you today?' 
-      }
-    ],
-    model: '',
-    max_tokens: 150,
-    temperature: 0.7,
-  });
-
-  console.log(completion.choices[0]);
-}
-
-main();`}
-                    language="javascript"
-                  />
-                </CodeBlock>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="python" className="mt-4">
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/50 p-3">
-                  <p className="text-sm font-medium">Install the OpenAI SDK:</p>
-                  <code className="mt-1 block text-muted-foreground text-sm">
-                    pip install openai
-                  </code>
-                </div>
-                <CodeBlock>
-                  <CodeBlockGroup className="border-b px-4 py-2">
-                    <span className="font-medium text-sm">Python</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        python
-                      </Badge>
-                      <CopyButton
-                        content={`from openai import OpenAI
-
-client = OpenAI(
-    api_key="${apiKey}",
-    base_url="${API_BASE_URL}"
-)
-
-completion = client.chat.completions.create(
-    model="",
-    messages=[
-        {
-            "role": "user",
-            "content": "Hello! How are you today?"
-        }
-    ],
-    max_tokens=150,
-    temperature=0.7
-)
-
-print(completion.choices[0].message.content)`}
-                        copyMessage="Python code copied!"
-                      />
-                    </div>
-                  </CodeBlockGroup>
-                  <CodeBlockCode
-                    code={`from openai import OpenAI
-
-client = OpenAI(
-    api_key="${apiKey}",
-    base_url="${API_BASE_URL}"
-)
-
-completion = client.chat.completions.create(
-    model="",
-    messages=[
-        {
-            "role": "user",
-            "content": "Hello! How are you today?"
-        }
-    ],
-    max_tokens=150,
-    temperature=0.7
-)
-
-print(completion.choices[0].message.content)`}
-                    language="python"
-                  />
-                </CodeBlock>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </TabsContent>
-
-        <TabsContent value="messages" className="mt-4">
-          <Tabs defaultValue="curl" className="w-full">
-            <TooltipProvider>
-              <TabsList className="flex w-full gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="curl">
-                      <FaTerminal className="h-4 w-4" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>cURL</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="javascript">
-                      <SiJavascript className="h-4 w-4" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>JavaScript</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="python">
-                      <SiPython className="h-4 w-4" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Python</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TabsList>
-            </TooltipProvider>
-
-            <TabsContent value="curl" className="mt-4">
-              <CodeBlock>
-                <CodeBlockGroup className="border-b px-4 py-2">
-                  <span className="font-medium text-sm">
-                    Anthropic Messages API
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      bash
-                    </Badge>
-                    <CopyButton
-                      content={`curl -X POST "${API_BASE_URL}/messages" \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer ${apiKey}" \\
-  -d '{
-    "model": "",
-    "max_tokens": 150,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Hello! How are you today?"
-      }
-    ]
-  }'`}
-                      copyMessage="cURL command copied!"
-                    />
-                  </div>
-                </CodeBlockGroup>
-                <CodeBlockCode
-                  code={`curl -X POST "${API_BASE_URL}/messages" \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer ${apiKey}" \\
-  -d '{
-    "model": "",
-    "max_tokens": 150,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Hello! How are you today?"
-      }
-    ]
-  }'`}
-                  language="bash"
-                />
-              </CodeBlock>
-            </TabsContent>
-
-            <TabsContent value="javascript" className="mt-4">
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/50 p-3">
-                  <p className="text-sm font-medium">
-                    Install the Anthropic SDK:
-                  </p>
-                  <code className="mt-1 block text-muted-foreground text-sm">
-                    npm install @anthropic-ai/sdk
-                  </code>
-                </div>
-                <CodeBlock>
-                  <CodeBlockGroup className="border-b px-4 py-2">
-                    <span className="font-medium text-sm">
-                      JavaScript/Node.js
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        javascript
-                      </Badge>
-                      <CopyButton
-                        content={`import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({
-  apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}',
-});
-
-async function main() {
-  const message = await client.messages.create({
-    model: '',
-    max_tokens: 150,
-    messages: [
-      {
-        role: 'user',
-        content: 'Hello! How are you today?'
-      }
-    ]
-  });
-
-  console.log(message.content[0]);
-}
-
-main();`}
-                        copyMessage="JavaScript code copied!"
-                      />
-                    </div>
-                  </CodeBlockGroup>
-                  <CodeBlockCode
-                    code={`import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({
-  apiKey: '${apiKey}',
-  baseURL: '${API_BASE_URL}',
-});
-
-async function main() {
-  const message = await client.messages.create({
-    model: '',
-    max_tokens: 150,
-    messages: [
-      {
-        role: 'user',
-        content: 'Hello! How are you today?'
-      }
-    ]
-  });
-
-  console.log(message.content[0]);
-}
-
-main();`}
-                    language="javascript"
-                  />
-                </CodeBlock>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="python" className="mt-4">
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/50 p-3">
-                  <p className="text-sm font-medium">
-                    Install the Anthropic SDK:
-                  </p>
-                  <code className="mt-1 block text-muted-foreground text-sm">
-                    pip install anthropic
-                  </code>
-                </div>
-                <CodeBlock>
-                  <CodeBlockGroup className="border-b px-4 py-2">
-                    <span className="font-medium text-sm">Python</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        python
-                      </Badge>
-                      <CopyButton
-                        content={`import anthropic
-
-client = anthropic.Anthropic(
-    api_key="${apiKey}",
-    base_url="${API_BASE_URL}"
-)
-
-message = client.messages.create(
-    model="",
-    max_tokens=150,
-    messages=[
-        {
-            "role": "user",
-            "content": "Hello! How are you today?"
-        }
-    ]
-)
-
-print(message.content[0].text)`}
-                        copyMessage="Python code copied!"
-                      />
-                    </div>
-                  </CodeBlockGroup>
-                  <CodeBlockCode
-                    code={`import anthropic
-
-client = anthropic.Anthropic(
-    api_key="${apiKey}",
-    base_url="${API_BASE_URL}"
-)
-
-message = client.messages.create(
-    model="",
-    max_tokens=150,
-    messages=[
-        {
-            "role": "user",
-            "content": "Hello! How are you today?"
-        }
-    ]
-)
-
-print(message.content[0].text)`}
-                    language="python"
-                  />
-                </CodeBlock>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </TabsContent>
-
-        <TabsContent value="gemini-chat" className="mt-4">
-          <Tabs defaultValue="curl" className="w-full">
-            <TooltipProvider>
-              <TabsList className="flex w-full gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="curl">
-                      <FaTerminal className="h-4 w-4" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>cURL</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="javascript">
-                      <SiJavascript className="h-4 w-4" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>JavaScript</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger value="python">
-                      <SiPython className="h-4 w-4" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Python</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TabsList>
-            </TooltipProvider>
-
-            <TabsContent value="curl" className="mt-4 w-full">
-              <CodeBlock>
-                <CodeBlockGroup className="border-b px-4 py-2">
-                  <span className="font-medium text-sm">Gemini Native API</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      bash
-                    </Badge>
-                    <CopyButton
-                      content={`curl -X POST "${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent" \\
-  -H "Content-Type: application/json" \\
-  -H "x-goog-api-key: ${apiKey}" \\
-  -d '{
-    "contents": [
-      {
-        "role": "user",
-        "parts": [
-          {
-            "text": "Hello! How are you today?"
-          }
-        ]
-      }
-    ],
-    "config": {
-      "temperature": 0.7,
-      "maxOutputTokens": 150
-    }
-  }'`}
-                      copyMessage="cURL command copied!"
-                    />
-                  </div>
-                </CodeBlockGroup>
-                <CodeBlockCode
-                  code={`curl -X POST "${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent" \\
-  -H "Content-Type: application/json" \\
-  -H "x-goog-api-key: ${apiKey}" \\
-  -d '{
-    "contents": [
-      {
-        "role": "user",
-        "parts": [
-          {
-            "text": "Hello! How are you today?"
-          }
-        ]
-      }
-    ],
-    "config": {
-      "temperature": 0.7,
-      "maxOutputTokens": 150
-    }
-  }'`}
-                  language="bash"
-                />
-              </CodeBlock>
-            </TabsContent>
-
-            <TabsContent value="javascript" className="mt-4">
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/50 p-3">
-                  <p className="text-sm font-medium">
-                    Use native Gemini API format with fetch:
-                  </p>
-                  <code className="mt-1 block text-muted-foreground text-sm">
-                    No SDK installation required
-                  </code>
-                </div>
-                <CodeBlock>
-                  <CodeBlockGroup className="border-b px-4 py-2">
-                    <span className="font-medium text-sm">
-                      JavaScript/Node.js
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        javascript
-                      </Badge>
-                      <CopyButton
-                        content={`const response = await fetch(
-  '${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent',
-  {
-    method: 'POST',
-    headers: {
-      'x-goog-api-key': '${apiKey}',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: 'Hello! How are you today?' }
-          ]
-        }
-      ],
-      config: {
-        temperature: 0.7,
-        maxOutputTokens: 150
-      }
-    })
-  }
-);
-
-const data = await response.json();
-console.log(data.candidates[0].content.parts[0].text);`}
-                        copyMessage="JavaScript code copied!"
-                      />
-                    </div>
-                  </CodeBlockGroup>
-                  <CodeBlockCode
-                    code={`const response = await fetch(
-  '${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent',
-  {
-    method: 'POST',
-    headers: {
-      'x-goog-api-key': '${apiKey}',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: 'Hello! How are you today?' }
-          ]
-        }
-      ],
-      config: {
-        temperature: 0.7,
-        maxOutputTokens: 150
-      }
-    })
-  }
-);
-
-const data = await response.json();
-console.log(data.candidates[0].content.parts[0].text);`}
-                    language="javascript"
-                  />
-                </CodeBlock>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="python" className="mt-4">
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/50 p-3">
-                  <p className="text-sm font-medium">
-                    Use native Gemini API format with requests:
-                  </p>
-                  <code className="mt-1 block text-muted-foreground text-sm">
-                    pip install requests
-                  </code>
-                </div>
-                <CodeBlock>
-                  <CodeBlockGroup className="border-b px-4 py-2">
-                    <span className="font-medium text-sm">Python</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        python
-                      </Badge>
-                      <CopyButton
-                        content={`import requests
-
-response = requests.post(
-    '${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent',
-    headers={
-        'x-goog-api-key': '${apiKey}',
-        'Content-Type': 'application/json'
-    },
-    json={
-        'contents': [
-            {
-                'role': 'user',
-                'parts': [
-                    {'text': 'Hello! How are you today?'}
-                ]
-            }
-        ],
-        'config': {
-            'temperature': 0.7,
-            'maxOutputTokens': 150
-        }
-    }
-)
-
-data = response.json()
-print(data['candidates'][0]['content']['parts'][0]['text'])`}
-                        copyMessage="Python code copied!"
-                      />
-                    </div>
-                  </CodeBlockGroup>
-                  <CodeBlockCode
-                    code={`import requests
-
-response = requests.post(
-    '${API_BASE_URL}/v1beta/models/gemini-2.5-pro:generateContent',
-    headers={
-        'x-goog-api-key': '${apiKey}',
-        'Content-Type': 'application/json'
-    },
-    json={
-        'contents': [
-            {
-                'role': 'user',
-                'parts': [
-                    {'text': 'Hello! How are you today?'}
-                ]
-            }
-        ],
-        'config': {
-            'temperature': 0.7,
-            'maxOutputTokens': 150
-        }
-    }
-)
-
-data = response.json()
-print(data['candidates'][0]['content']['parts'][0]['text'])`}
-                    language="python"
-                  />
-                </CodeBlock>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </TabsContent>
+                  </TabsContent>
+                );
+              })}
+            </Tabs>
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );
