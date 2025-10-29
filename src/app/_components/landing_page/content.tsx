@@ -26,16 +26,16 @@ export default function ContentSection() {
 				<div className="grid gap-6 md:grid-cols-2 md:gap-12 lg:gap-24">
 					<div className="relative space-y-4">
 						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
-							Every time a new model launches, your team faces the same problem:
-							manually testing, updating routing logic, and hoping you picked
-							the right provider. Adaptive eliminates that cycle entirely.
+							Every new model launch means manually testing, updating routing
+							logic, and hoping you picked right. Adaptive eliminates this
+							cycle.
 						</p>
 
 						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
 							Design your routing architecture on a visual canvas, add your
 							quality benchmarks, and let our platform continuously test every
-							provider. We automatically swap to whoever's delivering the best
-							performance—whether that's cost, quality, or speed.
+							provider. We automatically swap to the best performer based on
+							cost, quality, or speed.
 						</p>
 
 						<div className="mt-6 rounded-lg border bg-muted/30 p-4 md:p-6">
@@ -43,11 +43,11 @@ export default function ContentSection() {
 								How It Works:
 							</h3>
 							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								Our live evaluation engine monitors all your configured
-								providers against your benchmarks in real-time. When performance
-								shifts—a provider degrades, a new model outperforms, or costs
-								change—Adaptive automatically updates routing within minutes.
-								You get continuous optimization without touching code.
+								Our live evaluation engine monitors all configured providers
+								against your benchmarks in real-time. When performance shifts
+								(provider degrades, new model outperforms, or costs change),
+								Adaptive automatically updates routing within minutes.
+								Continuous optimization with zero code changes.
 							</p>
 						</div>
 
@@ -63,7 +63,7 @@ export default function ContentSection() {
 								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
 									Visual canvas replaces YAML configs. OpenAI-compatible API
 									means zero code changes. Auto-swapping based on your actual
-									test cases—not vendor marketing claims. Ship new models in
+									test cases, not vendor marketing claims. Ship new models in
 									minutes, not sprints.
 								</p>
 							</div>
@@ -77,10 +77,10 @@ export default function ContentSection() {
 									</h3>
 								</div>
 								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-									Cut AI costs 60-90% while maintaining quality benchmarks you
-									define. Never locked into a single provider. Reduce
-									engineering cycles spent on model evaluation. Get competitive
-									advantages faster—GPT-5 goes live the day it beats your tests.
+									Cut AI costs 60-90% while maintaining your quality benchmarks.
+									Never locked into a single provider. Reduce engineering cycles
+									spent on model evaluation. Get competitive advantages faster.
+									GPT-5 goes live the day it beats your tests.
 								</p>
 							</div>
 						</div>
