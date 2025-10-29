@@ -83,3 +83,4 @@ jobs:
           POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
           POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
           POSTHOG_ENV_ID: ${{ secrets.POSTHOG_ENV_ID }}
+          NEXT_PUBLIC_ADAPTIVE_API_BASE_URL: ${{secrets.ADAPTIVE_API_BASE_URL}}

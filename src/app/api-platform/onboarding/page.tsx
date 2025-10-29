@@ -1,6 +1,6 @@
 "use client";
 
-import { useOrganization, useOrganizationList } from "@clerk/nextjs";
+import { useOrganization } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -13,7 +13,6 @@ import { Progress } from "@/components/ui/progress";
 import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
 import { useOnboardingTracking } from "@/hooks/posthog/use-onboarding-tracking";
 import { useCreateProject } from "@/hooks/projects/use-create-project";
-import { api } from "@/trpc/react";
 import type { ProjectCreateResponse } from "@/types";
 
 type OnboardingStep =
@@ -28,30 +27,14 @@ export default function OnboardingPage() {
 	const [createdProject, setCreatedProject] =
 		useState<ProjectCreateResponse | null>(null);
 	const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
-	const [isFirstOrg, setIsFirstOrg] = useState(false);
 	const [onboardingStartTime] = useState(Date.now());
 	const router = useRouter();
 	const { organization } = useOrganization();
-	const { userMemberships } = useOrganizationList({
-		userMemberships: { infinite: true },
-	});
 
 	const createProject = useCreateProject();
 	const createApiKey = useCreateProjectApiKey();
-	const addCreditsMutation = api.credits.addPromotionalCredits.useMutation();
-	const { data: userCountData } = api.user.getUserCount.useQuery();
-	const {
-		trackStepViewed,
-		trackCompleted,
-		trackSkipped,
-		trackPromotionalCreditsAdded,
-	} = useOnboardingTracking();
-
-	useEffect(() => {
-		if (userMemberships.data && userMemberships.data.length === 1) {
-			setIsFirstOrg(true);
-		}
-	}, [userMemberships.data]);
+	const { trackStepViewed, trackCompleted, trackSkipped } =
+		useOnboardingTracking();
 
 	// Track step views
 	useEffect(() => {
@@ -102,35 +85,6 @@ export default function OnboardingPage() {
 			{
 				onSuccess: (data) => {
 					setCreatedProject(data);
-
-					if (isFirstOrg) {
-						const totalUserCount = userCountData?.totalCount ?? 0;
-						const creditAmount = totalUserCount < 1000 ? 20 : 1;
-
-						addCreditsMutation.mutate(
-							{
-								organizationId: organization.id,
-								amount: creditAmount,
-							},
-							{
-								onSuccess: () => {
-									toast.success(
-										`Welcome! $${creditAmount} in credits added to your account`,
-									);
-									// Track promotional credits added
-									trackPromotionalCreditsAdded({
-										amount: creditAmount,
-										isFirstOrg: true,
-										userCountAtSignup: totalUserCount,
-									});
-								},
-								onError: (error) => {
-									console.error("Failed to add promotional credits:", error);
-								},
-							},
-						);
-					}
-
 					setCurrentStep("api-key");
 				},
 				onError: (error) => {

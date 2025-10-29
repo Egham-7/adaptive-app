@@ -105,7 +105,7 @@ export default function Pricing() {
 									"Basic AI routing",
 									"Standard API access",
 									"Community support",
-									"$10 free credit to start",
+									"$5 free credit to start",
 									"No minimum commitment",
 									"Rate limiting: 1K req/hour",
 									"Email support",

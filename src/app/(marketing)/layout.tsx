@@ -6,7 +6,7 @@ import Header from "@/app/_components/landing_page/header";
 export const metadata: Metadata = {
 	title: "Adaptive - Intelligent AI Model Router | 60% Cost Reduction",
 	description:
-		"The first LLM router that thinks. Intelligent prompt analysis automatically selects optimal models. Sub-millisecond routing, automatic failover, format adaptation. Free $10 credit.",
+		"The first LLM router that thinks. Intelligent prompt analysis automatically selects optimal models. Sub-millisecond routing, automatic failover, format adaptation. Free $5 credit.",
 	keywords: [
 		"LLM router",
 		"AI model routing",
