@@ -11,12 +11,12 @@ export default function CallToAction() {
 			<div className="mx-auto max-w-5xl px-6">
 				<div className="text-center">
 					<h2 className="text-balance font-bold font-display text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-						GPT-6 Launches. <span className="text-primary">You're Ready.</span>{" "}
-						Costs Drop 60-90%.
+						GPT-5 Launches Tomorrow. You're Ready. Costs Drop 60-90%.
 					</h2>
 					<p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground leading-relaxed sm:text-lg">
-						The first router ready for tomorrow's models today - no training, no
-						lock-in, instant savings across any provider.
+						The only platform that continuously tests your providers and
+						auto-swaps based on real performance data. Configure once with our
+						visual canvas, then let automation handle the rest.
 					</p>
 					<div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm sm:text-base">
 						<div className="flex items-center gap-2">
@@ -32,7 +32,9 @@ export default function CallToAction() {
 									clipRule="evenodd"
 								/>
 							</svg>
-							<span className="text-muted-foreground">$20 free credit</span>
+							<span className="text-muted-foreground">
+								Upload benchmarks or generate from prompts
+							</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<svg
@@ -47,7 +49,9 @@ export default function CallToAction() {
 									clipRule="evenodd"
 								/>
 							</svg>
-							<span className="text-muted-foreground">No credit card</span>
+							<span className="text-muted-foreground">
+								Visual architecture canvas—no code
+							</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<svg
@@ -62,7 +66,9 @@ export default function CallToAction() {
 									clipRule="evenodd"
 								/>
 							</svg>
-							<span className="text-muted-foreground">2-minute setup</span>
+							<span className="text-muted-foreground">
+								Auto-swap to best models within minutes
+							</span>
 						</div>
 					</div>
 					<div className="mt-10 flex flex-wrap justify-center gap-4">
@@ -76,7 +82,7 @@ export default function CallToAction() {
 									className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
 								>
 									<Rocket className="relative mr-2 size-5" />
-									<span>Start Free Trial - Save 60-90%</span>
+									Start Auto-Optimizing Free
 								</Button>
 							</SignUpButton>
 						</SignedOut>

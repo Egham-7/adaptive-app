@@ -20,21 +20,22 @@ export default function ContentSection() {
 		<section id="solution" className="py-16 md:py-32">
 			<div className="mx-auto max-w-5xl space-y-8 px-6 md:space-y-16">
 				<h2 className="relative z-10 max-w-4xl font-bold text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-					For Developers & CTOs:{" "}
-					<span className="text-primary">Stop Overpaying</span> for New Models
+					For Engineering Teams: Stop Manual Model Selection
 				</h2>
 
 				<div className="grid gap-6 md:grid-cols-2 md:gap-12 lg:gap-24">
 					<div className="relative space-y-4">
 						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
-							Every other router needs weeks of training before supporting new
-							models. We work with GPT-6 the day it launches - and save you
-							60-90% across any provider.
+							Every time a new model launches, your team faces the same problem:
+							manually testing, updating routing logic, and hoping you picked
+							the right provider. Adaptive eliminates that cycle entirely.
 						</p>
 
 						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
-							New model support without retraining. Provider-agnostic
-							optimization. Turn your biggest expense into your advantage.
+							Design your routing architecture on a visual canvas, add your
+							quality benchmarks, and let our platform continuously test every
+							provider. We automatically swap to whoever's delivering the best
+							performance—whether that's cost, quality, or speed.
 						</p>
 
 						<div className="mt-6 rounded-lg border bg-muted/30 p-4 md:p-6">
@@ -42,13 +43,11 @@ export default function ContentSection() {
 								How It Works:
 							</h3>
 							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								Our{" "}
-								<span className="font-semibold text-foreground">
-									sub-2ms routing engine
-								</span>{" "}
-								analyzes task complexity and model capabilities in real-time.
-								When new models launch, we instantly integrate them - no
-								training data needed.
+								Our live evaluation engine monitors all your configured
+								providers against your benchmarks in real-time. When performance
+								shifts—a provider degrades, a new model outperforms, or costs
+								change—Adaptive automatically updates routing within minutes.
+								You get continuous optimization without touching code.
 							</p>
 						</div>
 
@@ -62,8 +61,10 @@ export default function ContentSection() {
 									</h3>
 								</div>
 								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-									Skip weeks of integration. Use new models day-one with
-									existing code. OpenAI-compatible API - zero code changes.
+									Visual canvas replaces YAML configs. OpenAI-compatible API
+									means zero code changes. Auto-swapping based on your actual
+									test cases—not vendor marketing claims. Ship new models in
+									minutes, not sprints.
 								</p>
 							</div>
 
@@ -76,8 +77,10 @@ export default function ContentSection() {
 									</h3>
 								</div>
 								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-									Cut AI spend by 60-90% without vendor lock-in. Get competitive
-									advantage while others wait for updates.
+									Cut AI costs 60-90% while maintaining quality benchmarks you
+									define. Never locked into a single provider. Reduce
+									engineering cycles spent on model evaluation. Get competitive
+									advantages faster—GPT-5 goes live the day it beats your tests.
 								</p>
 							</div>
 						</div>

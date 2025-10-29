@@ -12,8 +12,8 @@ import AnimatedBeamGraph from "./animated-beam-graph";
 export default function HeroSection() {
 	const rotatingTexts = [
 		"60-90% Cost Savings",
-		"New Models Day One",
-		"Zero Setup Required",
+		"Auto-Swap to Best Models",
+		"Visual Architecture Builder",
 	];
 
 	return (
@@ -76,12 +76,10 @@ export default function HeroSection() {
 				</h1>
 
 				<p className="mx-auto mt-6 max-w-2xl text-balance text-base text-muted-foreground leading-relaxed sm:text-lg">
-					The AI router that instantly works with any model - no training, no
-					setup, no waiting. Route requests to the optimal model in under 2ms
-					and{" "}
-					<span className="font-semibold text-foreground">
-						save 60-90% on every API call.
-					</span>
+					Configure your providers on a visual canvas, add your test cases, and
+					let Adaptive continuously evaluate performance and automatically swap
+					to the best models. Save money while maintaining quality—no manual
+					updates required.
 				</p>
 
 				<div className="mx-auto mt-6 flex flex-wrap items-center justify-center gap-4 text-sm sm:text-base">
@@ -98,7 +96,9 @@ export default function HeroSection() {
 								clipRule="evenodd"
 							/>
 						</svg>
-						<span className="text-muted-foreground">$20 free credit</span>
+						<span className="text-muted-foreground">
+							Visual architecture builder—no code required
+						</span>
 					</div>
 					<div className="flex items-center gap-2">
 						<svg
@@ -113,7 +113,9 @@ export default function HeroSection() {
 								clipRule="evenodd"
 							/>
 						</svg>
-						<span className="text-muted-foreground">No credit card</span>
+						<span className="text-muted-foreground">
+							Live evaluation against your benchmarks
+						</span>
 					</div>
 					<div className="flex items-center gap-2">
 						<svg
@@ -128,7 +130,9 @@ export default function HeroSection() {
 								clipRule="evenodd"
 							/>
 						</svg>
-						<span className="text-muted-foreground">2-minute setup</span>
+						<span className="text-muted-foreground">
+							Automatic model swapping saves 60-90%
+						</span>
 					</div>
 				</div>
 
@@ -143,7 +147,7 @@ export default function HeroSection() {
 								className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
 							>
 								<Rocket className="relative mr-2 size-5" aria-hidden="true" />
-								Start Free Trial - Save 60-90%
+								Start Auto-Optimizing Free
 							</Button>
 						</SignUpButton>
 					</SignedOut>
@@ -165,7 +169,7 @@ export default function HeroSection() {
 						className="border-2 border-primary px-8 py-6 font-semibold text-base text-primary hover:bg-primary hover:text-primary-foreground sm:text-lg"
 						asChild
 					>
-						<Link href="/features">Watch Demo</Link>
+						<Link href="/features"> Watch How It Works</Link>
 					</Button>
 				</fieldset>
 			</div>
