@@ -76,7 +76,10 @@ export default function HeroSection() {
 				</h1>
 
 				<p className="mx-auto mt-6 max-w-2xl text-balance text-base text-muted-foreground leading-relaxed sm:text-lg">
-					Configure providers on a visual canvas, add test cases, and let Adaptive handle the rest. We continuously evaluate performance and automatically swap to the best models. Save money while maintaining quality. Zero manual updates.
+					Configure providers on a visual canvas, add test cases, and let
+					Adaptive handle the rest. We continuously evaluate performance and
+					automatically swap to the best models. Save money while maintaining
+					quality. Zero manual updates.
 				</p>
 
 				<div className="mx-auto mt-6 flex flex-wrap items-center justify-center gap-4 text-sm sm:text-base">

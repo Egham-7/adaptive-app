@@ -22,7 +22,9 @@ export default function GetStartedSection() {
 							See Adaptive in Action
 						</h2>
 						<p className="mx-auto mt-6 max-w-3xl text-balance text-base text-muted-foreground leading-relaxed sm:text-lg">
-							Watch how teams configure their routing architecture visually, add their benchmarks, and let Adaptive auto-optimize for cost and quality. All in under 2 minutes.
+							Watch how teams configure their routing architecture visually, add
+							their benchmarks, and let Adaptive auto-optimize for cost and
+							quality. All in under 2 minutes.
 						</p>
 					</motion.div>
 
