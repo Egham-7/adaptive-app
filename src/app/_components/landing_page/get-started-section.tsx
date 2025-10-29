@@ -63,7 +63,7 @@ export default function GetStartedSection() {
 						</div>
 
 						<p className="text-muted-foreground text-sm">
-							$20 free credit • No code changes required • Cancel anytime
+							$5 free credit • No code changes required • Cancel anytime
 						</p>
 					</motion.div>
 				</div>
