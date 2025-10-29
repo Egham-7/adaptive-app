@@ -4,7 +4,7 @@ import Pricing from "@/app/_components/landing_page/pricing";
 export const metadata: Metadata = {
 	title: "Pricing | Adaptive - Simple & Transparent AI API Pricing",
 	description:
-		"Explore Adaptive's transparent pricing plans. From pay-as-you-go Developer plans to Enterprise solutions. Start with $10 free credit.",
+		"Explore Adaptive's transparent pricing plans. From pay-as-you-go Developer plans to Enterprise solutions. Start with $5 free credit.",
 	keywords: [
 		"API pricing",
 		"AI costs",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 	openGraph: {
 		title: "Simple AI API Pricing - Start Free",
 		description:
-			"Transparent pricing for AI model routing. Pay-as-you-go or fixed monthly plans. Start with $10 free credit.",
+			"Transparent pricing for AI model routing. Pay-as-you-go or fixed monthly plans. Start with $5 free credit.",
 		type: "website",
 	},
 };
