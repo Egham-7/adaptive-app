@@ -50,7 +50,7 @@ export default function CallToAction() {
 								/>
 							</svg>
 							<span className="text-muted-foreground">
-								Visual architecture canvas—no code
+								Visual architecture canvas (no code)
 							</span>
 						</div>
 						<div className="flex items-center gap-2">

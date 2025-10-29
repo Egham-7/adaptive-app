@@ -14,9 +14,7 @@ export default function FeaturesSection() {
 						Configure Once. Test Continuously. Optimize Automatically.
 					</h2>
 					<p className="mx-auto mt-6 max-w-3xl text-base text-muted-foreground leading-relaxed sm:text-lg">
-						The only routing platform that monitors your providers against real
-						benchmarks and auto-swaps when performance dips—saving you 60-90%
-						without sacrificing quality.
+						The only routing platform that monitors your providers against real benchmarks and auto-swaps when performance dips. Save 60-90% without sacrificing quality.
 					</p>
 				</header>
 				<div className="grid gap-8 md:grid-cols-3">
@@ -30,10 +28,7 @@ export default function FeaturesSection() {
 								Design Your Routing in Minutes
 							</h3>
 							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								Build your entire inference architecture on an intuitive visual
-								canvas. Connect providers, configure fallback strategies, and
-								set up parallel routing—all without writing YAML configs or
-								touching infrastructure code.
+								Build your entire inference architecture on an intuitive visual canvas. Connect providers, configure fallback strategies, and set up parallel routing. No YAML configs or infrastructure code required.
 							</p>
 							<div className="mt-6 rounded-lg bg-muted/50 p-3">
 								<p className="font-mono text-muted-foreground text-xs">
@@ -53,10 +48,7 @@ export default function FeaturesSection() {
 								Route Based on Real Performance
 							</h3>
 							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								Upload your test cases or generate benchmarks from sample
-								prompts. Adaptive continuously evaluates all your providers
-								against your quality, latency, and cost criteria—then routes
-								each request to whoever's performing best right now.
+								Upload your test cases or generate benchmarks from sample prompts. Adaptive continuously evaluates all your providers against your quality, latency, and cost criteria. Then routes each request to whoever performs best right now.
 							</p>
 							<div className="mt-4">
 								<ProviderDownloadChart />
@@ -74,11 +66,7 @@ export default function FeaturesSection() {
 								Save 60-90% on Autopilot
 							</h3>
 							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								When a provider underperforms on your benchmarks, Adaptive
-								automatically swaps to better alternatives. When GPT-5 launches
-								and beats your tests, it goes live within hours—not weeks. Cut
-								costs while maintaining your quality standards, completely
-								hands-off.
+								When a provider underperforms on your benchmarks, Adaptive automatically swaps to better alternatives. When GPT-5 launches and beats your tests, it goes live within hours, not weeks. Cut costs while maintaining your quality standards. Completely hands-off.
 							</p>
 							<div className="mt-6 space-y-2">
 								<div className="flex justify-between text-xs">
