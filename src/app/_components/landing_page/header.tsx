@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import React from "react";
 import { HiOutlineDocumentText } from "react-icons/hi2";
 import { cn } from "@/lib/shared/utils";
+import type { IconMenuItem, MenuItem } from "@/types/landing-page";
 import { Logo } from "../logo";
 import { DesktopActions } from "./header/desktop-actions";
 import { DesktopNavigation } from "./header/desktop-navigation";
@@ -12,7 +13,6 @@ import { MenuToggleButton } from "./header/menu-toggle-button";
 import { MobileAuthActions } from "./header/mobile-auth-actions";
 import { MobileFooter } from "./header/mobile-footer";
 import { MobileMenuContent } from "./header/mobile-menu-content";
-import type { IconMenuItem, MenuItem } from "@/types/landing-page";
 
 const SCROLL_THRESHOLD = 50;
 
