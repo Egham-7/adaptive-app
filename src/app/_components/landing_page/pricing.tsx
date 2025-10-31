@@ -20,11 +20,12 @@ export default function Pricing() {
 			<div className="mx-auto max-w-6xl px-6">
 				<header className="mx-auto max-w-2xl space-y-6 text-center">
 					<h2 className="text-balance font-display font-semibold text-4xl lg:text-5xl">
-						API Pricing
+						Transparent pricing that scales with your routing volume
 					</h2>
 					<p className="text-muted-foreground">
-						Simple, transparent pricing for our AI routing API. Chatbot pricing
-						available in the chat app.
+						Keep paying direct model rates while Adaptive adds smart routing,
+						caching, and analytics. Toggle monthly or annual to match how your
+						team operates.
 					</p>
 
 					<fieldset className="mt-8 flex items-center justify-center gap-4 border-0 p-0">
