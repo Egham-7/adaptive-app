@@ -86,7 +86,7 @@ export default function HeroSection() {
 						<div className="text-center sm:mx-auto lg:mt-0 lg:mr-auto">
 							<AnimatedGroup variants={transitionVariants}>
 								<Link
-									href="/features"
+									href="/sign-in?redirect_url=/api-platform/orgs"
 									className="group mx-auto flex w-fit items-center gap-4 rounded-full border bg-muted p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 hover:bg-background dark:border-t-white/5 dark:shadow-zinc-950 dark:hover:border-t-border"
 								>
 									<span className="text-foreground text-sm">
