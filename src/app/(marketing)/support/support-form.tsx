@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -59,6 +60,9 @@ const priorityLabels = {
 };
 
 export default function SupportForm() {
+	const searchParams = useSearchParams();
+	const presetSubject = searchParams.get("subject") ?? "";
+	const presetDescription = searchParams.get("message") ?? "";
 	const form = useForm<SupportTicketForm>({
 		resolver: zodResolver(supportTicketSchema),
 		defaultValues: {
@@ -66,8 +70,8 @@ export default function SupportForm() {
 			email: "",
 			category: "general",
 			priority: "medium",
-			subject: "",
-			description: "",
+			subject: presetSubject,
+			description: presetDescription,
 		},
 	});
 

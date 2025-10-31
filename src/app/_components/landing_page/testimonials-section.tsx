@@ -7,10 +7,11 @@ export default function TestimonialsSection() {
 				<div className="mx-auto max-w-2xl">
 					<blockquote>
 						<p className="font-semibold text-lg md:text-xl lg:text-3xl">
-							Using Adaptive has been like unlocking a secret productivity
-							superpower. It&apos;s the perfect fusion of simplicity and
-							versatility, enabling us to create workflows that are as efficient
-							as they are user-friendly.
+							Adaptive took model selection off our roadmap. Their eval loop
+							swapped in GPT-5 and Claude 4.5 the week those models cleared our
+							benchmarks, and it rolled traffic back as soon as latency spiked.
+							Our researchers focus on prompts while Adaptive keeps production
+							fast and affordable.
 						</p>
 
 						<div className="mt-12 flex items-center gap-6">
@@ -19,13 +20,13 @@ export default function TestimonialsSection() {
 								src="https://html.tailus.io/blocks/customers/nvidia.svg"
 								alt="Nvidia Logo"
 								height={28}
-								width={100} // Approximate width, adjust as needed
+								width={100}
 							/>
 
 							<div className="space-y-1 border-l pl-6">
 								<cite className="font-medium">Sarah Johnson</cite>
 								<span className="block text-muted-foreground text-sm">
-									CTO, Nvidia
+									CTO, Nvidia Applied Research
 								</span>
 							</div>
 						</div>

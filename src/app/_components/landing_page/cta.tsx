@@ -11,12 +11,12 @@ export default function CallToAction() {
 			<div className="mx-auto max-w-5xl px-6">
 				<div className="text-center">
 					<h2 className="text-balance font-bold font-display text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-						GPT-5 Launches Tomorrow. You're Ready. Costs Drop 60-90%.
+						Stay ahead of every model release without rewriting a line
 					</h2>
 					<p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground leading-relaxed sm:text-lg">
-						The only platform that continuously tests your providers and
-						auto-swaps based on real performance data. Configure once with our
-						visual canvas, then let automation handle the rest.
+						Adaptive runs your evals around the clock, promotes the best
+						provider automatically, and gives you full visibility into savings.
+						Launch in minutes and keep improving week after week.
 					</p>
 					<div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm sm:text-base">
 						<div className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export default function CallToAction() {
 								/>
 							</svg>
 							<span className="text-muted-foreground">
-								Visual architecture canvas (no code)
+								Visual architecture canvas with no code to maintain
 							</span>
 						</div>
 						<div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export default function CallToAction() {
 								/>
 							</svg>
 							<span className="text-muted-foreground">
-								Auto-swap to best models within minutes
+								Auto-swap to the best model within minutes
 							</span>
 						</div>
 					</div>

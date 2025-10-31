@@ -20,34 +20,35 @@ export default function ContentSection() {
 		<section id="solution" className="py-16 md:py-32">
 			<div className="mx-auto max-w-5xl space-y-8 px-6 md:space-y-16">
 				<h2 className="relative z-10 max-w-4xl font-bold text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-					For Engineering Teams: Stop Manual Model Selection
+					Give your engineering team a self-optimizing model stack
 				</h2>
 
 				<div className="grid gap-6 md:grid-cols-2 md:gap-12 lg:gap-24">
 					<div className="relative space-y-4">
 						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
-							Every new model launch means manually testing, updating routing
-							logic, and hoping you picked right. Adaptive eliminates this
-							cycle.
+							New foundation models launch every week. Without Adaptive, that
+							means spinning up evals, rewriting routing logic, and hoping the
+							rollout sticks, so most teams pick one provider and leave it there.
+							Adaptive keeps the best mix of models in play without
+							rebuilding anything.
 						</p>
 
 						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
-							Design your routing architecture on a visual canvas, add your
-							quality benchmarks, and let our platform continuously test every
-							provider. We automatically swap to the best performer based on
-							cost, quality, or speed.
+							Sketch your routing architecture on a visual canvas, load in your
+							benchmarks, and let Adaptive run continuous tests across every
+							provider. Routing shifts automatically to whichever model wins on
+							quality, latency, and cost.
 						</p>
 
 						<div className="mt-6 rounded-lg border bg-muted/30 p-4 md:p-6">
 							<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
-								How It Works:
+								How Adaptive decides where to send traffic
 							</h3>
 							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								Our live evaluation engine monitors all configured providers
-								against your benchmarks in real-time. When performance shifts
-								(provider degrades, new model outperforms, or costs change),
-								Adaptive automatically updates routing within minutes.
-								Continuous optimization with zero code changes.
+								Every request runs through your benchmark matrix. Adaptive scores
+								each provider on accuracy, latency, and spend, then updates
+								routing in minutes when the leaderboard changes. Your team keeps
+								shipping while Adaptive keeps score.
 							</p>
 						</div>
 
@@ -57,14 +58,13 @@ export default function ContentSection() {
 								<div className="mb-2 flex items-center gap-2">
 									<Zap className="size-5 flex-shrink-0 text-primary" />
 									<h3 className="font-semibold text-foreground text-sm sm:text-base">
-										For Developers
+										Built for developers
 									</h3>
 								</div>
 								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-									Visual canvas replaces YAML configs. OpenAI-compatible API
-									means zero code changes. Auto-swapping based on your actual
-									test cases, not vendor marketing claims. Ship new models in
-									minutes, not sprints.
+									Drop-in OpenAI-compatible API keys, visual architecture instead
+									of YAML, and benchmarks sourced from your own prompts. Publish a
+									route in minutes and Adaptive keeps refining it behind the scenes.
 								</p>
 							</div>
 
@@ -73,14 +73,14 @@ export default function ContentSection() {
 								<div className="mb-2 flex items-center gap-2">
 									<Cpu className="size-5 flex-shrink-0 text-secondary-foreground" />
 									<h3 className="font-semibold text-foreground text-sm sm:text-base">
-										For CTOs
+										Trusted by platform leaders
 									</h3>
 								</div>
 								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-									Cut AI costs 60-90% while maintaining your quality benchmarks.
-									Never locked into a single provider. Reduce engineering cycles
-									spent on model evaluation. Get competitive advantages faster.
-									GPT-5 goes live the day it beats your tests.
+									Cut AI spend by 60 to 90 percent while meeting the reliability
+									thresholds you set. No single-vendor risk, no lag between a
+									model upgrade and production traffic, and audit trails for every
+									decision Adaptive makes.
 								</p>
 							</div>
 						</div>

@@ -1,178 +1,219 @@
-"use client";
-
-import { SignedIn, SignedOut, SignUpButton } from "@clerk/nextjs";
-import { motion } from "framer-motion";
-import { Rocket } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TextRotate } from "@/components/ui/text-rotate";
-import AnimatedBeamGraph from "./animated-beam-graph";
+import Image from "next/image";
+import { TextEffect } from "@/components/ui/text-effect";
+import {
+	AnimatedGroup,
+	type AnimatedGroupProps,
+} from "@/components/ui/animated-group";
+
+const transitionVariants = {
+	item: {
+		hidden: {
+			opacity: 0,
+			filter: "blur(12px)",
+			y: 12,
+		},
+		visible: {
+			opacity: 1,
+			filter: "blur(0px)",
+			y: 0,
+			transition: {
+				type: "spring",
+				bounce: 0.3,
+				duration: 1.5,
+			},
+		},
+	},
+} satisfies AnimatedGroupProps["variants"];
 
 export default function HeroSection() {
-	const rotatingTexts = [
-		"60-90% Cost Savings",
-		"Auto-Swap to Best Models",
-		"Visual Architecture Builder",
-	];
-
 	return (
-		<section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white dark:bg-neutral-950">
-			<div className="relative z-10 mx-auto max-w-4xl px-6 py-12 text-center">
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.5 }}
+		<>
+			<main className="overflow-hidden">
+				<div
+					aria-hidden
+					className="absolute inset-0 isolate hidden opacity-65 contain-strict lg:block"
 				>
-					<Badge variant="secondary" className="mb-6">
-						All Latest Models Available
-					</Badge>
-				</motion.div>
-
-				<h1 className="mt-4 text-balance text-center font-bold font-display text-3xl leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
-					<span className="inline-flex flex-wrap items-center justify-center gap-x-2">
-						{"Cut AI Costs by ".split(" ").map((word, wordIndex) => (
-							<span key={word} className="inline-block whitespace-nowrap">
-								{word.split("").map((letter, letterIndex) => (
-									<motion.span
-										key={word.slice(0, letterIndex + 1)}
-										initial={{ y: 100, opacity: 0 }}
-										animate={{ y: 0, opacity: 1 }}
-										transition={{
-											delay: (wordIndex * 3 + letterIndex) * 0.03,
-											type: "spring",
-											stiffness: 150,
-											damping: 25,
-										}}
-										className="inline-block bg-gradient-to-r from-neutral-900 to-neutral-700/80 bg-clip-text text-transparent dark:from-white dark:to-white/80"
-									>
-										{letter}
-									</motion.span>
-								))}
-							</span>
-						))}
-					</span>
-
-					<span className="inline-flex items-center justify-center">
-						<TextRotate
-							texts={rotatingTexts}
-							rotationInterval={3000}
-							staggerDuration={0.02}
-							staggerFrom="first"
-							splitBy="characters"
-							splitLevelClassName="inline-block whitespace-nowrap"
-							mainClassName="bg-gradient-to-r whitespace-nowrap inline-flex items-center justify-center from-primary to-primary/80 bg-clip-text text-transparent"
-							elementLevelClassName="inline-block whitespace-nowrap"
-							initial={{ y: 100, opacity: 0 }}
-							animate={{ y: 0, opacity: 1 }}
-							exit={{ y: -100, opacity: 0 }}
-							transition={{
-								type: "spring",
-								stiffness: 150,
-								damping: 25,
-							}}
-						/>
-					</span>
-				</h1>
-
-				<p className="mx-auto mt-6 max-w-2xl text-balance text-base text-muted-foreground leading-relaxed sm:text-lg">
-					Configure providers on a visual canvas, add test cases, and let
-					Adaptive handle the rest. We continuously evaluate performance and
-					automatically swap to the best models. Save money while maintaining
-					quality. Zero manual updates.
-				</p>
-
-				<div className="mx-auto mt-6 flex flex-wrap items-center justify-center gap-4 text-sm sm:text-base">
-					<div className="flex items-center gap-2">
-						<svg
-							className="h-5 w-5 text-green-500"
-							fill="currentColor"
-							viewBox="0 0 20 20"
-							aria-hidden="true"
-						>
-							<path
-								fillRule="evenodd"
-								d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-								clipRule="evenodd"
-							/>
-						</svg>
-						<span className="text-muted-foreground">
-							Visual architecture builder (no code required)
-						</span>
-					</div>
-					<div className="flex items-center gap-2">
-						<svg
-							className="h-5 w-5 text-green-500"
-							fill="currentColor"
-							viewBox="0 0 20 20"
-							aria-hidden="true"
-						>
-							<path
-								fillRule="evenodd"
-								d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-								clipRule="evenodd"
-							/>
-						</svg>
-						<span className="text-muted-foreground">
-							Live evaluation against your benchmarks
-						</span>
-					</div>
-					<div className="flex items-center gap-2">
-						<svg
-							className="h-5 w-5 text-green-500"
-							fill="currentColor"
-							viewBox="0 0 20 20"
-							aria-hidden="true"
-						>
-							<path
-								fillRule="evenodd"
-								d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-								clipRule="evenodd"
-							/>
-						</svg>
-						<span className="text-muted-foreground">
-							Automatic model swapping saves 60-90%
-						</span>
-					</div>
+					<div className="w-140 h-320 -translate-y-87.5 absolute left-0 top-0 -rotate-45 rounded-full bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,hsla(0,0%,85%,.08)_0,hsla(0,0%,55%,.02)_50%,hsla(0,0%,45%,0)_80%)]" />
+					<div className="h-320 absolute left-0 top-0 w-60 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.06)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)] [translate:5%_-50%]" />
+					<div className="h-320 -translate-y-87.5 absolute left-0 top-0 w-60 -rotate-45 bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.04)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)]" />
 				</div>
-
-				<AnimatedBeamGraph />
-
-				<fieldset className="mt-10 flex flex-col justify-center gap-4 border-0 p-0 sm:flex-row">
-					<legend className="sr-only">Hero actions</legend>
-					<SignedOut>
-						<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
-							<Button
-								size="lg"
-								className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
-							>
-								<Rocket className="relative mr-2 size-5" aria-hidden="true" />
-								Start Auto-Optimizing Free
-							</Button>
-						</SignUpButton>
-					</SignedOut>
-					<SignedIn>
-						<Button
-							size="lg"
-							className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"
-							asChild
+				<section>
+					<div className="relative pt-24 md:pt-36">
+						<AnimatedGroup
+							variants={{
+								container: {
+									visible: {
+										transition: {
+											delayChildren: 1,
+										},
+									},
+								},
+								item: {
+									hidden: {
+										opacity: 0,
+										y: 20,
+									},
+									visible: {
+										opacity: 1,
+										y: 0,
+										transition: {
+											type: "spring",
+											bounce: 0.3,
+											duration: 2,
+										},
+									},
+								},
+							}}
+							className="mask-b-from-35% mask-b-to-90% absolute inset-0 top-56 -z-20 lg:top-32"
 						>
-							<Link href="/api-platform/orgs">
-								<Rocket className="relative mr-2 size-5" aria-hidden="true" />
-								Go to Dashboard
-							</Link>
-						</Button>
-					</SignedIn>
-					<Button
-						variant="outline"
-						size="lg"
-						className="border-2 border-primary px-8 py-6 font-semibold text-base text-primary hover:bg-primary hover:text-primary-foreground sm:text-lg"
-						asChild
-					>
-						<Link href="/features"> Watch How It Works</Link>
-					</Button>
-				</fieldset>
-			</div>
-		</section>
+							<Image
+								src="https://ik.imagekit.io/lrigu76hy/tailark/night-background.jpg?updatedAt=1745733451120"
+								alt="background"
+								className="hidden size-full dark:block"
+								width={3276}
+								height={4095}
+							/>
+						</AnimatedGroup>
+
+						<div
+							aria-hidden
+							className="absolute inset-0 -z-10 size-full [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,var(--color-background)_75%)]"
+						/>
+
+						<div className="mx-auto max-w-7xl px-6">
+							<div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
+								<AnimatedGroup variants={transitionVariants}>
+									<Link
+										href="/features"
+										className="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 dark:border-t-white/5 dark:shadow-zinc-950"
+									>
+										<span className="text-foreground text-sm">
+											Now routing GPT-5, Claude 4.5 Sonnet, Gemini 2.5 Pro, and
+											GLM 4.6
+										</span>
+										<span className="dark:border-background block h-4 w-0.5 border-l bg-white dark:bg-zinc-700"></span>
+
+										<div className="bg-background group-hover:bg-muted size-6 overflow-hidden rounded-full duration-500">
+											<div className="flex w-12 -translate-x-1/2 duration-500 ease-in-out group-hover:translate-x-0">
+												<span className="flex size-6">
+													<ArrowRight className="m-auto size-3" />
+												</span>
+												<span className="flex size-6">
+													<ArrowRight className="m-auto size-3" />
+												</span>
+											</div>
+										</div>
+									</Link>
+								</AnimatedGroup>
+
+								<TextEffect
+									preset="fade-in-blur"
+									speedSegment={0.3}
+									as="h1"
+									className="mx-auto mt-8 max-w-4xl text-balance text-5xl max-md:font-semibold md:text-7xl lg:mt-16 xl:text-[5.25rem]"
+								>
+									Keep every request on the best AI model automatically
+								</TextEffect>
+								<TextEffect
+									per="line"
+									preset="fade-in-blur"
+									speedSegment={0.3}
+									delay={0.5}
+									as="p"
+									className="mx-auto mt-8 max-w-2xl text-balance text-lg"
+								>
+									Most teams pin traffic to a single model because the routing
+									work is painful. Adaptive benchmarks every provider against
+									your prompts, inspects each request, and chooses the best-fit
+									model that aligns with the cost or quality bias you set. Dial
+									toward premium responses or aggressive savings whenever you
+									need, and Adaptive handles fallbacks, observability, and
+									production stability.
+								</TextEffect>
+
+								<AnimatedGroup
+									variants={{
+										container: {
+											visible: {
+												transition: {
+													staggerChildren: 0.05,
+													delayChildren: 0.75,
+												},
+											},
+										},
+										...transitionVariants,
+									}}
+									className="mt-12 flex flex-col items-center justify-center gap-2 md:flex-row"
+								>
+									<div
+										key={1}
+										className="bg-foreground/10 rounded-[calc(var(--radius-xl)+0.125rem)] border p-0.5"
+									>
+										<Button
+											asChild
+											size="lg"
+											className="rounded-xl px-5 text-base"
+										>
+											<Link href="/api-platform/orgs">
+												<span className="text-nowrap">
+													Start Auto-Optimizing Free
+												</span>
+											</Link>
+										</Button>
+									</div>
+									<Button
+										key={2}
+										asChild
+										size="lg"
+										variant="ghost"
+										className="h-10.5 rounded-xl px-5"
+									>
+										<Link href="/support?subject=Adaptive%20Routing%20Consultation&message=Hi%20Adaptive%20team%2C%20we%20need%20help%20configuring%20multi-model%20routing%20with%20cost%20and%20quality%20bias%20controls.%20Please%20reach%20out%20to%20schedule%20a%20call.%20Thank%20you!">
+											<span className="text-nowrap">Talk to an expert</span>
+										</Link>
+									</Button>
+								</AnimatedGroup>
+							</div>
+						</div>
+
+						<AnimatedGroup
+							variants={{
+								container: {
+									visible: {
+										transition: {
+											staggerChildren: 0.05,
+											delayChildren: 0.75,
+										},
+									},
+								},
+								...transitionVariants,
+							}}
+						>
+							<div className="mask-b-from-55% relative -mr-56 mt-8 overflow-hidden px-2 sm:mr-0 sm:mt-12 md:mt-20">
+								<div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border p-4 shadow-lg shadow-zinc-950/15 ring-1">
+									<Image
+										className="bg-background aspect-15/8 relative hidden rounded-2xl dark:block"
+										src="/hero-dark.png"
+										alt="app screen"
+										width={2700}
+										height={1440}
+									/>
+									<Image
+										className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden"
+										src="/hero.png"
+										alt="app screen"
+										width={2700}
+										height={1440}
+									/>
+								</div>
+							</div>
+						</AnimatedGroup>
+					</div>
+				</section>
+			</main>
+		</>
 	);
 }
