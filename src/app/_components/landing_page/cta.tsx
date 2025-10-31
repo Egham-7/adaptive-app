@@ -106,7 +106,7 @@ export default function CallToAction() {
 							variant="outline"
 							className="border-2 border-primary px-8 py-6 font-semibold text-base text-primary hover:bg-primary hover:text-primary-foreground sm:text-lg"
 						>
-							<Link href="/features">
+							<Link href="/#features">
 								<span>View Documentation</span>
 							</Link>
 						</Button>

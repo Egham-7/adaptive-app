@@ -1,8 +1,7 @@
-"use client";
-
 import { SignedIn, SignedOut } from "@clerk/nextjs";
-import { ChevronDown, Loader2 } from "lucide-react";
-import Link, { useLinkStatus } from "next/link";
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { GitHubStarsButton } from "@/components/animate-ui/buttons/github-stars";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -10,34 +9,41 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ModeToggle } from "../../mode-toggle";
+import type { IconMenuItem } from "@/types/landing-page";
+import { LoadingLink } from "./loading-link";
 
-function LoadingLink({
-	href,
-	children,
-}: {
-	href: string;
-	children: React.ReactNode;
-}) {
-	const { pending } = useLinkStatus();
+type DesktopActionsProps = {
+	iconMenuItems: IconMenuItem[];
+};
 
+export function DesktopActions({ iconMenuItems }: DesktopActionsProps) {
 	return (
-		<Link href={href} className="flex items-center gap-2">
-			{pending && <Loader2 className="h-4 w-4 animate-spin" />}
-			{children}
-		</Link>
-	);
-}
+		<div className="hidden shrink-0 items-center justify-end gap-2 lg:flex">
+			{iconMenuItems.map((item) => {
+				const Icon = item.icon;
+				return (
+					<a
+						key={item.name}
+						href={item.href}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-accent-foreground"
+					>
+						<Icon aria-hidden={true} size={16} />
+						<span className="text-sm">{item.name}</span>
+					</a>
+				);
+			})}
 
-export function UserActions() {
-	return (
-		<>
-			{/* Separator */}
-			<div className="h-4 w-px bg-border" />
+			<GitHubStarsButton
+				username="Egham-7"
+				repo="adaptive"
+				formatted={true}
+				className="h-8 text-xs"
+			/>
 
-			{/* User actions */}
-			<div className="flex items-center gap-2">
-				<SignedOut>
+			<SignedOut>
+				<div className="flex items-center gap-1.5">
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button
@@ -94,41 +100,39 @@ export function UserActions() {
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
-				</SignedOut>
+				</div>
+			</SignedOut>
 
-				<SignedIn>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button
-								variant="ghost"
-								size="sm"
-								className="flex items-center gap-1 font-medium hover:bg-primary/50 hover:text-primary-foreground"
-							>
-								My Account
-								<ChevronDown className="h-4 w-4" />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem asChild>
-								<LoadingLink href="/chat-platform">
-									<Button variant="ghost" className="w-full justify-start">
-										Chatbot App
-									</Button>
-								</LoadingLink>
-							</DropdownMenuItem>
-							<DropdownMenuItem asChild>
-								<LoadingLink href="/api-platform/orgs">
-									<Button variant="ghost" className="w-full justify-start">
-										API Platform
-									</Button>
-								</LoadingLink>
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</SignedIn>
-
-				<ModeToggle />
-			</div>
-		</>
+			<SignedIn>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="ghost"
+							size="sm"
+							className="flex items-center gap-1 font-medium hover:bg-primary/50 hover:text-primary-foreground"
+						>
+							My Account
+							<ChevronDown className="h-4 w-4" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem asChild>
+							<LoadingLink href="/chat-platform">
+								<Button variant="ghost" className="w-full justify-start">
+									Chatbot App
+								</Button>
+							</LoadingLink>
+						</DropdownMenuItem>
+						<DropdownMenuItem asChild>
+							<LoadingLink href="/api-platform/orgs">
+								<Button variant="ghost" className="w-full justify-start">
+									API Platform
+								</Button>
+							</LoadingLink>
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</SignedIn>
+		</div>
 	);
 }

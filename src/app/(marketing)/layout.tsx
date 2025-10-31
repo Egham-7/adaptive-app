@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import FloatingHeader from "@/app/_components/landing_page/floating-header";
 import Header from "@/app/_components/landing_page/header";
 
 export const metadata: Metadata = {
@@ -37,7 +36,6 @@ export default function MarketingLayout({
 	return (
 		<Suspense>
 			<Header />
-			<FloatingHeader />
 			{children}
 		</Suspense>
 	);
