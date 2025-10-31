@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { cn } from "@/lib/shared/utils";
-import type { MenuItem } from "./types";
+import type { MenuItem } from "@/types/landing-page";
 
 type DesktopNavigationProps = {
 	menuItems: MenuItem[];

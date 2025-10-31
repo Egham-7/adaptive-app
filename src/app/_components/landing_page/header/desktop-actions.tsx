@@ -9,8 +9,8 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { IconMenuItem } from "@/types/landing-page";
 import { LoadingLink } from "./loading-link";
-import type { IconMenuItem } from "./types";
 
 type DesktopActionsProps = {
 	iconMenuItems: IconMenuItem[];
