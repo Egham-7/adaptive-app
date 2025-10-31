@@ -15,15 +15,21 @@ export default function StatsSection() {
 				<div className="grid gap-12 divide-y *:text-center md:grid-cols-3 md:gap-2 md:divide-x md:divide-y-0">
 					<div className="space-y-4 pt-12 md:pt-0">
 						<div className="font-bold text-5xl text-primary">68%</div>
-						<p className="text-muted-foreground">Average reduction in model spend</p>
+						<p className="text-muted-foreground">
+							Average reduction in model spend
+						</p>
 					</div>
 					<div className="space-y-4 pt-12 md:pt-0">
 						<div className="font-bold text-5xl text-primary">4.8ms</div>
-						<p className="text-muted-foreground">Median routing decision time</p>
+						<p className="text-muted-foreground">
+							Median routing decision time
+						</p>
 					</div>
 					<div className="space-y-4 pt-12 md:pt-0">
 						<div className="font-bold text-5xl text-primary">230+</div>
-						<p className="text-muted-foreground">Models evaluated per customer each week</p>
+						<p className="text-muted-foreground">
+							Models evaluated per customer each week
+						</p>
 					</div>
 				</div>
 			</div>

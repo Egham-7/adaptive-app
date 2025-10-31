@@ -28,8 +28,8 @@ export default function ContentSection() {
 						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
 							New foundation models launch every week. Without Adaptive, that
 							means spinning up evals, rewriting routing logic, and hoping the
-							rollout sticks, so most teams pick one provider and leave it there.
-							Adaptive keeps the best mix of models in play without
+							rollout sticks, so most teams pick one provider and leave it
+							there. Adaptive keeps the best mix of models in play without
 							rebuilding anything.
 						</p>
 
@@ -45,10 +45,10 @@ export default function ContentSection() {
 								How Adaptive decides where to send traffic
 							</h3>
 							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-								Every request runs through your benchmark matrix. Adaptive scores
-								each provider on accuracy, latency, and spend, then updates
-								routing in minutes when the leaderboard changes. Your team keeps
-								shipping while Adaptive keeps score.
+								Every request runs through your benchmark matrix. Adaptive
+								scores each provider on accuracy, latency, and spend, then
+								updates routing in minutes when the leaderboard changes. Your
+								team keeps shipping while Adaptive keeps score.
 							</p>
 						</div>
 
@@ -62,9 +62,10 @@ export default function ContentSection() {
 									</h3>
 								</div>
 								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
-									Drop-in OpenAI-compatible API keys, visual architecture instead
-									of YAML, and benchmarks sourced from your own prompts. Publish a
-									route in minutes and Adaptive keeps refining it behind the scenes.
+									Drop-in OpenAI-compatible API keys, visual architecture
+									instead of YAML, and benchmarks sourced from your own prompts.
+									Publish a route in minutes and Adaptive keeps refining it
+									behind the scenes.
 								</p>
 							</div>
 
@@ -79,8 +80,8 @@ export default function ContentSection() {
 								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
 									Cut AI spend by 60 to 90 percent while meeting the reliability
 									thresholds you set. No single-vendor risk, no lag between a
-									model upgrade and production traffic, and audit trails for every
-									decision Adaptive makes.
+									model upgrade and production traffic, and audit trails for
+									every decision Adaptive makes.
 								</p>
 							</div>
 						</div>
