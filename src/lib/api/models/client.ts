@@ -1,0 +1,44 @@
+import type { RegistryModel } from "@/types/models";
+import { BaseApiClient } from "../base-client";
+
+export class ModelsClient extends BaseApiClient {
+	constructor(token: string) {
+		super({ basePath: "/v1/models", token });
+	}
+
+	/**
+	 * List all models or filter by provider
+	 * @param provider Optional provider filter (e.g., "openai", "anthropic")
+	 * @returns Array of registry models
+	 */
+	async list(provider?: string): Promise<RegistryModel[]> {
+		try {
+			return await this.get<RegistryModel[]>("", {
+				params: provider ? { provider } : undefined,
+			});
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(error.message || "Failed to list models");
+			}
+			throw new Error("Failed to list models");
+		}
+	}
+
+	/**
+	 * Get a specific model by name
+	 * @param modelName The model name (e.g., "gpt-4", "claude-3-5-sonnet-20241022")
+	 * @returns Single registry model
+	 */
+	async getById(modelName: string): Promise<RegistryModel> {
+		try {
+			return await this.get<RegistryModel>(`/${modelName}`);
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(error.message || `Failed to get model: ${modelName}`);
+			}
+			throw new Error(`Failed to get model: ${modelName}`);
+		}
+	}
+}
+
+export const modelsClient = new ModelsClient("");
