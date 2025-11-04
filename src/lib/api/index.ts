@@ -21,5 +21,6 @@ export { ApiKeysClient, apiKeysClient } from "./api-keys/client";
 export type { ApiClientConfig, RequestOptions } from "./base-client";
 export { BaseApiClient } from "./base-client";
 export { CreditsClient, creditsClient } from "./credits/client";
+export { ModelsClient, modelsClient } from "./models";
 export { ProjectsClient, projectsClient } from "./projects/client";
 export { UsageClient, usageClient } from "./usage/client";

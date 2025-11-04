@@ -91,7 +91,7 @@ const getCodeExamples = (): CodeExamples => ({
       code: (
         apiKey,
         apiBaseUrl,
-      ) => `curl -X POST "${apiBaseUrl}/chat/completions" \\
+      ) => `curl -X POST "${apiBaseUrl}/v1/chat/completions" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey}" \\
   -d '{
@@ -117,7 +117,7 @@ const getCodeExamples = (): CodeExamples => ({
 
 const client = new OpenAI({
   apiKey: '${apiKey}',
-  baseURL: '${apiBaseUrl}',
+  baseURL: '${apiBaseUrl}/v1',
 });
 
 async function main() {
@@ -149,7 +149,7 @@ main();`,
 
 client = OpenAI(
     api_key="${apiKey}",
-    base_url="${apiBaseUrl}"
+    base_url="${apiBaseUrl}/v1"
 )
 
 completion = client.chat.completions.create(
@@ -171,7 +171,7 @@ print(completion.choices[0].message.content)`,
   messages: {
     curl: {
       title: "Anthropic Messages API",
-      code: (apiKey, apiBaseUrl) => `curl -X POST "${apiBaseUrl}/messages" \\
+      code: (apiKey, apiBaseUrl) => `curl -X POST "${apiBaseUrl}/v1/messages" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey}" \\
   -d '{
@@ -196,7 +196,7 @@ print(completion.choices[0].message.content)`,
 
 const client = new Anthropic({
   apiKey: '${apiKey}',
-  baseURL: '${apiBaseUrl}',
+  baseURL: '${apiBaseUrl}/v1',
 });
 
 async function main() {
@@ -227,7 +227,7 @@ main();`,
 
 client = anthropic.Anthropic(
     api_key="${apiKey}",
-    base_url="${apiBaseUrl}"
+    base_url="${apiBaseUrl}/v1"
 )
 
 message = client.messages.create(
