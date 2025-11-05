@@ -2,6 +2,12 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { AdaptiveConfigClient } from "@/lib/api/adaptive-config";
 import {
+	isBadRequestError,
+	isConflictError,
+	isForbiddenError,
+	isNotFoundError,
+} from "@/lib/api/helpers/error-helpers";
+import {
 	invalidateOrganizationAdaptiveConfigCache,
 	invalidateOrganizationProviderCache,
 	invalidateProjectAdaptiveConfigCache,
@@ -21,9 +27,7 @@ function handleAdaptiveConfigError(error: unknown, operation: string): never {
 	console.error(`Error ${operation}:`, error);
 
 	if (error instanceof Error) {
-		const message = error.message.toLowerCase();
-
-		if (message.includes("forbidden")) {
+		if (isForbiddenError(error)) {
 			throw new TRPCError({
 				code: "FORBIDDEN",
 				message:
@@ -31,21 +35,14 @@ function handleAdaptiveConfigError(error: unknown, operation: string): never {
 			});
 		}
 
-		if (message.includes("not found")) {
-			throw new TRPCError({
-				code: "NOT_FOUND",
-				message: "Adaptive configuration not found",
-			});
-		}
-
-		if (message.includes("already exists")) {
+		if (isConflictError(error)) {
 			throw new TRPCError({
 				code: "CONFLICT",
 				message: "Adaptive configuration already exists",
 			});
 		}
 
-		if (message.includes("yaml-only")) {
+		if (isBadRequestError(error)) {
 			throw new TRPCError({
 				code: "BAD_REQUEST",
 				message: error.message, // Use exact error message from API
@@ -81,6 +78,11 @@ export const adaptiveConfigRouter = createTRPCRouter({
 					);
 					return response;
 				} catch (error) {
+					// Check if it's a 404 - return null instead of throwing
+					if (isNotFoundError(error)) {
+						return null;
+					}
+					// Only throw for actual errors
 					handleAdaptiveConfigError(error, "fetch adaptive configuration");
 				}
 			});
@@ -210,6 +212,11 @@ export const adaptiveConfigRouter = createTRPCRouter({
 					);
 					return response;
 				} catch (error) {
+					// Check if it's a 404 - return null instead of throwing
+					if (isNotFoundError(error)) {
+						return null;
+					}
+					// Only throw for actual errors
 					handleAdaptiveConfigError(
 						error,
 						"fetch organization adaptive configuration",

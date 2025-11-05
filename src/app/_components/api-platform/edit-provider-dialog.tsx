@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, HelpCircle } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -25,6 +25,15 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
 	useUpdateOrganizationProvider,
 	useUpdateProjectProvider,
@@ -33,9 +42,11 @@ import {
 	getCompatibilityFromEndpointTypes,
 	getEndpointTypesFromCompatibility,
 } from "@/lib/providers";
+import { cleanEndpointOverrides } from "@/lib/providers/utils";
 import {
 	API_COMPATIBILITY_METADATA,
 	type ApiCompatibilityType,
+	type EndpointOverride,
 	type EndpointType,
 	PROVIDER_METADATA,
 	type ProviderName,
@@ -45,7 +56,16 @@ import {
 const editProviderSchema = z.object({
 	apiCompatibility: z.enum(["openai", "anthropic", "gemini"]).optional(),
 	apiKey: z.string().optional(),
-	baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
+	baseUrl: z.union([z.url(), z.literal("")]).optional(),
+	useEndpointOverrides: z.boolean(),
+	endpointOverrides: z
+		.record(
+			z.string(),
+			z.object({
+				base_url: z.union([z.url(), z.literal("")]).optional(),
+			}),
+		)
+		.optional(),
 });
 
 type EditProviderFormValues = z.infer<typeof editProviderSchema>;
@@ -61,6 +81,7 @@ interface EditProviderDialogProps {
 		endpoint_types?: EndpointType[];
 		has_api_key?: boolean;
 		base_url?: string;
+		endpoint_overrides?: Record<EndpointType, EndpointOverride>;
 	};
 }
 
@@ -84,17 +105,32 @@ export function EditProviderDialog({
 		? getCompatibilityFromEndpointTypes(existingConfig.endpoint_types)
 		: null;
 
+	// Auto-detect if existing config has endpoint overrides
+	const hasExistingOverrides =
+		existingConfig?.endpoint_overrides &&
+		Object.keys(existingConfig.endpoint_overrides).length > 0;
+
 	const form = useForm<EditProviderFormValues>({
 		resolver: zodResolver(editProviderSchema),
 		defaultValues: {
 			apiCompatibility: currentCompatibility ?? undefined,
 			apiKey: "",
 			baseUrl: existingConfig?.base_url || "",
+			useEndpointOverrides: hasExistingOverrides || false,
+			endpointOverrides: existingConfig?.endpoint_overrides || {},
 		},
 	});
 
 	const updateProjectProvider = useUpdateProjectProvider();
 	const updateOrgProvider = useUpdateOrganizationProvider();
+
+	const useEndpointOverrides = form.watch("useEndpointOverrides");
+	const selectedApiCompatibility = form.watch("apiCompatibility");
+
+	// Get available endpoints based on API compatibility
+	const availableEndpoints = selectedApiCompatibility
+		? API_COMPATIBILITY_METADATA[selectedApiCompatibility]?.endpoints || []
+		: existingConfig?.endpoint_types || [];
 
 	useEffect(() => {
 		if (!open) {
@@ -106,9 +142,11 @@ export function EditProviderDialog({
 				apiCompatibility: currentCompatibility ?? undefined,
 				apiKey: "",
 				baseUrl: existingConfig?.base_url || "",
+				useEndpointOverrides: hasExistingOverrides || false,
+				endpointOverrides: existingConfig?.endpoint_overrides || {},
 			});
 		}
-	}, [open, form, existingConfig, currentCompatibility]);
+	}, [open, form, existingConfig, currentCompatibility, hasExistingOverrides]);
 
 	const onSubmit = (values: EditProviderFormValues) => {
 		const data: UpdateProviderApiRequest = {
@@ -124,6 +162,17 @@ export function EditProviderDialog({
 			data.endpoint_types = getEndpointTypesFromCompatibility(
 				values.apiCompatibility as ApiCompatibilityType,
 			);
+		}
+
+		// Include endpoint overrides if enabled
+		if (values.useEndpointOverrides) {
+			const cleanedOverrides = cleanEndpointOverrides(
+				values.endpointOverrides as Record<string, EndpointOverride>,
+			);
+			data.endpoint_overrides = cleanedOverrides;
+		} else {
+			// If overrides are disabled, explicitly clear them
+			data.endpoint_overrides = undefined;
 		}
 
 		if (level === "project" && projectId) {
@@ -255,7 +304,7 @@ export function EditProviderDialog({
 										{showCompatibilityWarning &&
 											field.value !== currentCompatibility && (
 												<div className="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200">
-													<strong>⚠️ Warning:</strong> Changing API compatibility
+													<strong>! Warning:</strong> Changing API compatibility
 													may break existing integrations. Make sure the new
 													format matches your provider's API.
 												</div>
@@ -277,7 +326,11 @@ export function EditProviderDialog({
 							name="baseUrl"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Base URL (Optional)</FormLabel>
+									<FormLabel>
+										{useEndpointOverrides
+											? "Default Base URL (Optional)"
+											: "Base URL (Optional)"}
+									</FormLabel>
 									<FormControl>
 										<Input
 											type="url"
@@ -285,11 +338,95 @@ export function EditProviderDialog({
 											{...field}
 										/>
 									</FormControl>
-									<FormDescription>Leave empty to use default</FormDescription>
+									<FormDescription>
+										{useEndpointOverrides
+											? "Fallback for endpoints without custom URL"
+											: "Leave empty to use default"}
+									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
+
+						{/* Endpoint Override Toggle */}
+						<div className="rounded-lg border p-4">
+							<div className="flex items-center justify-between">
+								<div className="space-y-0.5">
+									<Label className="text-base">
+										Configure per-endpoint URLs
+									</Label>
+									<p className="text-muted-foreground text-sm">
+										Use different base URLs for each endpoint type
+									</p>
+								</div>
+								<FormField
+									control={form.control}
+									name="useEndpointOverrides"
+									render={({ field }) => (
+										<FormControl>
+											<div className="flex items-center gap-2">
+												<Switch
+													checked={field.value}
+													onCheckedChange={field.onChange}
+												/>
+												<TooltipProvider>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<HelpCircle className="h-4 w-4 cursor-help text-muted-foreground" />
+														</TooltipTrigger>
+														<TooltipContent>
+															<p>
+																Useful when your provider supports multiple
+																compatibility formats like OpenAI, Anthropic, or
+																Gemini
+															</p>
+														</TooltipContent>
+													</Tooltip>
+												</TooltipProvider>
+											</div>
+										</FormControl>
+									)}
+								/>
+							</div>
+						</div>
+
+						{/* Endpoint Override Fields */}
+						{useEndpointOverrides && availableEndpoints.length > 0 && (
+							<div className="space-y-4">
+								<Separator />
+								<div className="space-y-1">
+									<Label className="font-medium text-sm">Endpoint URLs</Label>
+									<p className="text-muted-foreground text-xs">
+										Configure base URLs for each endpoint type. Leave empty to
+										use default above.
+									</p>
+								</div>
+
+								{availableEndpoints.map((endpoint) => (
+									<FormField
+										key={endpoint}
+										control={form.control}
+										name={`endpointOverrides.${endpoint}.base_url`}
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel className="text-sm">
+													{endpoint.replace(/_/g, " ")}
+												</FormLabel>
+												<FormControl>
+													<Input
+														type="url"
+														placeholder="https://api.example.com"
+														{...field}
+														value={field.value || ""}
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								))}
+							</div>
+						)}
 
 						<DialogFooter>
 							<Button

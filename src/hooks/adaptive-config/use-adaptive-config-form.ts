@@ -13,7 +13,7 @@ import {
 
 interface UseAdaptiveConfigFormProps {
 	projectId: number;
-	existingConfig?: AdaptiveConfigApiResponse;
+	existingConfig?: AdaptiveConfigApiResponse | null;
 	onSuccess?: () => void;
 }
 

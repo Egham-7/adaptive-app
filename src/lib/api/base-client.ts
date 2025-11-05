@@ -78,7 +78,13 @@ export class BaseApiClient {
 		});
 
 		if (!response.data) {
-			throw new Error(response.error?.message ?? "Request failed");
+			// Check if this is a 404 by looking at the response object
+			const errorMessage = response.error?.message ?? "Request failed";
+			const is404 =
+				errorMessage.toLowerCase().includes("not found") ||
+				errorMessage.toLowerCase().includes("404") ||
+				(response as any).status === 404;
+			throw new Error(is404 ? "not found" : errorMessage);
 		}
 
 		return response.data;

@@ -39,7 +39,7 @@ interface AdaptiveConfigSheetProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	projectId: number;
-	existingConfig?: AdaptiveConfigApiResponse;
+	existingConfig?: AdaptiveConfigApiResponse | null;
 	onSaveSuccess?: () => void;
 	onHistoryClick?: () => void;
 }

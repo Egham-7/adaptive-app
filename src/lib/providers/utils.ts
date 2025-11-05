@@ -1,9 +1,9 @@
 import {
 	API_COMPATIBILITY_METADATA,
 	type ApiCompatibilityType,
-	type CreateProviderApiRequest,
-	type CreateProviderFormData,
+	type EndpointOverride,
 	type EndpointType,
+	type ProviderConfigApiResponse,
 } from "@/types/providers";
 
 /**
@@ -40,19 +40,75 @@ export function getCompatibilityFromEndpointTypes(
 	return null; // Custom/mixed endpoints
 }
 
+// ============================================================================
+// ENDPOINT OVERRIDE UTILITIES
+// ============================================================================
+
 /**
- * Convert form data to API request format
- * @param formData - Form data from the UI
- * @returns API request object with endpoint_types
- * @deprecated Use inline conversion instead - this helper adds no value
+ * Remove empty endpoint overrides before sending to API
+ * @param overrides - Endpoint overrides map
+ * @returns Cleaned overrides with empty entries removed, or undefined if all empty
  */
-export function formDataToApiRequest(
-	formData: CreateProviderFormData,
-): CreateProviderApiRequest {
-	return {
-		...formData,
-		endpoint_types: getEndpointTypesFromCompatibility(
-			formData.api_compatibility,
-		),
-	};
+export function cleanEndpointOverrides(
+	overrides: Record<string, EndpointOverride | undefined> | undefined,
+): Record<string, EndpointOverride> | undefined {
+	if (!overrides) return undefined;
+
+	const cleaned: Record<string, EndpointOverride> = {};
+	for (const [endpoint, override] of Object.entries(overrides)) {
+		// Include override if it exists and has a base_url (including empty strings for clearing)
+		if (override && typeof override.base_url === "string") {
+			cleaned[endpoint] = { base_url: override.base_url.trim() };
+		}
+	}
+
+	return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+}
+
+/**
+ * Check if a provider config has any endpoint overrides
+ * @param config - Provider configuration
+ * @returns True if the config has endpoint overrides
+ */
+export function hasEndpointOverrides(
+	config: ProviderConfigApiResponse | undefined,
+): boolean {
+	if (!config?.endpoint_overrides) return false;
+	return Object.keys(config.endpoint_overrides).length > 0;
+}
+
+/**
+ * Get the effective base URL for a specific endpoint
+ * Checks for endpoint-specific override first, falls back to default base URL
+ * @param config - Provider configuration
+ * @param endpoint - The endpoint to get URL for
+ * @returns The effective base URL for the endpoint
+ */
+export function getEffectiveUrl(
+	config: ProviderConfigApiResponse | undefined,
+	endpoint: EndpointType,
+): string {
+	if (!config) return "";
+
+	// Check for endpoint-specific override
+	if (config.endpoint_overrides?.[endpoint]?.base_url) {
+		return config.endpoint_overrides[endpoint].base_url;
+	}
+
+	// Fall back to default base URL
+	return config.base_url || "";
+}
+
+/**
+ * Count how many endpoints have custom overrides
+ * @param overrides - Endpoint overrides map
+ * @returns Number of endpoints with overrides
+ */
+export function countEndpointOverrides(
+	overrides: Record<string, EndpointOverride> | undefined,
+): number {
+	if (!overrides) return 0;
+	return Object.keys(overrides).filter((key) =>
+		overrides[key]?.base_url?.trim(),
+	).length;
 }

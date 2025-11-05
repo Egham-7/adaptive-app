@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, History, Trash2 } from "lucide-react";
+import { Eye, EyeOff, HelpCircle, History, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
 	Sheet,
 	SheetContent,
@@ -21,9 +23,19 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useDeleteProjectProvider } from "@/hooks/provider-configs";
 import { useProviderConfigForm } from "@/hooks/provider-configs/use-provider-config-form";
+import { getCompatibilityFromEndpointTypes } from "@/lib/providers";
 import {
+	API_COMPATIBILITY_METADATA,
+	PROVIDER_COMPATIBILITY_DEFAULTS,
 	PROVIDER_METADATA,
 	type ProviderConfigApiResponse,
 	type ProviderName,
@@ -83,6 +95,20 @@ export function ProviderConfigSheet({
 
 	const { isDirty, isValid } = form.formState;
 	const displayName = metadata?.displayName ?? providerName;
+
+	// Watch form state for endpoint overrides
+	const useEndpointOverrides = form.watch("useEndpointOverrides");
+
+	// Get available endpoints based on provider's API compatibility
+	const currentCompatibility = existingConfig?.endpoint_types
+		? getCompatibilityFromEndpointTypes(existingConfig.endpoint_types)
+		: !isCustom && metadata
+			? PROVIDER_COMPATIBILITY_DEFAULTS[providerName as ProviderName]
+			: "openai";
+
+	const availableEndpoints = currentCompatibility
+		? API_COMPATIBILITY_METADATA[currentCompatibility]?.endpoints || []
+		: [];
 
 	const handleDelete = async () => {
 		if (!existingConfig) return;
@@ -307,7 +333,11 @@ export function ProviderConfigSheet({
 								name="baseUrl"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Base URL</FormLabel>
+										<FormLabel>
+											{useEndpointOverrides
+												? "Default Base URL (Optional)"
+												: "Base URL"}
+										</FormLabel>
 										<FormControl>
 											<Input
 												{...field}
@@ -315,12 +345,94 @@ export function ProviderConfigSheet({
 											/>
 										</FormControl>
 										<FormDescription>
-											Custom API endpoint URL (optional)
+											{useEndpointOverrides
+												? "Fallback for endpoints without custom URL"
+												: "Custom API endpoint URL (optional)"}
 										</FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}
 							/>
+
+							{/* Endpoint Override Toggle */}
+							<div className="rounded-lg border p-4">
+								<div className="flex items-center justify-between">
+									<div className="space-y-0.5">
+										<Label className="text-base">
+											Configure per-endpoint URLs
+										</Label>
+										<p className="text-muted-foreground text-sm">
+											Use different base URLs for each endpoint type
+										</p>
+									</div>
+									<FormField
+										control={form.control}
+										name="useEndpointOverrides"
+										render={({ field }) => (
+											<FormControl>
+												<div className="flex items-center gap-2">
+													<Switch
+														checked={field.value}
+														onCheckedChange={field.onChange}
+													/>
+													<TooltipProvider>
+														<Tooltip>
+															<TooltipTrigger asChild>
+																<HelpCircle className="h-4 w-4 cursor-help text-muted-foreground" />
+															</TooltipTrigger>
+															<TooltipContent>
+																<p>
+																	Useful when your provider supports multiple
+																	compatibility formats like OpenAI, Anthropic,
+																	or Gemini
+																</p>
+															</TooltipContent>
+														</Tooltip>
+													</TooltipProvider>
+												</div>
+											</FormControl>
+										)}
+									/>
+								</div>
+							</div>
+
+							{/* Endpoint Override Fields */}
+							{useEndpointOverrides && availableEndpoints.length > 0 && (
+								<div className="space-y-4">
+									<Separator />
+									<div className="space-y-1">
+										<Label className="font-medium text-sm">Endpoint URLs</Label>
+										<p className="text-muted-foreground text-xs">
+											Configure base URLs for each endpoint type. Leave empty to
+											use default above.
+										</p>
+									</div>
+
+									{availableEndpoints.map((endpoint) => (
+										<FormField
+											key={endpoint}
+											control={form.control}
+											name={`endpointOverrides.${endpoint}.base_url`}
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel className="text-sm">
+														{endpoint.replace(/_/g, " ")}
+													</FormLabel>
+													<FormControl>
+														<Input
+															type="url"
+															placeholder="https://api.example.com"
+															{...field}
+															value={field.value || ""}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									))}
+								</div>
+							)}
 
 							<div className="flex gap-2 pt-4">
 								<Button

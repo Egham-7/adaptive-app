@@ -42,6 +42,13 @@ export const apiCompatibilityTypes = ["openai", "anthropic", "gemini"] as const;
 
 export type ApiCompatibilityType = (typeof apiCompatibilityTypes)[number];
 
+/**
+ * Endpoint override configuration for per-endpoint base URLs
+ */
+export interface EndpointOverride {
+	base_url?: string;
+}
+
 // ============================================================================
 // METADATA & CONFIGURATION
 // ============================================================================
@@ -75,7 +82,7 @@ export const API_COMPATIBILITY_METADATA: Record<
 	anthropic: {
 		label: "Anthropic-compatible",
 		description: "Providers using Anthropic's messages API format",
-		endpoints: ["messages", "select_model"],
+		endpoints: ["messages", "select_model", "chat_completions"],
 		examples: ["Anthropic", "Cohere", "AWS Bedrock (Anthropic)"],
 	},
 	gemini: {
@@ -205,6 +212,7 @@ export interface CreateProviderFormData {
 	api_compatibility: ApiCompatibilityType;
 	api_key?: string;
 	base_url?: string;
+	endpoint_overrides?: Record<EndpointType, EndpointOverride>;
 }
 
 // ============================================================================
@@ -219,6 +227,7 @@ export interface CreateProviderApiRequest {
 	endpoint_types: EndpointType[];
 	api_key?: string;
 	base_url?: string;
+	endpoint_overrides?: Record<EndpointType, EndpointOverride>;
 }
 
 /**
@@ -228,6 +237,7 @@ export interface UpdateProviderApiRequest {
 	endpoint_types?: EndpointType[];
 	api_key?: string;
 	base_url?: string;
+	endpoint_overrides?: Record<EndpointType, EndpointOverride>;
 	enabled?: boolean;
 }
 
@@ -243,6 +253,7 @@ export interface ProviderConfigApiResponse {
 	provider_name: string;
 	endpoint_types: EndpointType[];
 	base_url: string;
+	endpoint_overrides?: Record<EndpointType, EndpointOverride>;
 	has_api_key: boolean;
 	enabled: boolean;
 	source: "project" | "organization";
@@ -281,6 +292,17 @@ export interface GetProviderHistoryApiResponse {
 // ============================================================================
 
 /**
+ * Zod schema for endpoint override configuration
+ */
+export const endpointOverrideSchema = z.object({
+	base_url: z
+		.string()
+		.url("Please enter a valid URL")
+		.or(z.literal(""))
+		.optional(),
+});
+
+/**
  * Zod schema for creating a provider
  */
 export const createProviderFormSchema = z.object({
@@ -288,6 +310,9 @@ export const createProviderFormSchema = z.object({
 	api_compatibility: z.enum(apiCompatibilityTypes),
 	api_key: z.string().optional(),
 	base_url: z.string().optional(),
+	endpoint_overrides: z
+		.record(z.enum(endpointTypes), endpointOverrideSchema.optional())
+		.optional(),
 });
 
 /**
@@ -298,6 +323,9 @@ export const updateProviderFormSchema = z.object({
 	api_key: z.string().optional(),
 	base_url: z.url("Please enter a valid URL").or(z.literal("")).optional(),
 	enabled: z.boolean().optional(),
+	endpoint_overrides: z
+		.record(z.enum(endpointTypes), endpointOverrideSchema.optional())
+		.optional(),
 });
 
 /**

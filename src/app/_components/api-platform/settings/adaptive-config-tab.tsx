@@ -65,48 +65,32 @@ export function AdaptiveConfigTab({
 		error: historyError,
 	} = useAdaptiveConfigHistory(config?.id ?? null);
 
-	const utils = api.useUtils();
-
 	// Create mutation (when no config exists in DB)
 	const createMutation =
-		api.adaptiveConfig.createOrganizationAdaptiveConfig.useMutation({
-			onSuccess: () => {
-				// Refetch config
-				utils.adaptiveConfig.getOrganizationAdaptiveConfig.invalidate({
-					organizationId,
-				});
-			},
-		});
+		api.adaptiveConfig.createOrganizationAdaptiveConfig.useMutation();
 
 	// Update mutation (for existing DB configs)
 	const updateMutation =
-		api.adaptiveConfig.updateOrganizationAdaptiveConfig.useMutation({
-			onSuccess: () => {
-				// Refetch config
-				utils.adaptiveConfig.getOrganizationAdaptiveConfig.invalidate({
-					organizationId,
-				});
-			},
-		});
+		api.adaptiveConfig.updateOrganizationAdaptiveConfig.useMutation();
 
-	// Form state
+	// Form state - handle both null and existing configs
 	const form = useForm({
 		resolver: zodResolver(updateAdaptiveConfigSchema),
 		defaultValues: {
 			model_router_config: {
 				cache: {
-					capacity: config?.model_router_config?.cache?.capacity,
 					enabled: config?.model_router_config?.cache?.enabled ?? false,
 					semantic_threshold:
-						config?.model_router_config?.cache?.semantic_threshold,
+						config?.model_router_config?.cache?.semantic_threshold ?? 0.95,
 				},
-				cost_bias: config?.model_router_config?.cost_bias,
+				cost_bias: config?.model_router_config?.cost_bias ?? 0.5,
 			},
 			fallback_config: {
 				mode: config?.fallback_config?.mode ?? "sequential",
-				timeout_ms: config?.fallback_config?.timeout_ms,
-				max_retries: config?.fallback_config?.max_retries,
+				timeout_ms: config?.fallback_config?.timeout_ms ?? 30000,
+				max_retries: config?.fallback_config?.max_retries ?? 3,
 			},
+			enabled: config?.enabled ?? true,
 		},
 	});
 
@@ -150,16 +134,238 @@ export function AdaptiveConfigTab({
 		);
 	}
 
-	// No config exists
+	// No config exists - show form to create one
 	if (!config) {
 		return (
-			<Alert>
-				<AlertCircle className="h-4 w-4" />
-				<AlertDescription>
-					No adaptive configuration found for this organization.
-					{isAdmin && " Create one to get started."}
-				</AlertDescription>
-			</Alert>
+			<div className="space-y-6">
+				{/* Header */}
+				<div className="flex items-center justify-between">
+					<div className="space-y-1">
+						<h2 className="font-bold text-2xl">Adaptive Configuration</h2>
+						<p className="text-muted-foreground text-sm">
+							Configure model routing and fallback behavior at the organization
+							level
+						</p>
+					</div>
+				</div>
+
+				{/* Admin warning */}
+				{!isAdmin && (
+					<Alert>
+						<AlertCircle className="h-4 w-4" />
+						<AlertDescription>
+							Only organization admins can modify adaptive configuration
+						</AlertDescription>
+					</Alert>
+				)}
+
+				{/* Info alert */}
+				{isAdmin && (
+					<Alert>
+						<AlertCircle className="h-4 w-4" />
+						<AlertDescription>
+							No adaptive configuration found. Configure one below to get
+							started.
+						</AlertDescription>
+					</Alert>
+				)}
+
+				<form onSubmit={onSubmit} className="space-y-6">
+					{/* Configuration Accordion */}
+					<Accordion
+						type="multiple"
+						defaultValue={["model-router", "fallback"]}
+						className="space-y-4"
+					>
+						{/* Model Router Config */}
+						<AccordionItem
+							value="model-router"
+							className="rounded-lg border px-4"
+						>
+							<AccordionTrigger className="hover:no-underline">
+								<div className="flex items-center gap-2">
+									<span className="font-semibold">
+										Model Router Configuration
+									</span>
+									<Badge variant="outline">Not Configured</Badge>
+								</div>
+							</AccordionTrigger>
+							<AccordionContent className="space-y-4 pt-4">
+								{/* Cache Settings */}
+								<div className="space-y-4 rounded-lg bg-muted/50 p-4">
+									<h4 className="font-medium">Cache Settings</h4>
+
+									<div className="flex items-center justify-between">
+										<Label htmlFor="cache-enabled">Enable Caching</Label>
+										<Switch
+											id="cache-enabled"
+											checked={form.watch("model_router_config.cache.enabled")}
+											onCheckedChange={(checked) =>
+												form.setValue(
+													"model_router_config.cache.enabled",
+													checked,
+												)
+											}
+											disabled={!isAdmin}
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="cache-capacity">Cache Capacity</Label>
+										<Input
+											id="cache-capacity"
+											type="number"
+											value={1000}
+											readOnly
+											disabled
+											className="bg-muted"
+										/>
+										<p className="text-muted-foreground text-xs">
+											Cache capacity is configured in YAML and cannot be changed
+											via API
+										</p>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="semantic-threshold">
+											Semantic Threshold
+										</Label>
+										<Input
+											id="semantic-threshold"
+											type="number"
+											step="0.01"
+											placeholder="0.95"
+											{...form.register(
+												"model_router_config.cache.semantic_threshold",
+												{
+													valueAsNumber: true,
+												},
+											)}
+											disabled={!isAdmin}
+										/>
+										<p className="text-muted-foreground text-xs">
+											Similarity threshold for semantic caching (0-1)
+										</p>
+									</div>
+								</div>
+
+								{/* Cost Bias */}
+								<div className="space-y-2">
+									<Label htmlFor="cost-bias">Cost Bias</Label>
+									<Input
+										id="cost-bias"
+										type="number"
+										step="0.1"
+										placeholder="0.5"
+										{...form.register("model_router_config.cost_bias", {
+											valueAsNumber: true,
+										})}
+										disabled={!isAdmin}
+									/>
+									<p className="text-muted-foreground text-xs">
+										Weight for cost vs performance in routing decisions (0-1)
+									</p>
+								</div>
+							</AccordionContent>
+						</AccordionItem>
+
+						{/* Fallback Config */}
+						<AccordionItem value="fallback" className="rounded-lg border px-4">
+							<AccordionTrigger className="hover:no-underline">
+								<div className="flex items-center gap-2">
+									<span className="font-semibold">Fallback Configuration</span>
+									<Badge variant="outline">Not Configured</Badge>
+								</div>
+							</AccordionTrigger>
+							<AccordionContent className="space-y-4 pt-4">
+								<div className="space-y-2">
+									<Label htmlFor="fallback-mode">Fallback Mode</Label>
+									<Select
+										value={form.watch("fallback_config.mode")}
+										onValueChange={(value) =>
+											form.setValue(
+												"fallback_config.mode",
+												value as "sequential" | "race",
+											)
+										}
+										disabled={!isAdmin}
+									>
+										<SelectTrigger id="fallback-mode">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="sequential">Sequential</SelectItem>
+											<SelectItem value="race">Race</SelectItem>
+										</SelectContent>
+									</Select>
+									<p className="text-muted-foreground text-xs">
+										Sequential: Try providers one by one. Race: Try all
+										simultaneously
+									</p>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="timeout">Timeout (ms)</Label>
+									<Input
+										id="timeout"
+										type="number"
+										placeholder="30000"
+										{...form.register("fallback_config.timeout_ms", {
+											valueAsNumber: true,
+										})}
+										disabled={!isAdmin}
+									/>
+									<p className="text-muted-foreground text-xs">
+										Maximum time to wait for a provider response
+									</p>
+								</div>
+
+								<div className="space-y-2">
+									<Label htmlFor="max-retries">Max Retries</Label>
+									<Input
+										id="max-retries"
+										type="number"
+										placeholder="3"
+										{...form.register("fallback_config.max_retries", {
+											valueAsNumber: true,
+										})}
+										disabled={!isAdmin}
+									/>
+									<p className="text-muted-foreground text-xs">
+										Maximum number of retry attempts per provider
+									</p>
+								</div>
+							</AccordionContent>
+						</AccordionItem>
+					</Accordion>
+
+					{/* Action Buttons */}
+					{isAdmin && (
+						<div className="flex items-center justify-end gap-3">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleReset}
+								disabled={!form.formState.isDirty}
+								className="gap-2"
+							>
+								<RotateCcw className="h-4 w-4" />
+								Reset
+							</Button>
+							<Button
+								type="submit"
+								disabled={createMutation.isPending || updateMutation.isPending}
+								className="gap-2"
+							>
+								<Save className="h-4 w-4" />
+								{createMutation.isPending || updateMutation.isPending
+									? "Creating..."
+									: "Create Configuration"}
+							</Button>
+						</div>
+					)}
+				</form>
+			</div>
 		);
 	}
 
@@ -247,14 +453,14 @@ export function AdaptiveConfigTab({
 									<Input
 										id="cache-capacity"
 										type="number"
-										placeholder="1000"
-										{...form.register("model_router_config.cache.capacity", {
-											valueAsNumber: true,
-										})}
-										disabled={!isAdmin}
+										value={config?.model_router_config?.cache?.capacity ?? 1000}
+										readOnly
+										disabled
+										className="bg-muted"
 									/>
 									<p className="text-muted-foreground text-xs">
-										Maximum number of cached items
+										Cache capacity is configured in YAML and cannot be changed
+										via API
 									</p>
 								</div>
 
@@ -392,26 +598,11 @@ export function AdaptiveConfigTab({
 							<Save className="h-4 w-4" />
 							{createMutation.isPending || updateMutation.isPending
 								? "Saving..."
-								: "Save Configuration"}
+								: config
+									? "Save Configuration"
+									: "Create Configuration"}
 						</Button>
 					</div>
-				)}
-
-				{/* Success/Error Messages */}
-				{(createMutation.isSuccess || updateMutation.isSuccess) && (
-					<Alert className="border-green-200 bg-green-50 text-green-900">
-						<AlertDescription>
-							Configuration {config ? "updated" : "created"} successfully!
-						</AlertDescription>
-					</Alert>
-				)}
-				{(createMutation.isError || updateMutation.isError) && (
-					<Alert variant="destructive">
-						<AlertDescription>
-							Failed to {config ? "update" : "create"} configuration:{" "}
-							{createMutation.error?.message || updateMutation.error?.message}
-						</AlertDescription>
-					</Alert>
 				)}
 			</form>
 
