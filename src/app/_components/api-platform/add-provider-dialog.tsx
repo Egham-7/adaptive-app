@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, HelpCircle } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -154,24 +161,28 @@ export function AddProviderDialog({
 	const isLoading =
 		createProjectProvider.isPending || createOrgProvider.isPending;
 
-	const builtInProviders: ComboboxOption[] = Object.entries(PROVIDER_METADATA)
-		.filter(([key]) => {
-			const isConfigured = configuredProviders.includes(key);
-			return !isConfigured;
-		})
-		.map(([key, metadata]) => ({
-			value: key,
-			label: metadata.displayName,
-			icon: metadata.logo ? (
-				<Image
-					src={metadata.logo}
-					alt=""
-					width={16}
-					height={16}
-					className="rounded"
-				/>
-			) : undefined,
-		}));
+	const builtInProviders: ComboboxOption[] = useMemo(
+		() =>
+			Object.entries(PROVIDER_METADATA)
+				.filter(([key]) => {
+					const isConfigured = configuredProviders.includes(key);
+					return !isConfigured;
+				})
+				.map(([key, metadata]) => ({
+					value: key,
+					label: metadata.displayName,
+					icon: metadata.logo ? (
+						<Image
+							src={metadata.logo}
+							alt=""
+							width={16}
+							height={16}
+							className="rounded"
+						/>
+					) : undefined,
+				})),
+		[configuredProviders],
+	);
 
 	const selectedProvider = form.watch("provider");
 	const useEndpointOverrides = form.watch("useEndpointOverrides");
@@ -185,8 +196,10 @@ export function AddProviderDialog({
 	const isCustomProvider = selectedProvider && !metadata;
 
 	// Get available endpoints based on API compatibility
-	const availableEndpoints =
-		API_COMPATIBILITY_METADATA[apiCompatibility]?.endpoints || [];
+	const availableEndpoints = useMemo(
+		() => API_COMPATIBILITY_METADATA[apiCompatibility]?.endpoints || [],
+		[apiCompatibility],
+	);
 
 	// Auto-select API compatibility for built-in providers
 	useEffect(() => {
@@ -204,7 +217,7 @@ export function AddProviderDialog({
 			form.reset();
 			setShowApiKey(false);
 		}
-	}, [open, form]);
+	}, [open, form.reset]); // Removed form from dependencies to prevent unnecessary re-renders
 
 	const onSubmit = (values: AddProviderFormValues) => {
 		// Clean endpoint overrides (remove empty entries)
@@ -311,21 +324,22 @@ export function AddProviderDialog({
 										<FormLabel>
 											API Compatibility <span className="text-red-500">*</span>
 										</FormLabel>
-										<FormControl>
-											<select
-												{...field}
-												className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-												disabled={!selectedProvider}
-											>
+										<Select onValueChange={field.onChange} value={field.value}>
+											<FormControl>
+												<SelectTrigger>
+													<SelectValue placeholder="Select API compatibility" />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
 												{Object.entries(API_COMPATIBILITY_METADATA).map(
 													([key, metadata]) => (
-														<option key={key} value={key}>
+														<SelectItem key={key} value={key}>
 															{metadata.label}
-														</option>
+														</SelectItem>
 													),
 												)}
-											</select>
-										</FormControl>
+											</SelectContent>
+										</Select>
 										<FormDescription>
 											{field.value &&
 												API_COMPATIBILITY_METADATA[

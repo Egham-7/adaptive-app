@@ -1,4 +1,4 @@
-import { betterFetch } from "@better-fetch/fetch";
+import { type BetterFetchResponse, betterFetch } from "@better-fetch/fetch";
 import { env } from "@/env";
 
 /**
@@ -83,7 +83,8 @@ export class BaseApiClient {
 			const is404 =
 				errorMessage.toLowerCase().includes("not found") ||
 				errorMessage.toLowerCase().includes("404") ||
-				(response as any).status === 404;
+				(response as BetterFetchResponse<TResponse> & { status?: number })
+					.status === 404;
 			throw new Error(is404 ? "not found" : errorMessage);
 		}
 

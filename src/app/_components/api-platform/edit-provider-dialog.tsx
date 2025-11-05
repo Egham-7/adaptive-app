@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, HelpCircle } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -128,9 +135,13 @@ export function EditProviderDialog({
 	const selectedApiCompatibility = form.watch("apiCompatibility");
 
 	// Get available endpoints based on API compatibility
-	const availableEndpoints = selectedApiCompatibility
-		? API_COMPATIBILITY_METADATA[selectedApiCompatibility]?.endpoints || []
-		: existingConfig?.endpoint_types || [];
+	const availableEndpoints = useMemo(
+		() =>
+			selectedApiCompatibility
+				? API_COMPATIBILITY_METADATA[selectedApiCompatibility]?.endpoints || []
+				: existingConfig?.endpoint_types || [],
+		[selectedApiCompatibility, existingConfig?.endpoint_types],
+	);
 
 	useEffect(() => {
 		if (!open) {
@@ -138,6 +149,14 @@ export function EditProviderDialog({
 			setShowApiKey(false);
 			setShowCompatibilityWarning(false);
 		} else {
+			const hasExistingOverrides =
+				existingConfig?.endpoint_overrides &&
+				Object.keys(existingConfig.endpoint_overrides).length > 0;
+
+			const currentCompatibility = existingConfig?.endpoint_types
+				? getCompatibilityFromEndpointTypes(existingConfig.endpoint_types)
+				: null;
+
 			form.reset({
 				apiCompatibility: currentCompatibility ?? undefined,
 				apiKey: "",
@@ -146,7 +165,7 @@ export function EditProviderDialog({
 				endpointOverrides: existingConfig?.endpoint_overrides || {},
 			});
 		}
-	}, [open, form, existingConfig, currentCompatibility, hasExistingOverrides]);
+	}, [open, existingConfig, form.reset]); // Simplified dependencies
 
 	const onSubmit = (values: EditProviderFormValues) => {
 		const data: UpdateProviderApiRequest = {
@@ -280,27 +299,30 @@ export function EditProviderDialog({
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>API Compatibility</FormLabel>
-										<FormControl>
-											<select
-												{...field}
-												value={field.value || ""}
-												onChange={(e) => {
-													if (e.target.value !== currentCompatibility) {
-														setShowCompatibilityWarning(true);
-													}
-													field.onChange(e);
-												}}
-												className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-											>
+										<Select
+											onValueChange={(value) => {
+												if (value !== currentCompatibility) {
+													setShowCompatibilityWarning(true);
+												}
+												field.onChange(value);
+											}}
+											value={field.value || ""}
+										>
+											<FormControl>
+												<SelectTrigger>
+													<SelectValue placeholder="Select API compatibility" />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
 												{Object.entries(API_COMPATIBILITY_METADATA).map(
 													([key, metadata]) => (
-														<option key={key} value={key}>
+														<SelectItem key={key} value={key}>
 															{metadata.label}
-														</option>
+														</SelectItem>
 													),
 												)}
-											</select>
-										</FormControl>
+											</SelectContent>
+										</Select>
 										{showCompatibilityWarning &&
 											field.value !== currentCompatibility && (
 												<div className="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200">
