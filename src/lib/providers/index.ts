@@ -7,7 +7,7 @@ export { getProviderDisplayName, getProviderLogo } from "./logos";
 
 // Provider configuration utilities
 export {
-	formDataToApiRequest,
+	cleanEndpointOverrides,
 	getCompatibilityFromEndpointTypes,
 	getEndpointTypesFromCompatibility,
 } from "./utils";

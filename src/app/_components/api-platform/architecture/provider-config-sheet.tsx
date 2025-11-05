@@ -1,8 +1,8 @@
 "use client";
 
-import { Eye, EyeOff, History, Trash2 } from "lucide-react";
+import { Eye, EyeOff, HelpCircle, History, Info, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -14,6 +14,8 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
 	Sheet,
 	SheetContent,
@@ -21,9 +23,19 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useDeleteProjectProvider } from "@/hooks/provider-configs";
 import { useProviderConfigForm } from "@/hooks/provider-configs/use-provider-config-form";
+import { getCompatibilityFromEndpointTypes } from "@/lib/providers";
 import {
+	API_COMPATIBILITY_METADATA,
+	PROVIDER_COMPATIBILITY_DEFAULTS,
 	PROVIDER_METADATA,
 	type ProviderConfigApiResponse,
 	type ProviderName,
@@ -51,17 +63,20 @@ export function ProviderConfigSheet({
 	const isOrgLevel = existingConfig?.source === "organization";
 	const isProjectLevel = existingConfig?.source === "project";
 
-	const [showConfigForm, setShowConfigForm] = useState(
-		!!existingConfig && !isOrgLevel,
-	);
-	const [showApiKey, setShowApiKey] = useState(false);
-	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+	const [uiState, setUiState] = useState({
+		showConfigForm: !!existingConfig && !isOrgLevel,
+		showApiKey: false,
+		showDeleteConfirm: false,
+	});
 
 	useEffect(() => {
 		if (open) {
-			setShowConfigForm(!!existingConfig && !isOrgLevel);
-			setShowApiKey(false);
-			setShowDeleteConfirm(false);
+			setUiState((prev) => ({
+				...prev,
+				showConfigForm: !!existingConfig && !isOrgLevel,
+				showApiKey: false,
+				showDeleteConfirm: false,
+			}));
 		}
 	}, [open, existingConfig, isOrgLevel]);
 
@@ -84,7 +99,29 @@ export function ProviderConfigSheet({
 	const { isDirty, isValid } = form.formState;
 	const displayName = metadata?.displayName ?? providerName;
 
-	const handleDelete = async () => {
+	// Watch form state for endpoint overrides
+	const useEndpointOverrides = form.watch("useEndpointOverrides");
+
+	// Get available endpoints based on provider's API compatibility
+	const currentCompatibility = useMemo(() => {
+		if (existingConfig?.endpoint_types) {
+			return getCompatibilityFromEndpointTypes(existingConfig.endpoint_types);
+		}
+		if (!isCustom && metadata) {
+			return PROVIDER_COMPATIBILITY_DEFAULTS[providerName as ProviderName];
+		}
+		return "openai";
+	}, [existingConfig?.endpoint_types, isCustom, metadata, providerName]);
+
+	const availableEndpoints = useMemo(
+		() =>
+			currentCompatibility
+				? API_COMPATIBILITY_METADATA[currentCompatibility]?.endpoints || []
+				: [],
+		[currentCompatibility],
+	);
+
+	const handleDelete = useCallback(async () => {
 		if (!existingConfig) return;
 
 		try {
@@ -96,11 +133,17 @@ export function ProviderConfigSheet({
 		} catch (error) {
 			console.error("Failed to delete provider config:", error);
 		}
-	};
+	}, [
+		existingConfig,
+		deleteProjectProvider,
+		projectId,
+		providerName,
+		onOpenChange,
+	]);
 
-	const handleConfigure = () => {
-		setShowConfigForm(true);
-	};
+	const handleConfigure = useCallback(() => {
+		setUiState((prev) => ({ ...prev, showConfigForm: true }));
+	}, []);
 
 	const saveState = isLoading ? "loading" : isSuccess ? "success" : "initial";
 
@@ -149,21 +192,7 @@ export function ProviderConfigSheet({
 					<div className="mx-6 mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
 						<div className="flex items-start gap-3">
 							<div className="mt-0.5 rounded-full bg-primary/10 p-1">
-								<svg
-									className="h-4 w-4 text-primary"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									role="img"
-									aria-label="Information"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-									/>
-								</svg>
+								<Info className="h-4 w-4 text-primary" />
 							</div>
 							<div className="flex-1">
 								<h4 className="font-semibold text-primary text-sm">
@@ -181,9 +210,11 @@ export function ProviderConfigSheet({
 
 				{isProjectLevel && (
 					<div className="px-6 pt-4">
-						{!showDeleteConfirm ? (
+						{!uiState.showDeleteConfirm ? (
 							<Button
-								onClick={() => setShowDeleteConfirm(true)}
+								onClick={() =>
+									setUiState((prev) => ({ ...prev, showDeleteConfirm: true }))
+								}
 								variant="outline"
 								size="sm"
 								className="w-full text-destructive hover:bg-destructive/10"
@@ -209,7 +240,12 @@ export function ProviderConfigSheet({
 											: "Confirm Delete"}
 									</Button>
 									<Button
-										onClick={() => setShowDeleteConfirm(false)}
+										onClick={() =>
+											setUiState((prev) => ({
+												...prev,
+												showDeleteConfirm: false,
+											}))
+										}
 										variant="outline"
 										size="sm"
 										className="flex-1"
@@ -222,7 +258,7 @@ export function ProviderConfigSheet({
 					</div>
 				)}
 
-				{!showConfigForm && !isProjectLevel && (
+				{!uiState.showConfigForm && !isProjectLevel && (
 					<div className="mt-6 space-y-6 px-6">
 						<div>
 							<h4 className="mb-2 font-medium text-sm">About this provider</h4>
@@ -246,7 +282,7 @@ export function ProviderConfigSheet({
 					</div>
 				)}
 
-				{showConfigForm && (
+				{uiState.showConfigForm && (
 					<Form {...form}>
 						<form
 							onSubmit={form.handleSubmit(onSubmit)}
@@ -267,7 +303,7 @@ export function ProviderConfigSheet({
 											<div className="relative">
 												<Input
 													{...field}
-													type={showApiKey ? "text" : "password"}
+													type={uiState.showApiKey ? "text" : "password"}
 													placeholder={
 														isProjectLevel
 															? "Enter new API key to update"
@@ -280,9 +316,14 @@ export function ProviderConfigSheet({
 													variant="ghost"
 													size="sm"
 													className="absolute top-0 right-0 h-full px-3 hover:bg-transparent"
-													onClick={() => setShowApiKey(!showApiKey)}
+													onClick={() =>
+														setUiState((prev) => ({
+															...prev,
+															showApiKey: !prev.showApiKey,
+														}))
+													}
 												>
-													{showApiKey ? (
+													{uiState.showApiKey ? (
 														<EyeOff className="h-4 w-4" />
 													) : (
 														<Eye className="h-4 w-4" />
@@ -307,7 +348,11 @@ export function ProviderConfigSheet({
 								name="baseUrl"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Base URL</FormLabel>
+										<FormLabel>
+											{useEndpointOverrides
+												? "Default Base URL (Optional)"
+												: "Base URL"}
+										</FormLabel>
 										<FormControl>
 											<Input
 												{...field}
@@ -315,12 +360,94 @@ export function ProviderConfigSheet({
 											/>
 										</FormControl>
 										<FormDescription>
-											Custom API endpoint URL (optional)
+											{useEndpointOverrides
+												? "Fallback for endpoints without custom URL"
+												: "Custom API endpoint URL (optional)"}
 										</FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}
 							/>
+
+							{/* Endpoint Override Toggle */}
+							<div className="rounded-lg border p-4">
+								<div className="flex items-center justify-between">
+									<div className="space-y-0.5">
+										<Label className="text-base">
+											Configure per-endpoint URLs
+										</Label>
+										<p className="text-muted-foreground text-sm">
+											Use different base URLs for each endpoint type
+										</p>
+									</div>
+									<FormField
+										control={form.control}
+										name="useEndpointOverrides"
+										render={({ field }) => (
+											<FormControl>
+												<div className="flex items-center gap-2">
+													<Switch
+														checked={field.value}
+														onCheckedChange={field.onChange}
+													/>
+													<TooltipProvider>
+														<Tooltip>
+															<TooltipTrigger asChild>
+																<HelpCircle className="h-4 w-4 cursor-help text-muted-foreground" />
+															</TooltipTrigger>
+															<TooltipContent>
+																<p>
+																	Useful when your provider supports multiple
+																	compatibility formats like OpenAI, Anthropic,
+																	or Gemini
+																</p>
+															</TooltipContent>
+														</Tooltip>
+													</TooltipProvider>
+												</div>
+											</FormControl>
+										)}
+									/>
+								</div>
+							</div>
+
+							{/* Endpoint Override Fields */}
+							{useEndpointOverrides && availableEndpoints.length > 0 && (
+								<div className="space-y-4">
+									<Separator />
+									<div className="space-y-1">
+										<Label className="font-medium text-sm">Endpoint URLs</Label>
+										<p className="text-muted-foreground text-xs">
+											Configure base URLs for each endpoint type. Leave empty to
+											use default above.
+										</p>
+									</div>
+
+									{availableEndpoints.map((endpoint) => (
+										<FormField
+											key={endpoint}
+											control={form.control}
+											name={`endpointOverrides.${endpoint}.base_url`}
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel className="text-sm">
+														{endpoint.replace(/_/g, " ")}
+													</FormLabel>
+													<FormControl>
+														<Input
+															type="url"
+															placeholder="https://api.example.com"
+															{...field}
+															value={field.value || ""}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									))}
+								</div>
+							)}
 
 							<div className="flex gap-2 pt-4">
 								<Button

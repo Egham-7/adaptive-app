@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, HelpCircle } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,31 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
 	useCreateOrganizationProvider,
 	useCreateProjectProvider,
 } from "@/hooks/provider-configs";
+import { cleanEndpointOverrides } from "@/lib/providers/utils";
 import {
 	API_COMPATIBILITY_METADATA,
 	type ApiCompatibilityType,
+	type EndpointOverride,
 	PROVIDER_COMPATIBILITY_DEFAULTS,
 	PROVIDER_METADATA,
 	type ProviderName,
@@ -44,6 +62,15 @@ const createProviderSchema = z
 		apiCompatibility: z.enum(["openai", "anthropic", "gemini"]),
 		apiKey: z.string().optional(),
 		baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
+		useEndpointOverrides: z.boolean(),
+		endpointOverrides: z
+			.record(
+				z.string(),
+				z.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				}),
+			)
+			.optional(),
 	})
 	.superRefine((data, ctx) => {
 		const isCustomProvider = !PROVIDER_METADATA[data.provider as ProviderName];
@@ -55,7 +82,7 @@ const createProviderSchema = z
 					path: ["provider"],
 				});
 			}
-			// Custom providers require both API key and BaseURL
+			// Custom providers require both API key and BaseURL (if not using overrides)
 			if (!data.apiKey || data.apiKey.trim() === "") {
 				ctx.addIssue({
 					code: z.ZodIssueCode.custom,
@@ -63,10 +90,30 @@ const createProviderSchema = z
 					path: ["apiKey"],
 				});
 			}
-			if (!data.baseUrl || data.baseUrl.trim() === "") {
+			if (!data.useEndpointOverrides) {
+				if (!data.baseUrl || data.baseUrl.trim() === "") {
+					ctx.addIssue({
+						code: z.ZodIssueCode.custom,
+						message: "Base URL is required for custom providers",
+						path: ["baseUrl"],
+					});
+				}
+			}
+		}
+
+		// Validate endpoint overrides if enabled
+		if (data.useEndpointOverrides) {
+			const hasAtLeastOneOverride =
+				data.endpointOverrides &&
+				Object.values(data.endpointOverrides).some(
+					(override) => override.base_url && override.base_url.trim() !== "",
+				);
+			const hasDefaultUrl = data.baseUrl && data.baseUrl.trim() !== "";
+
+			if (!hasAtLeastOneOverride && !hasDefaultUrl) {
 				ctx.addIssue({
 					code: z.ZodIssueCode.custom,
-					message: "Base URL is required for custom providers",
+					message: "Provide at least one endpoint URL or a default base URL",
 					path: ["baseUrl"],
 				});
 			}
@@ -103,6 +150,8 @@ export function AddProviderDialog({
 			apiCompatibility: "openai", // Default to OpenAI-compatible
 			apiKey: "",
 			baseUrl: "",
+			useEndpointOverrides: false,
+			endpointOverrides: {},
 		},
 	});
 
@@ -112,32 +161,45 @@ export function AddProviderDialog({
 	const isLoading =
 		createProjectProvider.isPending || createOrgProvider.isPending;
 
-	const builtInProviders: ComboboxOption[] = Object.entries(PROVIDER_METADATA)
-		.filter(([key]) => {
-			const isConfigured = configuredProviders.includes(key);
-			return !isConfigured;
-		})
-		.map(([key, metadata]) => ({
-			value: key,
-			label: metadata.displayName,
-			icon: metadata.logo ? (
-				<Image
-					src={metadata.logo}
-					alt=""
-					width={16}
-					height={16}
-					className="rounded"
-				/>
-			) : undefined,
-		}));
+	const builtInProviders: ComboboxOption[] = useMemo(
+		() =>
+			Object.entries(PROVIDER_METADATA)
+				.filter(([key]) => {
+					const isConfigured = configuredProviders.includes(key);
+					return !isConfigured;
+				})
+				.map(([key, metadata]) => ({
+					value: key,
+					label: metadata.displayName,
+					icon: metadata.logo ? (
+						<Image
+							src={metadata.logo}
+							alt=""
+							width={16}
+							height={16}
+							className="rounded"
+						/>
+					) : undefined,
+				})),
+		[configuredProviders],
+	);
 
 	const selectedProvider = form.watch("provider");
+	const useEndpointOverrides = form.watch("useEndpointOverrides");
+	const apiCompatibility = form.watch("apiCompatibility");
+
 	const metadata =
 		selectedProvider && PROVIDER_METADATA[selectedProvider as ProviderName]
 			? PROVIDER_METADATA[selectedProvider as ProviderName]
 			: null;
 
 	const isCustomProvider = selectedProvider && !metadata;
+
+	// Get available endpoints based on API compatibility
+	const availableEndpoints = useMemo(
+		() => API_COMPATIBILITY_METADATA[apiCompatibility]?.endpoints || [],
+		[apiCompatibility],
+	);
 
 	// Auto-select API compatibility for built-in providers
 	useEffect(() => {
@@ -155,15 +217,23 @@ export function AddProviderDialog({
 			form.reset();
 			setShowApiKey(false);
 		}
-	}, [open, form]);
+	}, [open, form.reset]); // Removed form from dependencies to prevent unnecessary re-renders
 
 	const onSubmit = (values: AddProviderFormValues) => {
+		// Clean endpoint overrides (remove empty entries)
+		const cleanedOverrides = values.useEndpointOverrides
+			? cleanEndpointOverrides(
+					values.endpointOverrides as Record<string, EndpointOverride>,
+				)
+			: undefined;
+
 		// Prepare form data for tRPC
 		const formData = {
 			provider_name: values.provider,
 			api_compatibility: values.apiCompatibility,
 			api_key: values.apiKey || undefined,
 			base_url: values.baseUrl,
+			endpoint_overrides: cleanedOverrides,
 		};
 
 		if (level === "project" && projectId) {
@@ -254,21 +324,22 @@ export function AddProviderDialog({
 										<FormLabel>
 											API Compatibility <span className="text-red-500">*</span>
 										</FormLabel>
-										<FormControl>
-											<select
-												{...field}
-												className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-												disabled={!selectedProvider}
-											>
+										<Select onValueChange={field.onChange} value={field.value}>
+											<FormControl>
+												<SelectTrigger>
+													<SelectValue placeholder="Select API compatibility" />
+												</SelectTrigger>
+											</FormControl>
+											<SelectContent>
 												{Object.entries(API_COMPATIBILITY_METADATA).map(
 													([key, metadata]) => (
-														<option key={key} value={key}>
+														<SelectItem key={key} value={key}>
 															{metadata.label}
-														</option>
+														</SelectItem>
 													),
 												)}
-											</select>
-										</FormControl>
+											</SelectContent>
+										</Select>
 										<FormDescription>
 											{field.value &&
 												API_COMPATIBILITY_METADATA[
@@ -345,8 +416,10 @@ export function AddProviderDialog({
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>
-										Base URL
-										{isCustomProvider && (
+										{useEndpointOverrides
+											? "Default Base URL (Optional)"
+											: "Base URL"}
+										{isCustomProvider && !useEndpointOverrides && (
 											<span className="text-red-500"> *</span>
 										)}
 									</FormLabel>
@@ -359,14 +432,97 @@ export function AddProviderDialog({
 										/>
 									</FormControl>
 									<FormDescription>
-										{isCustomProvider
-											? "Base URL is required for custom providers"
-											: "Leave empty to use YAML config default"}
+										{useEndpointOverrides
+											? "Fallback for endpoints without custom URL"
+											: isCustomProvider
+												? "Base URL is required for custom providers"
+												: "Leave empty to use YAML config default"}
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
+
+						{/* Endpoint Override Toggle */}
+						<div className="rounded-lg border p-4">
+							<div className="flex items-center justify-between">
+								<div className="space-y-0.5">
+									<Label className="text-base">
+										Configure per-endpoint URLs
+									</Label>
+									<p className="text-muted-foreground text-sm">
+										Use different base URLs for each endpoint type
+									</p>
+								</div>
+								<FormField
+									control={form.control}
+									name="useEndpointOverrides"
+									render={({ field }) => (
+										<FormControl>
+											<div className="flex items-center gap-2">
+												<Switch
+													checked={field.value}
+													onCheckedChange={field.onChange}
+													disabled={!selectedProvider}
+												/>
+												<TooltipProvider>
+													<Tooltip>
+														<TooltipTrigger asChild>
+															<HelpCircle className="h-4 w-4 cursor-help text-muted-foreground" />
+														</TooltipTrigger>
+														<TooltipContent>
+															<p>
+																Useful when your provider supports multiple
+																compatibility formats like OpenAI, Anthropic, or
+																Gemini
+															</p>
+														</TooltipContent>
+													</Tooltip>
+												</TooltipProvider>
+											</div>
+										</FormControl>
+									)}
+								/>
+							</div>
+						</div>
+
+						{/* Endpoint Override Fields */}
+						{useEndpointOverrides && selectedProvider && (
+							<div className="space-y-4">
+								<Separator />
+								<div className="space-y-1">
+									<Label className="font-medium text-sm">Endpoint URLs</Label>
+									<p className="text-muted-foreground text-xs">
+										Configure base URLs for each endpoint type. Leave empty to
+										use default above.
+									</p>
+								</div>
+
+								{availableEndpoints.map((endpoint) => (
+									<FormField
+										key={endpoint}
+										control={form.control}
+										name={`endpointOverrides.${endpoint}.base_url`}
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel className="text-sm">
+													{endpoint.replace(/_/g, " ")}
+												</FormLabel>
+												<FormControl>
+													<Input
+														type="url"
+														placeholder="https://api.example.com"
+														{...field}
+														value={field.value || ""}
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								))}
+							</div>
+						)}
 
 						<DialogFooter>
 							<Button

@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { ProviderConfigsClient } from "@/lib/api/provider-configs";
 import {
-	formDataToApiRequest,
+	cleanEndpointOverrides,
 	getEndpointTypesFromCompatibility,
 } from "@/lib/providers";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/lib/shared/cache";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
+	type CreateProviderApiRequest,
 	createProviderFormSchema,
 	updateProviderFormSchema,
 } from "@/types/providers";
@@ -80,7 +81,15 @@ export const providerConfigsRouter = createTRPCRouter({
 
 				const client = new ProviderConfigsClient(token);
 				// Convert form data to API request format
-				const apiRequest = formDataToApiRequest(input.data);
+				const apiRequest: CreateProviderApiRequest = {
+					...input.data,
+					endpoint_types: getEndpointTypesFromCompatibility(
+						input.data.api_compatibility,
+					),
+					endpoint_overrides: cleanEndpointOverrides(
+						input.data.endpoint_overrides,
+					),
+				};
 				const config = await client.createProjectProvider(
 					input.projectId,
 					input.provider,
@@ -103,6 +112,67 @@ export const providerConfigsRouter = createTRPCRouter({
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message: "You don't have permission to modify this project",
+					});
+				}
+				if (
+					error instanceof Error &&
+					error.message.includes("already exists")
+				) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "Provider configuration already exists",
+					});
+				}
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to create provider configuration",
+				});
+			}
+		}),
+
+	/**
+	 * Create a provider configuration for an organization
+	 */
+	createOrganizationProvider: protectedProcedure
+		.input(
+			z.object({
+				organizationId: z.string(),
+				provider: z.string(),
+				data: createProviderFormSchema,
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new ProviderConfigsClient(token);
+				// Convert form data to API request format
+				const apiRequest: CreateProviderApiRequest = {
+					...input.data,
+					endpoint_types: getEndpointTypesFromCompatibility(
+						input.data.api_compatibility,
+					),
+					endpoint_overrides: cleanEndpointOverrides(
+						input.data.endpoint_overrides,
+					),
+				};
+				const config = await client.createOrganizationProvider(
+					input.organizationId,
+					input.provider,
+					apiRequest,
+				);
+
+				await invalidateOrganizationProviderCache(input.organizationId);
+
+				return config;
+			} catch (error) {
+				console.error("Error creating organization provider config:", error);
+				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message:
+							"You don't have permission to modify this organization. Only organization admins can manage provider configurations.",
 					});
 				}
 				if (
@@ -146,6 +216,9 @@ export const providerConfigsRouter = createTRPCRouter({
 					endpoint_types: input.data.api_compatibility
 						? getEndpointTypesFromCompatibility(input.data.api_compatibility)
 						: undefined,
+					endpoint_overrides: cleanEndpointOverrides(
+						input.data.endpoint_overrides,
+					),
 				};
 				const config = await client.updateProjectProvider(
 					input.projectId,
@@ -235,8 +308,6 @@ export const providerConfigsRouter = createTRPCRouter({
 			}
 		}),
 
-	// ==================== Organization-level Provider Configs ====================
-
 	/**
 	 * List all provider configurations for an organization
 	 */
@@ -248,7 +319,7 @@ export const providerConfigsRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const cacheKey = `provider-configs:org:${input.organizationId}:${input.endpoint ?? "default"}`;
+			const cacheKey = `provider-configs:organization:${input.organizationId}:${input.endpoint ?? "default"}`;
 
 			return withCache(cacheKey, async () => {
 				try {
@@ -280,59 +351,6 @@ export const providerConfigsRouter = createTRPCRouter({
 	/**
 	 * Create a provider configuration for an organization
 	 */
-	createOrganizationProvider: protectedProcedure
-		.input(
-			z.object({
-				organizationId: z.string(),
-				provider: z.string(),
-				data: createProviderFormSchema,
-			}),
-		)
-		.mutation(async ({ ctx, input }) => {
-			try {
-				const token = await ctx.clerkAuth.getToken();
-				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
-
-				const client = new ProviderConfigsClient(token);
-				// Convert form data to API request format
-				const apiRequest = formDataToApiRequest(input.data);
-				const config = await client.createOrganizationProvider(
-					input.organizationId,
-					input.provider,
-					apiRequest,
-				);
-
-				await invalidateOrganizationProviderCache(input.organizationId);
-
-				return config;
-			} catch (error) {
-				console.error("Error creating organization provider config:", error);
-				if (error instanceof Error && error.message.includes("FORBIDDEN")) {
-					throw new TRPCError({
-						code: "FORBIDDEN",
-						message:
-							"You don't have permission to modify this organization. Only organization admins can manage provider configurations.",
-					});
-				}
-				if (
-					error instanceof Error &&
-					error.message.includes("already exists")
-				) {
-					throw new TRPCError({
-						code: "CONFLICT",
-						message: "Provider configuration already exists",
-					});
-				}
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to create provider configuration",
-				});
-			}
-		}),
-
-	/**
-	 * Update a provider configuration for an organization
-	 */
 	updateOrganizationProvider: protectedProcedure
 		.input(
 			z.object({
@@ -353,6 +371,9 @@ export const providerConfigsRouter = createTRPCRouter({
 					endpoint_types: input.data.api_compatibility
 						? getEndpointTypesFromCompatibility(input.data.api_compatibility)
 						: undefined,
+					endpoint_overrides: cleanEndpointOverrides(
+						input.data.endpoint_overrides,
+					),
 				};
 				const config = await client.updateOrganizationProvider(
 					input.organizationId,

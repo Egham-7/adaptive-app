@@ -162,20 +162,42 @@ export interface AdaptiveConfigApiResponse {
 
 /**
  * Request body for creating adaptive config
- * Uses full config types that include all API-configurable fields
+ * Uses API-safe config types that exclude YAML-only sensitive fields
  */
 export interface CreateAdaptiveConfigApiRequest {
-	model_router_config?: ModelRouterConfig;
-	fallback_config?: FallbackConfig;
+	model_router_config?: {
+		cache?: {
+			enabled?: boolean;
+			semantic_threshold?: number;
+		};
+		cost_bias?: number;
+		models?: ModelCapability[];
+	};
+	fallback_config?: {
+		mode?: FallbackMode;
+		timeout_ms?: number;
+		max_retries?: number;
+	};
 }
 
 /**
  * Request body for updating adaptive config
- * Uses full config types that include all API-configurable fields
+ * Uses API-safe config types that exclude YAML-only sensitive fields
  */
 export interface UpdateAdaptiveConfigApiRequest {
-	model_router_config?: ModelRouterConfig;
-	fallback_config?: FallbackConfig;
+	model_router_config?: {
+		cache?: {
+			enabled?: boolean;
+			semantic_threshold?: number;
+		};
+		cost_bias?: number;
+		models?: ModelCapability[];
+	};
+	fallback_config?: {
+		mode?: FallbackMode;
+		timeout_ms?: number;
+		max_retries?: number;
+	};
 	enabled?: boolean;
 }
 
@@ -204,6 +226,21 @@ export interface AdaptiveConfigHistoryEntry {
 // ============================================================================
 
 /**
+ * Zod schema for model capability
+ */
+export const modelCapabilitySchema = z.object({
+	provider: z.string().min(1),
+	model: z.string().optional(),
+	max_input_tokens: z.number().int().positive().optional(),
+	max_output_tokens: z.number().int().positive().optional(),
+	supports_vision: z.boolean().optional(),
+	supports_function_calling: z.boolean().optional(),
+	supports_streaming: z.boolean().optional(),
+	cost_per_1k_input_tokens: z.number().nonnegative().optional(),
+	cost_per_1k_output_tokens: z.number().nonnegative().optional(),
+});
+
+/**
  * Zod schema for cache config (full version for requests)
  */
 export const cacheConfigSchema = z
@@ -219,13 +256,27 @@ export const cacheConfigSchema = z
 	.optional();
 
 /**
- * Zod schema for cache config response (sanitized for GET responses)
+ * Zod schema for cache config (API-safe version for requests only)
+ * Only includes fields that can be set via API
  */
-export const cacheConfigResponseSchema = z
+export const cacheConfigRequestSchema = z
 	.object({
-		capacity: z.number().int().positive().optional(),
 		enabled: z.boolean().optional(),
 		semantic_threshold: z.number().min(0).max(1).optional(),
+		// Excluded: backend, redis_url, capacity, openai_api_key, embedding_model (YAML-only)
+	})
+	.optional();
+
+/**
+ * Zod schema for model router config (API-safe version for requests only)
+ * Only includes fields that can be set via API
+ */
+export const modelRouterConfigRequestSchema = z
+	.object({
+		cache: cacheConfigRequestSchema,
+		cost_bias: z.number().min(0).max(1).optional(),
+		models: z.array(modelCapabilitySchema).optional(),
+		// Excluded: client (YAML-only)
 	})
 	.optional();
 
@@ -254,19 +305,28 @@ export const modelRouterClientConfigSchema = z
 	.optional();
 
 /**
- * Zod schema for model capability
+ * Zod schema for cache config response (sanitized for GET responses)
  */
-export const modelCapabilitySchema = z.object({
-	provider: z.string().min(1),
-	model: z.string().optional(),
-	max_input_tokens: z.number().int().positive().optional(),
-	max_output_tokens: z.number().int().positive().optional(),
-	supports_vision: z.boolean().optional(),
-	supports_function_calling: z.boolean().optional(),
-	supports_streaming: z.boolean().optional(),
-	cost_per_1k_input_tokens: z.number().nonnegative().optional(),
-	cost_per_1k_output_tokens: z.number().nonnegative().optional(),
-});
+export const cacheConfigResponseSchema = z
+	.object({
+		capacity: z.number().int().positive().optional(),
+		enabled: z.boolean().optional(),
+		semantic_threshold: z.number().min(0).max(1).optional(),
+	})
+	.optional();
+
+/**
+ * Zod schema for fallback config (API-safe version for requests only)
+ * Only includes fields that can be set via API
+ */
+export const fallbackConfigRequestSchema = z
+	.object({
+		mode: z.enum(fallbackModes).optional(),
+		timeout_ms: z.number().int().positive().optional(),
+		max_retries: z.number().int().nonnegative().optional(),
+		// Excluded: circuit_breaker (YAML-only)
+	})
+	.optional();
 
 /**
  * Zod schema for model router config (full version for requests)
@@ -328,18 +388,20 @@ export const serverConfigSchema = z
 
 /**
  * Zod schema for creating adaptive config
+ * Uses API-safe schemas that exclude YAML-only fields
  */
 export const createAdaptiveConfigSchema = z.object({
-	model_router_config: modelRouterConfigSchema,
-	fallback_config: fallbackConfigSchema,
+	model_router_config: modelRouterConfigRequestSchema,
+	fallback_config: fallbackConfigRequestSchema,
 });
 
 /**
  * Zod schema for updating adaptive config
+ * Uses API-safe schemas that exclude YAML-only fields
  */
 export const updateAdaptiveConfigSchema = z.object({
-	model_router_config: modelRouterConfigSchema,
-	fallback_config: fallbackConfigSchema,
+	model_router_config: modelRouterConfigRequestSchema,
+	fallback_config: fallbackConfigRequestSchema,
 	enabled: z.boolean().optional(),
 });
 
@@ -357,8 +419,8 @@ export interface AdaptiveConfigFormData {
 		cost_bias?: number;
 		cache?: {
 			enabled?: boolean;
-			capacity?: number;
 			semantic_threshold?: number;
+			// Excluded: capacity (YAML-only)
 		};
 	};
 	fallback_config?: {
@@ -380,8 +442,8 @@ export const adaptiveConfigFormSchema = z.object({
 			cache: z
 				.object({
 					enabled: z.boolean().optional(),
-					capacity: z.number().int().positive().optional(),
 					semantic_threshold: z.number().min(0).max(1).optional(),
+					// Excluded: capacity (YAML-only)
 				})
 				.optional(),
 		})

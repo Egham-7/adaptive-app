@@ -148,10 +148,12 @@ export const invalidateOrganizationProviderCache = (
 	organizationId: string,
 	providerId?: string,
 ) => {
-	const patterns = [`provider-configs:org:${organizationId}*`];
+	const patterns = [`provider-configs:organization:${organizationId}*`];
 
 	if (providerId) {
-		patterns.push(`provider-config:org:${organizationId}:${providerId}*`);
+		patterns.push(
+			`provider-config:organization:${organizationId}:${providerId}*`,
+		);
 	}
 
 	return invalidatePatterns(patterns);
