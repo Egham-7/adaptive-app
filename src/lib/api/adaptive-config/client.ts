@@ -11,7 +11,7 @@ import { BaseApiClient } from "../base-client";
  */
 export class AdaptiveConfigClient extends BaseApiClient {
 	constructor(token: string) {
-		super({ basePath: "/v1", token });
+		super({ basePath: "/admin", token });
 	}
 
 	// ==================== Project-level Adaptive Configs ====================
