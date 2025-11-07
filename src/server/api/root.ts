@@ -9,7 +9,6 @@ import { organizationsRouter } from "./routers/organizations";
 import { projectAnalyticsRouter } from "./routers/project-analytics";
 import { projectsRouter } from "./routers/projects";
 import { providerConfigsRouter } from "./routers/provider-configs";
-import { selectModelRouter } from "./routers/select-model";
 import { subscriptionRouter } from "./routers/subscription";
 import { supportRouter } from "./routers/support";
 import { usageRouter } from "./routers/usage";
@@ -32,7 +31,6 @@ export const appRouter = createTRPCRouter({
 	projectAnalytics: projectAnalyticsRouter,
 	projects: projectsRouter,
 	providerConfigs: providerConfigsRouter,
-	selectModel: selectModelRouter,
 	subscription: subscriptionRouter,
 	support: supportRouter,
 	usage: usageRouter,

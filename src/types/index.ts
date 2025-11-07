@@ -2,7 +2,6 @@
 export * from "./api_keys";
 export * from "./auth";
 export * from "./cache";
-export * from "./chat-completion";
 export * from "./conversations";
 export * from "./messages";
 export * from "./models";
