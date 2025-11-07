@@ -51,6 +51,7 @@ import {
 	API_COMPATIBILITY_METADATA,
 	type ApiCompatibilityType,
 	type EndpointOverride,
+	type EndpointType,
 	PROVIDER_COMPATIBILITY_DEFAULTS,
 	PROVIDER_METADATA,
 	type ProviderName,
@@ -59,7 +60,7 @@ import {
 const createProviderSchema = z
 	.object({
 		provider: z.string().min(1, "Provider is required"),
-		apiCompatibility: z.enum(["openai", "anthropic", "gemini"]),
+		apiCompatibility: z.enum(["openai", "anthropic", "google-ai-studio"]),
 		apiKey: z.string().optional(),
 		baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
 		useEndpointOverrides: z.boolean(),
@@ -498,7 +499,7 @@ export function AddProviderDialog({
 									</p>
 								</div>
 
-								{availableEndpoints.map((endpoint) => (
+								{availableEndpoints.map((endpoint: EndpointType) => (
 									<FormField
 										key={endpoint}
 										control={form.control}

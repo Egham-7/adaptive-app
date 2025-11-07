@@ -38,7 +38,11 @@ export type EndpointType = (typeof endpointTypes)[number];
 /**
  * API compatibility types for custom providers
  */
-export const apiCompatibilityTypes = ["openai", "anthropic", "gemini"] as const;
+export const apiCompatibilityTypes = [
+	"openai",
+	"anthropic",
+	"google-ai-studio",
+] as const;
 
 export type ApiCompatibilityType = (typeof apiCompatibilityTypes)[number];
 
@@ -85,7 +89,7 @@ export const API_COMPATIBILITY_METADATA: Record<
 		endpoints: ["messages", "select_model", "chat_completions"],
 		examples: ["Anthropic", "Cohere", "AWS Bedrock (Anthropic)"],
 	},
-	gemini: {
+	"google-ai-studio": {
 		label: "Gemini-compatible",
 		description: "Providers using Google's Gemini API format",
 		endpoints: ["generate", "count_tokens", "chat_completions", "select_model"],
@@ -111,11 +115,11 @@ export const PROVIDER_METADATA = {
 		description:
 			"Claude Sonnet 4.5, Haiku 4.5, Opus 4.1 with extended thinking and vision",
 	},
-	gemini: {
-		name: "gemini",
-		displayName: "Google Gemini",
+	"google-ai-studio": {
+		name: "google-ai-studio",
+		displayName: "Google AI Studio",
 		logo: "/logos/google.svg",
-		description: "Gemini 2.0 Flash, Pro models with multimodal capabilities",
+		description: "Gemini 2.5 Flash, Pro models with multimodal capabilities",
 	},
 	deepseek: {
 		name: "deepseek",
@@ -170,7 +174,7 @@ export const PROVIDER_COMPATIBILITY_DEFAULTS: Record<
 > = {
 	openai: "openai",
 	anthropic: "anthropic",
-	gemini: "gemini",
+	"google-ai-studio": "google-ai-studio",
 	deepseek: "openai",
 	groq: "openai",
 	grok: "openai",

@@ -61,7 +61,9 @@ import {
 } from "@/types/providers";
 
 const editProviderSchema = z.object({
-	apiCompatibility: z.enum(["openai", "anthropic", "gemini"]).optional(),
+	apiCompatibility: z
+		.enum(["openai", "anthropic", "google-ai-studio"])
+		.optional(),
 	apiKey: z.string().optional(),
 	baseUrl: z.union([z.url(), z.literal("")]).optional(),
 	useEndpointOverrides: z.boolean(),
@@ -424,7 +426,7 @@ export function EditProviderDialog({
 									</p>
 								</div>
 
-								{availableEndpoints.map((endpoint) => (
+								{availableEndpoints.map((endpoint: EndpointType) => (
 									<FormField
 										key={endpoint}
 										control={form.control}
