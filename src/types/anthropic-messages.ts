@@ -7,7 +7,7 @@ import type {
 	MessageStreamEvent,
 } from "@anthropic-ai/sdk/resources/messages";
 import { z } from "zod";
-import type { ModelCapability } from "./models";
+
 import type { ProviderConfig, ProviderType } from "./providers";
 
 // Use Anthropic SDK types as base
@@ -139,7 +139,7 @@ export type AdaptiveMessageCreateParams = Omit<
 	// Adaptive extensions
 	provider_configs?: Record<string, ProviderConfig>;
 	model_router?: {
-		models?: ModelCapability[];
+		models?: string[];
 		cost_bias?: number;
 		complexity_threshold?: number;
 		token_threshold?: number;

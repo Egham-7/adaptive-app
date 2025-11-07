@@ -1,15 +1,13 @@
 import { z } from "zod";
 import { cacheConfigSchema } from "./cache";
-import { alternativeSchema, modelCapabilitySchema } from "./models";
+
 import { toolCallSchema, toolSchema } from "./tools";
 
 // Provider-agnostic select model request schema
 export const selectModelRequestSchema = z
 	.object({
 		// Available models with their capabilities and constraints
-		models: z
-			.array(modelCapabilitySchema)
-			.min(1, "At least one model is required"),
+		models: z.array(z.string()).min(1, "At least one model is required"),
 		// The prompt text to analyze for optimal model selection
 		prompt: z.string().min(1, "Prompt cannot be empty"),
 		// Optional user identifier for tracking and personalization
@@ -32,7 +30,7 @@ export const selectModelResponseSchema = z.object({
 	// Selected model
 	model: z.string(),
 	// Alternative provider/model combinations
-	alternatives: z.array(alternativeSchema).optional(),
+	alternatives: z.array(z.string()).optional(),
 });
 
 // TypeScript types derived from Zod schemas
