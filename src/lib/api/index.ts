@@ -23,4 +23,5 @@ export { BaseApiClient } from "./base-client";
 export { CreditsClient, creditsClient } from "./credits/client";
 export { ModelsClient, modelsClient } from "./models";
 export { ProjectsClient, projectsClient } from "./projects/client";
+export { ProvidersClient, providersClient } from "./providers";
 export { UsageClient, usageClient } from "./usage/client";

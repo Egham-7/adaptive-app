@@ -1,5 +1,6 @@
-import type { RegistryModel } from "@/types/models";
+import type { RegistryModel, RegistryModelFilter } from "@/types/models";
 import { BaseApiClient } from "../base-client";
+import { buildFilterParams } from "../helpers/query-helpers";
 
 export class ModelsClient extends BaseApiClient {
 	constructor(token: string) {
@@ -7,14 +8,14 @@ export class ModelsClient extends BaseApiClient {
 	}
 
 	/**
-	 * List all models or filter by provider
-	 * @param provider Optional provider filter (e.g., "openai", "anthropic")
+	 * List all models or filter by criteria
+	 * @param filter Optional filter criteria for models
 	 * @returns Array of registry models
 	 */
-	async list(provider?: string): Promise<RegistryModel[]> {
+	async list(filter?: RegistryModelFilter): Promise<RegistryModel[]> {
 		try {
 			return await this.get<RegistryModel[]>("", {
-				params: provider ? { provider } : undefined,
+				params: filter ? buildFilterParams(filter) : undefined,
 			});
 		} catch (error) {
 			if (error instanceof Error) {

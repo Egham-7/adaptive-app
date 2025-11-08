@@ -137,3 +137,32 @@ export const modelRouterConfigSchema = z.object({
 	complexity_threshold: z.number().optional(),
 	token_threshold: z.number().optional(),
 });
+
+// ============================================================================
+// REGISTRY FILTER TYPES
+// ============================================================================
+
+/**
+ * Filter options for querying models from the registry
+ * All array fields support multiple values (OR logic within field, AND logic between fields)
+ */
+export interface RegistryModelFilter {
+	// Basic filters
+	authors?: string[]; // Filter by author(s) - OR logic
+	model_names?: string[]; // Filter by model name(s) - OR logic
+	endpoint_tags?: string[]; // Filter by endpoint tag(s) - OR logic
+	providers?: string[]; // Filter by provider name(s) - OR logic
+
+	// Advanced filters
+	input_modalities?: string[]; // Filter by input modality
+	output_modalities?: string[]; // Filter by output modality
+	min_context_length?: number; // Minimum context window
+	max_prompt_cost?: string; // Max cost per prompt token
+	max_completion_cost?: string; // Max cost per completion token
+	supported_params?: string[]; // Required supported parameters
+	status?: number; // Endpoint status filter
+	quantizations?: string[]; // Filter by quantization
+
+	// Index signature for compatibility with Record<string, unknown>
+	[key: string]: unknown;
+}

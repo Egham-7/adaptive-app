@@ -375,3 +375,35 @@ export const fallbackConfigSchema = z.object({
 	enabled: z.boolean().optional(),
 	mode: z.enum(["sequential", "race"]).optional(),
 });
+
+// ============================================================================
+// REGISTRY PROVIDER TYPES
+// ============================================================================
+
+/**
+ * Provider data from the model registry API
+ */
+export interface RegistryProvider {
+	name: string; // Provider name (e.g., "openai", "anthropic")
+	tags: string[]; // Unique tags across all endpoints
+	model_count: number; // Number of unique models
+	endpoint_count: number; // Total number of endpoints
+	active_count: number; // Number of active endpoints (status = 0)
+	quantizations: string[]; // Unique quantizations available
+}
+
+/**
+ * Filter options for querying providers from the registry
+ */
+export interface RegistryProviderFilter {
+	tags?: string[]; // Filter by provider tag(s) - OR logic
+	status?: number; // Endpoint status filter
+	input_modalities?: string[]; // Filter by input modality
+	output_modalities?: string[]; // Filter by output modality
+	min_context_length?: number; // Minimum context window
+	has_pricing?: boolean; // Filter by pricing availability
+	quantizations?: string[]; // Filter by quantization
+
+	// Index signature for compatibility with Record<string, unknown>
+	[key: string]: unknown;
+}
