@@ -16,7 +16,10 @@ export interface ApiClientConfig {
 export interface RequestOptions<T = unknown> {
 	headers?: Record<string, string>;
 	body?: T;
-	params?: Record<string, string | number | boolean | undefined | null>;
+	params?: Record<
+		string,
+		string | number | boolean | string[] | undefined | null
+	>;
 }
 
 /**
@@ -54,7 +57,14 @@ export class BaseApiClient {
 		if (params) {
 			for (const [key, value] of Object.entries(params)) {
 				if (value !== undefined && value !== null) {
-					url.searchParams.set(key, String(value));
+					if (Array.isArray(value)) {
+						// Handle arrays with repeated keys (e.g., ?author=openai&author=anthropic)
+						for (const item of value) {
+							url.searchParams.append(key, String(item));
+						}
+					} else {
+						url.searchParams.set(key, String(value));
+					}
 				}
 			}
 		}
