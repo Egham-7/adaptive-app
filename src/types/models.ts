@@ -45,6 +45,12 @@ export const registryModelEndpointPricingSchema = z.object({
 	completion_cost: z.string().optional(),
 	request_cost: z.string().optional(),
 	image_cost: z.string().optional(),
+	image_output_cost: z.string().optional(),
+	audio_cost: z.string().optional(),
+	input_audio_cache_cost: z.string().optional(),
+	input_cache_read_cost: z.string().optional(),
+	input_cache_write_cost: z.string().optional(),
+	discount: z.string().optional(),
 });
 
 // Endpoint schema - represents a provider endpoint for the model
@@ -65,14 +71,67 @@ export const registryModelEndpointSchema = z.object({
 	pricing: registryModelEndpointPricingSchema.optional(), // Pricing specific to this endpoint
 });
 
-// Supported parameters - array of parameter names
-export const registryModelSupportedParametersSchema = z.array(z.string());
-
-// Default parameters - dynamic key-value map
-export const registryModelDefaultParametersSchema = z.record(
-	z.string(),
-	z.any(),
+// Supported parameters - array of parameter names with strict typing
+export const registryModelSupportedParametersSchema = z.array(
+	z.enum([
+		"temperature",
+		"top_p",
+		"top_k",
+		"min_p",
+		"top_a",
+		"frequency_penalty",
+		"presence_penalty",
+		"repetition_penalty",
+		"top_logprobs",
+		"seed",
+		"max_tokens",
+		"max_output_tokens",
+		"max_completion_tokens",
+		"response_format",
+		"structured_outputs",
+		"stop",
+		"stop_sequences",
+		"tools",
+		"tool_choice",
+		"parallel_tool_calls",
+		"n",
+		"candidate_count",
+		"store",
+		"logprobs",
+		"logit_bias",
+		"web_search_options",
+		"include_reasoning",
+		"reasoning",
+	]),
 );
+
+// Default parameters - strongly typed object
+export const registryModelDefaultParametersSchema = z
+	.object({
+		// Sampling parameters
+		temperature: z.number().optional(),
+		top_p: z.number().optional(),
+		top_k: z.number().optional(),
+		min_p: z.number().optional(),
+		top_a: z.number().optional(),
+
+		// Penalty parameters
+		frequency_penalty: z.number().optional(),
+
+		// Token and output parameters
+		max_tokens: z.number().optional(),
+		max_completion_tokens: z.number().optional(),
+		top_logprobs: z.number().optional(),
+		seed: z.number().optional(),
+
+		// Control parameters
+		n: z.number().optional(),
+		stop_sequences: z.array(z.string()).optional(),
+		parallel_tool_calls: z.boolean().optional(),
+		store: z.boolean().optional(),
+		logprobs: z.boolean().optional(),
+	})
+	.optional();
 
 // Endpoints - array of endpoint objects
 export const registryModelEndpointsSchema = z.array(
