@@ -13,8 +13,9 @@ export interface UsageRecord {
 	endpoint: string;
 	provider: string;
 	model: string;
-	tokens_input: number;
-	tokens_output: number;
+	prompt_tokens: number;
+	completion_tokens: number;
+	finish_reason: string;
 	tokens_total: number;
 	cost: number;
 	currency: string;
