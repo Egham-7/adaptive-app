@@ -17,6 +17,8 @@ const EMPTY_PROJECT_ANALYTICS = {
 	errorCount: 0,
 	requestTypeBreakdown: [],
 	dailyTrends: [],
+	providerPerformance: [],
+	recentRequests: [],
 } as const;
 
 const EMPTY_USER_ANALYTICS = {
@@ -28,6 +30,29 @@ const EMPTY_USER_ANALYTICS = {
 } as const;
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+type RecentRequest = {
+	id: number;
+	apiKeyId: number;
+	endpoint: string;
+	statusCode: number;
+	cost: number;
+	provider?: string;
+	model?: string;
+	promptTokens: number;
+	completionTokens: number;
+	latencyMs?: number;
+	finishReason?: string;
+	timestamp: Date;
+};
+
+type ProviderStats = {
+	cost: number;
+	requests: number;
+	successful: number;
+	latencyTotal: number;
+	latencySamples: number;
+	modelBreakdown: Map<string, number>;
+};
 
 export const projectAnalyticsRouter = createTRPCRouter({
 	getProjectAnalytics: protectedProcedure
@@ -118,6 +143,10 @@ export const projectAnalyticsRouter = createTRPCRouter({
 
 						if (usageResult?.data) {
 							usageResult.data.forEach((dayData) => {
+								const promptTokens = dayData.prompt_tokens ?? 0;
+								const completionTokens = dayData.completion_tokens ?? 0;
+								const tokensUsed =
+									dayData.tokens_total ?? promptTokens + completionTokens;
 								const existing = acc.dailyTrendsMap.get(dayData.timestamp) ?? {
 									spend: 0,
 									requests: 0,
@@ -127,9 +156,66 @@ export const projectAnalyticsRouter = createTRPCRouter({
 								acc.dailyTrendsMap.set(dayData.timestamp, {
 									spend: existing.spend + dayData.cost,
 									requests: existing.requests + 1,
-									tokens: existing.tokens,
+									tokens: existing.tokens + tokensUsed,
 									errorCount:
 										existing.errorCount + (dayData.status_code >= 400 ? 1 : 0),
+								});
+
+								acc.recentRequests.push({
+									id: dayData.id,
+									apiKeyId: dayData.api_key_id,
+									endpoint: dayData.endpoint,
+									statusCode: dayData.status_code,
+									cost: dayData.cost,
+									provider: dayData.provider,
+									model: dayData.model,
+									promptTokens,
+									completionTokens,
+									latencyMs: dayData.latency_ms,
+									finishReason: dayData.finish_reason,
+									timestamp: new Date(dayData.timestamp),
+								});
+
+								const providerKey = dayData.provider ?? "unknown";
+								const providerStats = acc.providerStats.get(providerKey) ?? {
+									cost: 0,
+									requests: 0,
+									successful: 0,
+									latencyTotal: 0,
+									latencySamples: 0,
+									modelBreakdown: new Map<string, number>(),
+								};
+								providerStats.cost += dayData.cost;
+								providerStats.requests += 1;
+								if (dayData.status_code < 400) {
+									providerStats.successful += 1;
+								}
+
+								if (dayData.latency_ms) {
+									providerStats.latencyTotal += dayData.latency_ms;
+									providerStats.latencySamples += 1;
+								}
+
+								if (dayData.model) {
+									const currentModelCount =
+										providerStats.modelBreakdown.get(dayData.model) ?? 0;
+									providerStats.modelBreakdown.set(
+										dayData.model,
+										currentModelCount + 1,
+									);
+								}
+
+								acc.providerStats.set(providerKey, providerStats);
+
+								const endpointBucket = acc.usageEndpointBreakdown.get(
+									dayData.endpoint,
+								) ?? {
+									count: 0,
+									cost: 0,
+								};
+								acc.usageEndpointBreakdown.set(dayData.endpoint, {
+									count: endpointBucket.count + 1,
+									cost: endpointBucket.cost + dayData.cost,
 								});
 							});
 						}
@@ -145,6 +231,11 @@ export const projectAnalyticsRouter = createTRPCRouter({
 							string,
 							{ count: number; cost: number }
 						>(),
+						usageEndpointBreakdown: new Map<
+							string,
+							{ count: number; cost: number }
+						>(),
+						providerStats: new Map<string, ProviderStats>(),
 						dailyTrendsMap: new Map<
 							string,
 							{
@@ -154,11 +245,17 @@ export const projectAnalyticsRouter = createTRPCRouter({
 								errorCount: number;
 							}
 						>(),
+						recentRequests: [] as RecentRequest[],
 					},
 				);
 
+				const endpointBreakdownSource =
+					aggregated.endpointBreakdown.size > 0
+						? aggregated.endpointBreakdown
+						: aggregated.usageEndpointBreakdown;
+
 				const requestTypeBreakdown = Array.from(
-					aggregated.endpointBreakdown.entries(),
+					endpointBreakdownSource.entries(),
 				)
 					.map(([endpoint, data]) => ({
 						type: endpoint,
@@ -182,6 +279,38 @@ export const projectAnalyticsRouter = createTRPCRouter({
 						? (aggregated.errorCount / aggregated.totalRequests) * 100
 						: 0;
 
+				const providerPerformance = Array.from(
+					aggregated.providerStats.entries(),
+				).map(([provider, stats]) => {
+					const avgLatencyMs =
+						stats.latencySamples > 0
+							? stats.latencyTotal / stats.latencySamples
+							: null;
+					const topModel = Array.from(stats.modelBreakdown.entries())
+						.sort((a, b) => b[1] - a[1])
+						.map(([model]) => model)[0];
+
+					return {
+						provider,
+						requests: stats.requests,
+						cost: stats.cost,
+						costShare:
+							aggregated.totalSpend > 0
+								? (stats.cost / aggregated.totalSpend) * 100
+								: 0,
+						successRate:
+							stats.requests > 0
+								? (stats.successful / stats.requests) * 100
+								: 0,
+						avgLatencyMs,
+						topModel,
+					};
+				});
+
+				const recentRequests = aggregated.recentRequests.sort(
+					(a, b) => b.timestamp.getTime() - a.timestamp.getTime(),
+				);
+
 				return {
 					totalSpend: aggregated.totalSpend,
 					totalTokens: aggregated.totalTokens,
@@ -191,6 +320,8 @@ export const projectAnalyticsRouter = createTRPCRouter({
 					errorCount: aggregated.errorCount,
 					requestTypeBreakdown,
 					dailyTrends,
+					providerPerformance,
+					recentRequests,
 				};
 			});
 		}),
