@@ -1,8 +1,8 @@
 "use client";
 
 import { Check } from "lucide-react";
-import Image from "next/image";
 import { Handle, Position } from "reactflow";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 import { cn } from "@/lib/shared/utils";
 import {
 	PROVIDER_METADATA,
@@ -116,21 +116,13 @@ export function ProviderNodeCard({
 				<div className="p-6">
 					{/* Provider Logo & Name */}
 					<div className="mb-3 flex items-center gap-3">
-						{metadata?.logo ? (
-							<Image
-								src={metadata.logo}
-								alt={metadata.displayName}
-								width={32}
-								height={32}
-								className="rounded"
-							/>
-						) : (
-							<div className="flex h-8 w-8 items-center justify-center rounded bg-muted">
-								<span className="font-medium text-xs">
-									{providerName.slice(0, 2).toUpperCase()}
-								</span>
-							</div>
-						)}
+						<ProviderLogo
+							provider={providerName}
+							width={32}
+							height={32}
+							className="rounded"
+							alt={metadata?.displayName || providerName}
+						/>
 						<div className="min-w-0 flex-1">
 							<h3 className="truncate font-semibold text-sm">
 								{metadata?.displayName ?? providerName}

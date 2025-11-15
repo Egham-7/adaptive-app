@@ -51,8 +51,8 @@ const chartConfig = {
 		label: "Anthropic",
 		color: "var(--chart-3)",
 	},
-	gemini: {
-		label: "Gemini",
+	"google-ai-studio": {
+		label: "Google AI Studio",
 		color: "var(--chart-4)",
 	},
 } satisfies ChartConfig;

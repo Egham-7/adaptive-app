@@ -5,7 +5,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
 import { getMessageContent } from "./chat-utils";
-import { getProviderLogo, getProviderDisplayName } from "@/lib/providers/logos";
+import { getProviderDisplayName } from "@/lib/providers/logos";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 import type { MessageTextPart } from "./chat-types";
 
 interface MessageActionsProps {
@@ -91,15 +92,13 @@ export function MessageActions({
         <div className="flex items-center gap-3">
           {provider && (
             <div className="flex items-center gap-1">
-              {getProviderLogo(provider) && (
-                <Image
-                  src={getProviderLogo(provider)!}
-                  alt={provider}
-                  width={16}
-                  height={16}
-                  className="rounded-sm"
-                />
-              )}
+              <ProviderLogo
+                provider={provider}
+                width={16}
+                height={16}
+                className="rounded-sm"
+                alt={provider}
+              />
               <span>{getProviderDisplayName(provider)}</span>
             </div>
           )}

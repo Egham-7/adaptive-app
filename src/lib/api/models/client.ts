@@ -27,7 +27,7 @@ export class ModelsClient extends BaseApiClient {
 
 	/**
 	 * Get a specific model by name
-	 * @param modelName The model name (e.g., "gpt-4", "claude-3-5-sonnet-20241022")
+	 * @param modelName The model name (e.g., "gpt-5.1-mini", "claude-sonnet-4-5")
 	 * @returns Single registry model
 	 */
 	async getById(modelName: string): Promise<RegistryModel> {

@@ -1,7 +1,6 @@
 "use client";
 
 import { Eye, EyeOff, HelpCircle, History, Info, Trash2 } from "lucide-react";
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 import { Separator } from "@/components/ui/separator";
 import {
 	Sheet,
@@ -153,21 +153,13 @@ export function ProviderConfigSheet({
 				<SheetHeader className="px-6 pt-6">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							{metadata?.logo ? (
-								<Image
-									src={metadata.logo}
-									alt={metadata.displayName}
-									width={32}
-									height={32}
-									className="rounded"
-								/>
-							) : (
-								<div className="flex h-8 w-8 items-center justify-center rounded bg-muted">
-									<span className="font-medium text-xs">
-										{providerName.slice(0, 2).toUpperCase()}
-									</span>
-								</div>
-							)}
+							<ProviderLogo
+								provider={providerName}
+								width={32}
+								height={32}
+								className="rounded"
+								alt={metadata?.displayName || providerName}
+							/>
 							<div>
 								<SheetTitle>{displayName}</SheetTitle>
 								<SheetDescription>

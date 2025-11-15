@@ -790,7 +790,7 @@ Settings.llm = llm`,
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
-    models: ["openai/gpt-4o-mini", "anthropic/claude-3-5-sonnet", "gemini/gemini-1.5-flash"],
+    models: ["openai/gpt-5.1-mini", "anthropic/claude-sonnet-4-5", "google-ai-studio/gemini-2.5-flash"],
     prompt: "Summarize this support ticket."
   })
 });
@@ -810,7 +810,7 @@ response = requests.post(
         "Content-Type": "application/json"
     },
     json={
-        "models": ["openai/gpt-4o-mini", "anthropic/claude-3-5-sonnet", "gemini/gemini-1.5-flash"],
+        "models": ["openai/gpt-5.1-mini", "anthropic/claude-sonnet-4-5", "google-ai-studio/gemini-2.5-flash"],
         "prompt": "Summarize this support ticket."
     }
 )
@@ -825,7 +825,7 @@ print(decision["selected_model"])`,
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -d '{
-    "models": ["openai/gpt-4o-mini", "anthropic/claude-3-5-sonnet", "gemini/gemini-1.5-flash"],
+    "models": ["openai/gpt-5.1-mini", "anthropic/claude-sonnet-4-5", "google-ai-studio/gemini-2.5-flash"],
     "prompt": "Summarize this support ticket."
   }'`,
 					},

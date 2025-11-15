@@ -28,7 +28,8 @@ import { DotsLoader, TypingLoader } from "./loader";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import { Textarea } from "@/components/ui/textarea";
 import { useAnimatedText } from "@/components/ui/animated-text";
-import { getProviderLogo, getProviderDisplayName } from "@/lib/providers/logos";
+import { getProviderDisplayName } from "@/lib/providers/logos";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 import { cn } from "@/lib/shared/utils";
 
 import type { UIMessage } from "@ai-sdk/react";
@@ -434,15 +435,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 <div className="flex items-center gap-3">
                   {provider && (
                     <div className="flex items-center gap-1">
-                      {getProviderLogo(provider) && (
-                        <Image
-                          src={getProviderLogo(provider)!}
-                          alt={provider}
-                          width={16}
-                          height={16}
-                          className="rounded-sm"
-                        />
-                      )}
+                      <ProviderLogo
+                        provider={provider}
+                        width={16}
+                        height={16}
+                        className="rounded-sm"
+                        alt={provider}
+                      />
                       <span>{getProviderDisplayName(provider)}</span>
                     </div>
                   )}

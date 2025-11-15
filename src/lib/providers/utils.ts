@@ -18,7 +18,7 @@ Object.values(PROVIDER_METADATA).forEach((meta) => {
 
 /**
  * Convert API compatibility type to endpoint types array
- * @param compatibility - The API compatibility type (openai, anthropic, gemini)
+ * @param compatibility - The API compatibility type (openai, anthropic, google-ai-studio)
  * @returns Array of endpoint types supported by this compatibility mode
  */
 export function getEndpointTypesFromCompatibility(
