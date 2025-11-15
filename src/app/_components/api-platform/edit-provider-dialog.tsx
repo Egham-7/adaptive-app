@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, HelpCircle } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 import {
 	Select,
 	SelectContent,
@@ -233,15 +233,13 @@ export function EditProviderDialog({
 			<DialogContent className="sm:max-w-[500px]">
 				<DialogHeader>
 					<div className="flex items-center gap-3">
-						{metadata?.logo && (
-							<Image
-								src={metadata.logo}
-								alt={`${metadata.displayName} logo`}
-								width={32}
-								height={32}
-								className="rounded-lg"
-							/>
-						)}
+						<ProviderLogo
+							provider={selectedProvider}
+							width={32}
+							height={32}
+							className="rounded-lg"
+							alt={`${metadata?.displayName || selectedProvider} logo`}
+						/>
 						<div>
 							<DialogTitle>
 								Edit {metadata?.displayName ?? providerName}

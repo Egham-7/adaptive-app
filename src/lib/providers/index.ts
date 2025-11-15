@@ -2,8 +2,9 @@
  * Provider-related utilities
  */
 
+export { ProviderLogo } from "../../components/ui/provider-logo";
 // Provider logos and display names
-export { getProviderDisplayName, getProviderLogo } from "./logos";
+export { getProviderDisplayName } from "./logos";
 
 // Provider configuration utilities
 export {

@@ -7,18 +7,7 @@ import { z } from "zod";
 /**
  * Supported provider types
  */
-export const providerEnum = [
-	"openai",
-	"anthropic",
-	"gemini",
-	"groq",
-	"deepseek",
-	"huggingface",
-	"grok",
-	"cohere",
-	"mistral",
-	"adaptive",
-] as const;
+export const providerEnum = ["openai", "anthropic", "gemini", "z-ai"] as const;
 
 export type ProviderType = (typeof providerEnum)[number];
 
@@ -118,48 +107,15 @@ export const PROVIDER_METADATA = {
 	"google-ai-studio": {
 		name: "google-ai-studio",
 		displayName: "Google AI Studio",
-		logo: "/logos/google.svg",
+		logo: "/logos/google-ai-studio.svg",
 		description: "Gemini 2.5 Flash, Pro models with multimodal capabilities",
 	},
-	deepseek: {
-		name: "deepseek",
-		displayName: "DeepSeek",
-		logo: "/logos/deepseek.svg",
-		description:
-			"DeepSeek-V3, DeepSeek-R1 for advanced reasoning and code generation",
-	},
-	groq: {
-		name: "groq",
-		displayName: "Groq",
-		logo: "/logos/groq.png",
-		description:
-			"Ultra-fast inference with Llama 3.3 70B, GPT-OSS 120B via GroqChip",
-	},
-	grok: {
-		name: "grok",
-		displayName: "Grok",
-		logo: "/logos/grok.svg",
-		description: "xAI's Grok models with real-time information access",
-	},
-	huggingface: {
-		name: "huggingface",
-		displayName: "Hugging Face",
-		logo: "/logos/huggingface.png",
-		description: "Access to thousands of open-source models via Inference API",
-	},
-	cohere: {
-		name: "cohere",
-		displayName: "Cohere",
-		logo: "/logos/cohere.png",
-		description:
-			"Command R+, Command R models for enterprise RAG and generation",
-	},
-	mistral: {
-		name: "mistral",
-		displayName: "Mistral AI",
-		logo: "/logos/mistral.png",
-		description:
-			"Magistral Medium 1.2, Mistral Small 3.2, Codestral for code and reasoning",
+
+	"z-ai": {
+		name: "z-ai",
+		displayName: "Z-AI",
+		logo: undefined, // Theme-aware logos handled by ProviderLogo component
+		description: "Z-AI models with both OpenAI and Anthropic compatibility",
 	},
 } as const;
 
@@ -175,12 +131,7 @@ export const PROVIDER_COMPATIBILITY_DEFAULTS: Record<
 	openai: "openai",
 	anthropic: "anthropic",
 	"google-ai-studio": "google-ai-studio",
-	deepseek: "openai",
-	groq: "openai",
-	grok: "openai",
-	huggingface: "openai",
-	cohere: "anthropic",
-	mistral: "openai",
+	"z-ai": "openai",
 } as const;
 
 // ============================================================================

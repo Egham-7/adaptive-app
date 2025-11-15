@@ -1,7 +1,6 @@
 "use client";
 
 import { Check, Edit, History, X } from "lucide-react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -11,6 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 import { Switch } from "@/components/ui/switch";
 import { PROVIDER_METADATA, type ProviderName } from "@/types/providers";
 
@@ -69,13 +69,13 @@ export function ProviderCard({
 
 			<CardHeader>
 				<div className="flex items-center gap-3">
-					{!isCustomProvider && metadata.logo && (
-						<Image
-							src={metadata.logo}
-							alt={`${displayMetadata.displayName} logo`}
+					{!isCustomProvider && (
+						<ProviderLogo
+							provider={providerName}
 							width={40}
 							height={40}
 							className="rounded-lg"
+							alt={`${displayMetadata.displayName} logo`}
 						/>
 					)}
 					<div className="flex-1">
