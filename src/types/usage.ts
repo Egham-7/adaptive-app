@@ -63,8 +63,8 @@ export interface RecordUsageRequest {
 	endpoint: string;
 	provider: string;
 	model: string;
-	tokens_input: number;
-	tokens_output: number;
+	prompt_tokens: number;
+	completion_tokens: number;
 	cost: number;
 	currency?: string;
 	status_code: number;
@@ -86,8 +86,8 @@ export const recordUsageRequestSchema = z.object({
 	endpoint: z.string(),
 	provider: z.string(),
 	model: z.string(),
-	tokens_input: z.number().min(0),
-	tokens_output: z.number().min(0),
+	prompt_tokens: z.number().min(0),
+	completion_tokens: z.number().min(0),
 	cost: z.number().min(0),
 	currency: z.string().optional(),
 	status_code: z.number(),
