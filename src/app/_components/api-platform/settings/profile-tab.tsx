@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { CopyButton } from "@/components/ui/copy-button";
 import {
 	Card,
 	CardContent,
@@ -30,6 +29,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { CopyButton } from "@/components/ui/copy-button";
 import {
 	Form,
 	FormControl,
@@ -186,7 +186,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 										Organization ID
 									</p>
 									<div className="flex items-center gap-3 rounded-lg border bg-muted px-3 py-1.5">
-										<span className="font-mono text-xs text-muted-foreground">
+										<span className="font-mono text-muted-foreground text-xs">
 											{organization.id}
 										</span>
 										<CopyButton content={organization.id} />

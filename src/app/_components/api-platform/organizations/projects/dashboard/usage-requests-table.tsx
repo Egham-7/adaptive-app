@@ -132,10 +132,7 @@ export function UsageRequestsTable({ rows, loading }: UsageRequestsTableProps) {
 													).toLocaleString()}{" "}
 													total
 													{row.cachedTokens ? (
-														<>
-															{" "}
-															· {row.cachedTokens.toLocaleString()} cached
-														</>
+														<> · {row.cachedTokens.toLocaleString()} cached</>
 													) : null}
 												</span>
 											</div>
