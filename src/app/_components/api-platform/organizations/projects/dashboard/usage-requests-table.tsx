@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,6 +10,13 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 import { getProviderMetadataById } from "@/lib/providers/utils";
 
 export interface UsageRequestRow {
@@ -166,26 +172,26 @@ interface ProviderBadgeProps {
 function ProviderBadge({ provider, model }: ProviderBadgeProps) {
 	const meta = getProviderMetadataById(provider);
 	const displayName = meta?.displayName ?? provider ?? "Unknown";
-	const logo = meta?.logo;
-	const fallbackInitials = displayName.slice(0, 2).toUpperCase();
-	const formattedLabel = model ? `${displayName} / ${model}` : displayName;
 
 	return (
-		<div className="flex items-center gap-2">
-			{logo ? (
-				<Image
-					src={logo}
-					alt={displayName}
-					width={24}
-					height={24}
-					className="h-6 w-6 rounded border bg-muted object-contain"
-				/>
-			) : (
-				<div className="inline-flex h-6 w-6 items-center justify-center rounded border bg-muted font-semibold text-foreground text-xs">
-					{fallbackInitials}
-				</div>
-			)}
-			<span className="font-medium text-sm">{formattedLabel}</span>
-		</div>
+		<TooltipProvider>
+			<div className="flex items-center gap-2">
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<div>
+							<ProviderLogo
+								providerId={provider ?? "unknown"}
+								size={24}
+								className="rounded border bg-muted"
+							/>
+						</div>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>{displayName}</p>
+					</TooltipContent>
+				</Tooltip>
+				<span className="font-medium text-sm">{model ?? displayName}</span>
+			</div>
+		</TooltipProvider>
 	);
 }
