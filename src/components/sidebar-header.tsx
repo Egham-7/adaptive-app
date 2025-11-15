@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Logo } from "@/app/_components/logo";
+import { Logo } from "@/components/ui/logo";
+
 import { SidebarHeader, useSidebar } from "./ui/sidebar";
 import { SocialLogo } from "./ui/social-logo";
 
@@ -13,7 +14,7 @@ export default function CommonSidebarHeader({ href }: { href: string }) {
 					{state === "collapsed" ? (
 						<SocialLogo width={32} height={32} className="h-8 w-8" />
 					) : (
-						<Logo />
+						<Logo brand="adaptive" />
 					)}
 				</Link>
 			</div>

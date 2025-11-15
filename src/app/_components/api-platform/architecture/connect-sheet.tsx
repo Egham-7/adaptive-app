@@ -1,9 +1,97 @@
 "use client";
 
 import { Key, Link as LinkIcon } from "lucide-react";
-import Image from "next/image";
+import { Logo } from "@/components/ui/logo";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+// Cursor icon component
+const CursorIcon = () => (
+	<Logo
+		brand="cursor"
+		showText={false}
+		imageWidth={40}
+		imageHeight={40}
+		className="h-10 w-10"
+	/>
+);
+
+// Cline icon component
+const ClineIcon = () => (
+	<Logo
+		brand="cline"
+		showText={false}
+		imageWidth={40}
+		imageHeight={40}
+		className="h-10 w-10"
+	/>
+);
+
+// Kilo Code icon component
+const KiloCodeIcon = () => (
+	<Logo
+		brand="kilo-code"
+		showText={false}
+		imageWidth={40}
+		imageHeight={40}
+		className="h-10 w-10"
+	/>
+);
+
+// Roo Code icon component
+const RooCodeIcon = () => (
+	<Logo
+		brand="roo-code"
+		showText={false}
+		imageWidth={40}
+		imageHeight={40}
+		className="h-10 w-10"
+	/>
+);
+
+// Qwen icon component
+const QwenIcon = () => (
+	<Logo
+		brand="qwen"
+		showText={false}
+		imageWidth={40}
+		imageHeight={40}
+		className="h-10 w-10"
+	/>
+);
+
+// Claude Code icon component
+const ClaudeCodeIcon = () => (
+	<Logo
+		brand="claude-code"
+		showText={false}
+		imageWidth={40}
+		imageHeight={40}
+		className="h-10 w-10"
+	/>
+);
+
 import NextLink from "next/link";
 import { useMemo, useState } from "react";
+import {
+	SiCodeblocks,
+	SiCodesandbox,
+	SiCurl,
+	SiGo,
+	SiGoogle,
+	SiJavascript,
+	SiLangchain,
+	SiOpenai,
+	SiPython,
+	SiRust,
+	SiTypescript,
+	SiVercel,
+	SiX,
+} from "react-icons/si";
 import {
 	Accordion,
 	AccordionContent,
@@ -35,6 +123,7 @@ interface QuickstartCodeSnippet {
 	label: string;
 	language: string;
 	content: string;
+	icon?: React.ComponentType<{ className?: string }>;
 }
 
 interface QuickstartStepDefinition {
@@ -42,15 +131,16 @@ interface QuickstartStepDefinition {
 	description?: string;
 	bullets?: string[];
 	code?: QuickstartCodeSnippet;
+	codeVariants?: QuickstartCodeSnippet[];
 }
 
 interface DocQuickstart {
 	id: string;
 	title: string;
-	logo: string;
 	docsUrl: string;
 	summary: string;
 	tip?: string;
+	icon: React.ComponentType<{ className?: string }>;
 	steps: QuickstartStepDefinition[];
 	codeSamples?: QuickstartCodeSnippet[];
 	notes?: string[];
@@ -60,9 +150,9 @@ const DEVELOPER_TOOL_QUICKSTARTS: DocQuickstart[] = [
 	{
 		id: "claude-code",
 		title: "Claude Code",
-		logo: "/logos/claude-code",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/claude-code",
 		summary: "Install the helper script and route every Claude Code request.",
+		icon: ClaudeCodeIcon,
 		steps: [
 			{
 				title: "Run installer",
@@ -88,9 +178,9 @@ chmod +x claude-code.sh
 	{
 		id: "cursor",
 		title: "Cursor",
-		logo: "/logos/cursor",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/cursor",
 		summary: "Treat Adaptive as an OpenAI-compatible provider inside Cursor.",
+		icon: CursorIcon,
 		steps: [
 			{
 				title: "Settings → Models → API Keys",
@@ -109,10 +199,10 @@ chmod +x claude-code.sh
 	{
 		id: "cline",
 		title: "Cline",
-		logo: "/logos/cline",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/cline",
 		summary:
 			"Point the VS Code extension at Adaptive and leave the model blank.",
+		icon: ClineIcon,
 		steps: [
 			{
 				title: "Install extension",
@@ -137,10 +227,10 @@ chmod +x claude-code.sh
 	{
 		id: "opencode",
 		title: "OpenCode",
-		logo: "/logos/opencode",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/opencode",
 		summary:
 			"Register Adaptive once, then select the Intelligent Routing model.",
+		icon: SiCodesandbox,
 		steps: [
 			{
 				title: "Install + authenticate",
@@ -160,7 +250,7 @@ chmod +x claude-code.sh
   "provider": {
     "adaptive": {
       "options": { "baseURL": "https://api.llmadaptive.uk/v1" },
-      "models": { "": { "name": "Intelligent Routing" } }
+      "models": { "adaptive/auto": { "name": "adaptive/auto" } }
     }
   }
 }`,
@@ -171,9 +261,9 @@ chmod +x claude-code.sh
 	{
 		id: "kilo-code",
 		title: "Kilo Code",
-		logo: "/logos/kilo-code",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/kilo-code",
 		summary: "Use the OpenAI-compatible mode with your Adaptive key.",
+		icon: KiloCodeIcon,
 		steps: [
 			{
 				title: "Install plugin",
@@ -199,10 +289,10 @@ chmod +x claude-code.sh
 	{
 		id: "roo-code",
 		title: "Roo Code",
-		logo: "/logos/roo-code",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/roo-code",
 		summary:
-			"Set Roo Code’s provider to OpenAI Compatible and paste your Adaptive key.",
+			"Set Roo Code's provider to OpenAI Compatible and paste your Adaptive key.",
+		icon: RooCodeIcon,
 		steps: [
 			{
 				title: "Install extension",
@@ -217,7 +307,7 @@ chmod +x claude-code.sh
   "rooCode.provider": "openai-compatible",
   "rooCode.baseUrl": "https://api.llmadaptive.uk/v1",
   "rooCode.apiKey": "your-adaptive-api-key",
-  "rooCode.model": ""
+  "rooCode.model": "adaptive/auto"
 }`,
 				},
 			},
@@ -226,10 +316,10 @@ chmod +x claude-code.sh
 	{
 		id: "grok-cli",
 		title: "Grok CLI",
-		logo: "/logos/grok-cli",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/grok-cli",
 		summary:
 			"Bootstrap the CLI and route prompts through Adaptive in two commands.",
+		icon: SiX,
 		steps: [
 			{
 				title: "Run installer",
@@ -254,9 +344,9 @@ grok "Hello from Adaptive"`,
 	{
 		id: "gemini-cli",
 		title: "Gemini CLI",
-		logo: "/logos/gemini-cli",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/gemini-cli",
 		summary: "Install the CLI, set the Adaptive base URL, and start prompting.",
+		icon: SiGoogle,
 		steps: [
 			{
 				title: "Install",
@@ -281,9 +371,9 @@ export GOOGLE_GEMINI_BASE_URL="https://api.llmadaptive.uk/v1beta"`,
 	{
 		id: "codex",
 		title: "OpenAI Codex",
-		logo: "/logos/codex",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/codex",
 		summary: "Use the installer and keep the default model empty for routing.",
+		icon: SiOpenai,
 		steps: [
 			{
 				title: "Run installer",
@@ -299,7 +389,7 @@ export GOOGLE_GEMINI_BASE_URL="https://api.llmadaptive.uk/v1beta"`,
 				code: {
 					label: "~/.codex/config.toml",
 					language: "toml",
-					content: `model = ""
+					content: `model = "adaptive/auto"
 model_provider = "adaptive"`,
 				},
 			},
@@ -308,10 +398,10 @@ model_provider = "adaptive"`,
 	{
 		id: "qwen-code",
 		title: "Qwen Code",
-		logo: "/logos/qwen-code",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/qwen-code",
 		summary:
 			"Install Qwen Code with the helper script, then export OpenAI-compatible vars.",
+		icon: QwenIcon,
 		steps: [
 			{
 				title: "Run installer",
@@ -340,138 +430,182 @@ const INTEGRATION_QUICKSTARTS: DocQuickstart[] = [
 	{
 		id: "openai-sdk",
 		title: "OpenAI SDK",
-		logo: "/logos/openai",
 		docsUrl: "https://docs.llmadaptive.uk/integrations/openai-sdk",
 		summary: "Swap baseURL/apiKey and keep your existing OpenAI code.",
+		icon: SiOpenai,
 		steps: [
 			{
 				title: "Install",
-				code: { label: "pnpm", language: "bash", content: "pnpm add openai" },
+				codeVariants: [
+					{ label: "pnpm", language: "bash", content: "pnpm add openai" },
+					{ label: "pip", language: "bash", content: "pip install openai" },
+				],
 			},
 			{
 				title: "Initialize client",
-				code: {
-					label: "JS",
-					language: "javascript",
-					content: `const openai = new OpenAI({
+				codeVariants: [
+					{
+						label: "JavaScript/TypeScript",
+						language: "javascript",
+						content: `const openai = new OpenAI({
   apiKey: process.env.ADAPTIVE_API_KEY,
   baseURL: "https://api.llmadaptive.uk/v1",
 });
 
 await openai.chat.completions.create({
-  model: "",
+  model: "adaptive/auto",
   messages: [{ role: "user", content: "Hello!" }],
 });`,
-				},
-			},
-			{
-				title: "cURL alternative",
-				code: {
-					label: "cURL",
-					language: "bash",
-					content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
+					},
+					{
+						label: "Python",
+						language: "python",
+						content: `from openai import OpenAI
+
+client = OpenAI(
+    api_key=os.getenv("ADAPTIVE_API_KEY"),
+    base_url="https://api.llmadaptive.uk/v1",
+)
+
+response = client.chat.completions.create(
+    model="adaptive/auto",
+    messages=[{"role": "user", "content": "Hello!"}]
+)`,
+					},
+					{
+						label: "cURL",
+						language: "bash",
+						content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -d '{
     "model": "adaptive/auto",
     "messages": [
-      { "role": "user", "content": "Hello! How are you today?" }
+      {"role": "user", "content": "Hello!"}
     ]
   }'`,
-				},
-			},
-			{
-				title: "Select Model example",
-				code: {
-					label: "JavaScript",
-					language: "javascript",
-					content: `const response = await fetch("https://api.llmadaptive.uk/v1/select-model", {
-  method: "POST",
-  headers: {
-    "Authorization": "Bearer YOUR_API_KEY",
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    prompt: "Summarize this support ticket.",
-    candidates: [
-      { provider: "openai", model: "gpt-4o-mini" },
-      { provider: "anthropic", model: "claude-3-5-sonnet" }
-    ]
-  })
-});
-
-const decision = await response.json();
-console.log(decision.selected_model);`,
-				},
+					},
+				],
 			},
 		],
 	},
 	{
 		id: "vercel-ai",
 		title: "Vercel AI SDK",
-		logo: "/logos/vercel",
 		docsUrl: "https://docs.llmadaptive.uk/integrations/vercel-ai-sdk",
 		summary: "Wrap the OpenAI provider with Adaptive credentials.",
+		icon: SiVercel,
 		steps: [
 			{
 				title: "Install packages",
-				code: {
-					label: "pnpm",
-					language: "bash",
-					content: "pnpm add ai @ai-sdk/openai zod",
-				},
+				codeVariants: [
+					{
+						label: "pnpm",
+						language: "bash",
+						content: "pnpm add ai @ai-sdk/openai zod",
+					},
+					{
+						label: "npm",
+						language: "bash",
+						content: "npm install ai @ai-sdk/openai zod",
+					},
+					{
+						label: "yarn",
+						language: "bash",
+						content: "yarn add ai @ai-sdk/openai zod",
+					},
+				],
 			},
 			{
 				title: "Route handler",
-				code: {
-					label: "TS",
-					language: "typescript",
-					content: `const model = openai({
-  apiKey: process.env.ADAPTIVE_API_KEY!,
+				codeVariants: [
+					{
+						label: "JavaScript/TypeScript",
+						language: "javascript",
+						content: `const model = openai({
+  apiKey: process.env.ADAPTIVE_API_KEY,
   baseURL: "https://api.llmadaptive.uk/v1",
 })("");
 
 return streamText({ model, messages });`,
-				},
+					},
+				],
 			},
 		],
 	},
 	{
 		id: "langchain",
 		title: "LangChain",
-		logo: "/logos/langchain",
 		docsUrl: "https://docs.llmadaptive.uk/integrations/langchain",
 		summary: "ChatOpenAI works unchanged—just point base_url at Adaptive.",
+		icon: SiLangchain,
 		steps: [
 			{
 				title: "Install adapters",
-				code: {
-					label: "pip",
-					language: "bash",
-					content: "pip install langchain langchain-openai",
-				},
+				codeVariants: [
+					{
+						label: "pip",
+						language: "bash",
+						content: "pip install langchain langchain-openai",
+					},
+					{
+						label: "npm",
+						language: "bash",
+						content: "npm install langchain @langchain/openai",
+					},
+				],
 			},
 			{
 				title: "Create LLM",
-				code: {
-					label: "Python",
-					language: "python",
-					content: `llm = ChatOpenAI(
+				codeVariants: [
+					{
+						label: "Python",
+						language: "python",
+						content: `llm = ChatOpenAI(
     api_key="your-adaptive-api-key",
     base_url="https://api.llmadaptive.uk/v1",
     model="adaptive/auto"
 )
 llm.invoke("Explain RAG")`,
-				},
+					},
+					{
+						label: "JavaScript/TypeScript",
+						language: "javascript",
+						content: `const { ChatOpenAI } = require("@langchain/openai");
+
+const llm = new ChatOpenAI({
+  openAIApiKey: "your-adaptive-api-key",
+  configuration: {
+    baseURL: "https://api.llmadaptive.uk/v1",
+  },
+  modelName: "adaptive/auto",
+});
+
+await llm.invoke("Explain RAG");`,
+					},
+					{
+						label: "cURL",
+						language: "bash",
+						content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "model": "adaptive/auto",
+    "messages": [
+      {"role": "user", "content": "Explain RAG"}
+    ]
+  }'`,
+					},
+				],
 			},
 		],
 	},
 	{
 		id: "langgraph",
 		title: "LangGraph",
-		logo: "/logos/langgraph",
 		docsUrl: "https://docs.llmadaptive.uk/integrations/langgraph",
 		summary: "Use the same ChatOpenAI client inside state graphs.",
+		icon: SiLangchain,
 		steps: [
 			{
 				title: "Install",
@@ -483,25 +617,40 @@ llm.invoke("Explain RAG")`,
 			},
 			{
 				title: "Wire the node",
-				code: {
-					label: "Python",
-					language: "python",
-					content: `model = ChatOpenAI(
+				codeVariants: [
+					{
+						label: "Python",
+						language: "python",
+						content: `model = ChatOpenAI(
     api_key="your-adaptive-api-key",
     base_url="https://api.llmadaptive.uk/v1",
     model="adaptive/auto"
 )
 workflow.add_node("agent", lambda state: {"messages": [model.invoke(state["messages"])]})`,
-				},
+					},
+					{
+						label: "cURL",
+						language: "bash",
+						content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "model": "adaptive/auto",
+    "messages": [
+      {"role": "user", "content": "Hello from LangGraph!"}
+    ]
+  }'`,
+					},
+				],
 			},
 		],
 	},
 	{
 		id: "llamaindex",
 		title: "LlamaIndex",
-		logo: "/logos/llamaindex",
 		docsUrl: "https://docs.llmadaptive.uk/integrations/llamaindex",
 		summary: "Set the OpenAI LLM/embedding clients to the Adaptive base.",
+		icon: SiCodeblocks,
 		steps: [
 			{
 				title: "Install",
@@ -514,25 +663,40 @@ workflow.add_node("agent", lambda state: {"messages": [model.invoke(state["messa
 			},
 			{
 				title: "Configure",
-				code: {
-					label: "Python",
-					language: "python",
-					content: `llm = OpenAI(
+				codeVariants: [
+					{
+						label: "Python",
+						language: "python",
+						content: `llm = OpenAI(
     model="adaptive/auto",
     api_base="https://api.llmadaptive.uk/v1",
     api_key="your-adaptive-api-key",
 )
 Settings.llm = llm`,
-				},
+					},
+					{
+						label: "cURL",
+						language: "bash",
+						content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "model": "adaptive/auto",
+    "messages": [
+      {"role": "user", "content": "Hello from LlamaIndex!"}
+    ]
+  }'`,
+					},
+				],
 			},
 		],
 	},
 	{
 		id: "crewai",
 		title: "CrewAI",
-		logo: "/logos/crewai",
 		docsUrl: "https://docs.llmadaptive.uk/integrations/crewai",
 		summary: "Give CrewAI an Adaptive-backed LLM and run agents as usual.",
+		icon: SiCodeblocks,
 		steps: [
 			{
 				title: "Install",
@@ -544,15 +708,96 @@ Settings.llm = llm`,
 			},
 			{
 				title: "Create LLM",
-				code: {
-					label: "Python",
-					language: "python",
-					content: `llm = LLM(
+				codeVariants: [
+					{
+						label: "Python",
+						language: "python",
+						content: `llm = LLM(
     model="adaptive/auto",
     api_key="your-adaptive-api-key",
     base_url="https://api.llmadaptive.uk/v1"
 )`,
-				},
+					},
+					{
+						label: "cURL",
+						language: "bash",
+						content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "model": "adaptive/auto",
+    "messages": [
+      {"role": "user", "content": "Hello from CrewAI!"}
+    ]
+  }'`,
+					},
+				],
+			},
+		],
+	},
+	{
+		id: "adaptive-router",
+		title: "Adaptive Router",
+		docsUrl: "https://docs.llmadaptive.uk/integrations/adaptive-router",
+		summary:
+			"Get intelligent model selection without inference. Provider-agnostic design works with any models, providers, or infrastructure.",
+		icon: SiCodeblocks,
+		steps: [
+			{
+				title: "Select Model",
+				description:
+					"Choose the best model for your specific use case by providing available models and prompt.",
+				codeVariants: [
+					{
+						label: "JavaScript/TypeScript",
+						language: "javascript",
+						content: `const response = await fetch("https://api.llmadaptive.uk/v1/select-model", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    models: ["openai/gpt-4o-mini", "anthropic/claude-3-5-sonnet", "gemini/gemini-1.5-flash"],
+    prompt: "Summarize this support ticket."
+  })
+});
+
+const decision = await response.json();
+console.log(decision.selected_model);`,
+					},
+					{
+						label: "Python",
+						language: "python",
+						content: `import requests
+
+response = requests.post(
+    "https://api.llmadaptive.uk/v1/select-model",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json"
+    },
+    json={
+        "models": ["openai/gpt-4o-mini", "anthropic/claude-3-5-sonnet", "gemini/gemini-1.5-flash"],
+        "prompt": "Summarize this support ticket."
+    }
+)
+
+decision = response.json()
+print(decision["selected_model"])`,
+					},
+					{
+						label: "cURL",
+						language: "bash",
+						content: `curl -X POST "https://api.llmadaptive.uk/v1/select-model" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "models": ["openai/gpt-4o-mini", "anthropic/claude-3-5-sonnet", "gemini/gemini-1.5-flash"],
+    "prompt": "Summarize this support ticket."
+  }'`,
+					},
+				],
 			},
 		],
 	},
@@ -675,11 +920,14 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 						title="Developer Tools"
 						description="Configure local IDE agents and CLIs with your Adaptive API key."
 						cards={DEVELOPER_TOOL_QUICKSTARTS}
+						defaultOpen={true}
+						showLanguageToggle={false}
 					/>
 					<DocsQuickstartSection
 						title="Integrations"
 						description="Follow the official integration quickstarts pulled directly from the docs."
 						cards={INTEGRATION_QUICKSTARTS}
+						defaultOpen={false}
 					/>
 				</div>
 			</SheetContent>
@@ -691,25 +939,73 @@ interface DocsQuickstartSectionProps {
 	title: string;
 	description: string;
 	cards: DocQuickstart[];
+	defaultOpen?: boolean;
+	showLanguageToggle?: boolean;
 }
 
 function DocsQuickstartSection({
 	title,
 	description,
 	cards,
+	defaultOpen = false,
+	showLanguageToggle = true,
 }: DocsQuickstartSectionProps) {
 	const [selectedId, setSelectedId] = useState(() => cards[0]?.id ?? "");
+	const [selectedLanguage, setSelectedLanguage] =
+		useState<string>("javascript");
+
 	const selectedCard = useMemo(() => {
 		if (cards.length === 0) return null;
 		return cards.find((card) => card.id === selectedId) ?? cards[0];
 	}, [cards, selectedId]);
+
+	const availableLanguages = useMemo(() => {
+		if (!selectedCard) return [];
+
+		const languages = new Set<string>();
+		selectedCard.steps.forEach((step) => {
+			if (step.codeVariants) {
+				step.codeVariants.forEach((variant) => {
+					languages.add(variant.language);
+				});
+			} else if (step.code) {
+				languages.add(step.code.language);
+			}
+		});
+
+		selectedCard.codeSamples?.forEach((sample) => {
+			languages.add(sample.language);
+		});
+
+		return Array.from(languages).sort();
+	}, [selectedCard]);
+
+	const getLanguageIcon = (language: string) => {
+		const iconMap: Record<
+			string,
+			React.ComponentType<{ className?: string }>
+		> = {
+			javascript: SiJavascript,
+			python: SiPython,
+			typescript: SiTypescript,
+			go: SiGo,
+			rust: SiRust,
+			bash: SiCurl,
+			curl: SiCurl,
+		};
+		return iconMap[language] || SiJavascript;
+	};
 
 	if (!selectedCard) {
 		return null;
 	}
 
 	return (
-		<Accordion type="single" collapsible defaultValue="section">
+		<Accordion
+			type="single"
+			collapsible
+			defaultValue={defaultOpen ? "section" : undefined}
+		>
 			<AccordionItem
 				value="section"
 				className="rounded-2xl border bg-background/80 shadow-sm"
@@ -722,34 +1018,36 @@ function DocsQuickstartSection({
 				</AccordionTrigger>
 				<AccordionContent className="border-t px-4 py-4">
 					<div className="space-y-4">
-						<div className="flex flex-wrap gap-3">
-							{cards.map((card) => {
-								const isActive = selectedCard?.id === card.id;
-								return (
-									<button
-										key={card.id}
-										type="button"
-										onClick={() => setSelectedId(card.id)}
-										aria-pressed={isActive}
-										className={cn(
-											"flex h-14 w-14 items-center justify-center rounded-2xl border bg-card p-2 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
-											isActive
-												? "border-primary shadow-md"
-												: "opacity-70 hover:opacity-100",
-										)}
-									>
-										<Image
-											src={card.logo}
-											alt={card.title}
-											width={40}
-											height={40}
-											className="h-10 w-10 object-contain"
-										/>
-										<span className="sr-only">{card.title}</span>
-									</button>
-								);
-							})}
-						</div>
+						<TooltipProvider>
+							<div className="flex flex-wrap gap-3">
+								{cards.map((card) => {
+									const isActive = selectedCard?.id === card.id;
+									return (
+										<Tooltip key={card.id}>
+											<TooltipTrigger asChild>
+												<button
+													type="button"
+													onClick={() => setSelectedId(card.id)}
+													aria-pressed={isActive}
+													className={cn(
+														"flex h-14 w-14 items-center justify-center rounded-2xl border bg-card p-2 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+														isActive
+															? "border-primary shadow-md"
+															: "opacity-70 hover:opacity-100",
+													)}
+												>
+													<card.icon className="h-10 w-10" />
+													<span className="sr-only">{card.title}</span>
+												</button>
+											</TooltipTrigger>
+											<TooltipContent>
+												<p>{card.title}</p>
+											</TooltipContent>
+										</Tooltip>
+									);
+								})}
+							</div>
+						</TooltipProvider>
 
 						<div className="space-y-4 rounded-xl border bg-muted/30 p-4">
 							<div className="flex flex-wrap items-center justify-between gap-3">
@@ -773,6 +1071,32 @@ function DocsQuickstartSection({
 									</Button>
 								)}
 							</div>
+
+							{availableLanguages.length > 1 && showLanguageToggle && (
+								<div className="flex flex-wrap gap-3 border-b pb-2">
+									{availableLanguages.map((language) => {
+										const IconComponent = getLanguageIcon(language);
+										const isActive = selectedLanguage === language;
+										return (
+											<button
+												key={language}
+												type="button"
+												onClick={() => setSelectedLanguage(language)}
+												aria-pressed={isActive}
+												className={cn(
+													"flex h-10 w-10 items-center justify-center rounded-lg border bg-card p-2 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+													isActive
+														? "border-primary shadow-md"
+														: "opacity-70 hover:opacity-100",
+												)}
+											>
+												<IconComponent className="h-5 w-5" />
+												<span className="sr-only">{language}</span>
+											</button>
+										);
+									})}
+								</div>
+							)}
 
 							{selectedCard.tip && (
 								<div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
@@ -801,31 +1125,41 @@ function DocsQuickstartSection({
 												))}
 											</ul>
 										)}
-										{step.code && (
-											<CodeBlock>
-												<CodeBlockGroup className="flex items-center justify-between border-b px-4 py-2">
-													<span className="font-medium text-sm">
-														{step.code.label}
-													</span>
-													<div className="flex items-center gap-2">
-														<Badge
-															variant="secondary"
-															className="text-xs capitalize"
-														>
-															{step.code.language}
-														</Badge>
-														<CopyButton
-															content={step.code.content}
-															copyMessage="Snippet copied!"
-														/>
-													</div>
-												</CodeBlockGroup>
-												<CodeBlockCode
-													code={step.code.content}
-													language={step.code.language}
-												/>
-											</CodeBlock>
-										)}
+										{(() => {
+											const codeToShow = step.codeVariants
+												? step.codeVariants.find(
+														(variant) => variant.language === selectedLanguage,
+													) || step.codeVariants[0]
+												: step.code;
+
+											if (!codeToShow) return null;
+
+											return (
+												<CodeBlock>
+													<CodeBlockGroup className="flex items-center justify-between border-b px-4 py-2">
+														<span className="font-medium text-sm">
+															{codeToShow.label}
+														</span>
+														<div className="flex items-center gap-2">
+															<Badge
+																variant="secondary"
+																className="text-xs capitalize"
+															>
+																{codeToShow.language}
+															</Badge>
+															<CopyButton
+																content={codeToShow.content}
+																copyMessage="Snippet copied!"
+															/>
+														</div>
+													</CodeBlockGroup>
+													<CodeBlockCode
+														code={codeToShow.content}
+														language={codeToShow.language}
+													/>
+												</CodeBlock>
+											);
+										})()}
 									</div>
 								))}
 							</div>
@@ -833,31 +1167,33 @@ function DocsQuickstartSection({
 							{selectedCard.codeSamples &&
 								selectedCard.codeSamples.length > 0 && (
 									<div className="space-y-3">
-										{selectedCard.codeSamples.map((sample) => (
-											<CodeBlock key={`${selectedCard.id}-${sample.label}`}>
-												<CodeBlockGroup className="flex items-center justify-between border-b px-4 py-2">
-													<span className="font-medium text-sm">
-														{sample.label}
-													</span>
-													<div className="flex items-center gap-2">
-														<Badge
-															variant="secondary"
-															className="text-xs capitalize"
-														>
-															{sample.language}
-														</Badge>
-														<CopyButton
-															content={sample.content}
-															copyMessage="Snippet copied!"
-														/>
-													</div>
-												</CodeBlockGroup>
-												<CodeBlockCode
-													code={sample.content}
-													language={sample.language}
-												/>
-											</CodeBlock>
-										))}
+										{selectedCard.codeSamples
+											.filter((sample) => sample.language === selectedLanguage)
+											.map((sample) => (
+												<CodeBlock key={`${selectedCard.id}-${sample.label}`}>
+													<CodeBlockGroup className="flex items-center justify-between border-b px-4 py-2">
+														<span className="font-medium text-sm">
+															{sample.label}
+														</span>
+														<div className="flex items-center gap-2">
+															<Badge
+																variant="secondary"
+																className="text-xs capitalize"
+															>
+																{sample.language}
+															</Badge>
+															<CopyButton
+																content={sample.content}
+																copyMessage="Snippet copied!"
+															/>
+														</div>
+													</CodeBlockGroup>
+													<CodeBlockCode
+														code={sample.content}
+														language={sample.language}
+													/>
+												</CodeBlock>
+											))}
 									</div>
 								)}
 
