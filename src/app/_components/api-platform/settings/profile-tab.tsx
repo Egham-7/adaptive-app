@@ -29,6 +29,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { CopyButton } from "@/components/ui/copy-button";
 import {
 	Form,
 	FormControl,
@@ -169,7 +170,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 								{organization?.name?.[0]?.toUpperCase()}
 							</AvatarFallback>
 						</Avatar>
-						<div className="space-y-2">
+						<div className="space-y-3">
 							<div className="space-y-1">
 								<h3 className="font-semibold text-xl">
 									{organization?.name || "Organization"}
@@ -179,6 +180,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 									{organization?.membersCount !== 1 ? "s" : ""}
 								</p>
 							</div>
+							{organization?.id ? (
+								<div className="space-y-1">
+									<p className="text-muted-foreground text-xs uppercase tracking-wide">
+										Organization ID
+									</p>
+									<div className="flex items-center gap-3 rounded-lg border bg-muted px-3 py-1.5">
+										<span className="font-mono text-muted-foreground text-xs">
+											{organization.id}
+										</span>
+										<CopyButton content={organization.id} />
+									</div>
+								</div>
+							) : null}
 						</div>
 					</div>
 

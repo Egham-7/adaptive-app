@@ -11,21 +11,22 @@ export interface UsageRecord {
 	id: number;
 	api_key_id: number;
 	endpoint: string;
-	provider: string;
-	model: string;
-	prompt_tokens: number;
-	completion_tokens: number;
-	finish_reason: string;
-	tokens_total: number;
+	provider?: string | null;
+	model?: string | null;
+	prompt_tokens?: number;
+	completion_tokens?: number;
+	cached_tokens?: number;
+	finish_reason?: string | null;
+	tokens_total?: number;
 	cost: number;
-	currency: string;
+	currency?: string;
 	status_code: number;
-	latency_ms: number;
-	metadata: Record<string, unknown>;
-	request_id?: string;
-	user_agent?: string;
-	ip_address?: string;
-	error_message?: string;
+	latency_ms?: number;
+	metadata?: Record<string, unknown> | string | null;
+	request_id?: string | null;
+	user_agent?: string | null;
+	ip_address?: string | null;
+	error_message?: string | null;
 	created_at: string;
 }
 
@@ -65,6 +66,7 @@ export interface RecordUsageRequest {
 	model: string;
 	prompt_tokens: number;
 	completion_tokens: number;
+	cached_tokens?: number;
 	cost: number;
 	currency?: string;
 	status_code: number;
@@ -88,6 +90,7 @@ export const recordUsageRequestSchema = z.object({
 	model: z.string(),
 	prompt_tokens: z.number().min(0),
 	completion_tokens: z.number().min(0),
+	cached_tokens: z.number().min(0).optional(),
 	cost: z.number().min(0),
 	currency: z.string().optional(),
 	status_code: z.number(),

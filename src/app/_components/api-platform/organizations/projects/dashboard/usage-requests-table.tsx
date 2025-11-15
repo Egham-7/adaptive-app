@@ -22,6 +22,7 @@ export interface UsageRequestRow {
 	cost: number;
 	promptTokens?: number | null;
 	completionTokens?: number | null;
+	cachedTokens?: number | null;
 	latencyMs?: number | null;
 	finishReason?: string | null;
 	timestamp: Date;
@@ -130,6 +131,9 @@ export function UsageRequestsTable({ rows, loading }: UsageRequestsTableProps) {
 														(row.completionTokens ?? 0)
 													).toLocaleString()}{" "}
 													total
+													{row.cachedTokens ? (
+														<> · {row.cachedTokens.toLocaleString()} cached</>
+													) : null}
 												</span>
 											</div>
 										</TableCell>

@@ -36,12 +36,13 @@ type RecentRequest = {
 	endpoint: string;
 	statusCode: number;
 	cost: number;
-	provider?: string;
-	model?: string;
+	provider?: string | null;
+	model?: string | null;
 	promptTokens: number;
 	completionTokens: number;
+	cachedTokens?: number | null;
 	latencyMs?: number;
-	finishReason?: string;
+	finishReason?: string | null;
 	timestamp: Date;
 };
 
@@ -145,6 +146,7 @@ export const projectAnalyticsRouter = createTRPCRouter({
 							usageResult.data.forEach((dayData) => {
 								const promptTokens = dayData.prompt_tokens ?? 0;
 								const completionTokens = dayData.completion_tokens ?? 0;
+								const cachedTokens = dayData.cached_tokens ?? 0;
 								const tokensUsed =
 									dayData.tokens_total ?? promptTokens + completionTokens;
 								const existing = acc.dailyTrendsMap.get(dayData.timestamp) ?? {
@@ -171,7 +173,8 @@ export const projectAnalyticsRouter = createTRPCRouter({
 									model: dayData.model,
 									promptTokens,
 									completionTokens,
-									latencyMs: dayData.latency_ms,
+									cachedTokens,
+									latencyMs: dayData.latency_ms ?? undefined,
 									finishReason: dayData.finish_reason,
 									timestamp: new Date(dayData.timestamp),
 								});
