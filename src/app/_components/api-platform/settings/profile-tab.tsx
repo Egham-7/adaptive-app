@@ -3,7 +3,7 @@
 import { useOrganizationList } from "@clerk/nextjs";
 import type { OrganizationResource } from "@clerk/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BadgeCopy, Building2, Trash2 } from "lucide-react";
+import { Copy, Building2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -183,7 +183,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 						</div>
 						{organization?.id ? (
 							<div className="flex items-center gap-2 rounded-lg border bg-muted px-3 py-1.5 text-sm">
-								<BadgeCopy className="h-4 w-4 text-muted-foreground" />
+								<Copy className="h-4 w-4 text-muted-foreground" />
 								<span className="font-mono text-xs text-muted-foreground">
 									{organization.id}
 								</span>
