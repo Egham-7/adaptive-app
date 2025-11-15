@@ -92,7 +92,7 @@ export function DesktopActions({ iconMenuItems }: DesktopActionsProps) {
 								</Link>
 							</DropdownMenuItem>
 							<DropdownMenuItem asChild>
-								<Link href="/sign-up?redirect_url=/api-platform/orgs">
+								<Link href="/sign-up?redirect_url=/api-platform/post-sign-up">
 									<Button variant="ghost" className="w-full justify-start">
 										API Platform
 									</Button>

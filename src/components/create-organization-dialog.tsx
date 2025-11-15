@@ -88,7 +88,11 @@ export function CreateOrganizationDialog({
 			toast.success("Organization created successfully");
 			onOpenChange(false);
 			form.reset();
-			router.push("/api-platform/onboarding");
+			if (org.slug) {
+				router.push(`/api-platform/orgs/${org.slug}`);
+			} else {
+				router.push("/api-platform/orgs");
+			}
 		} catch (error) {
 			toast.error("Failed to create organization");
 			console.error(error);

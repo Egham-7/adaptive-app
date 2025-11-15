@@ -407,11 +407,6 @@ export type EventName =
 	| "sign_in"
 	| "sign_out"
 	| "unauthorized_access"
-	// Onboarding
-	| "onboarding_step_viewed"
-	| "onboarding_completed"
-	| "onboarding_skipped"
-	| "promotional_credits_added"
 	// Organizations
 	| "organization_created"
 	| "organization_viewed"

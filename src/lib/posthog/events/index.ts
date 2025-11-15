@@ -15,8 +15,6 @@ export * from "./billing";
 export * from "./chat";
 // Error events
 export * from "./errors";
-// Onboarding events
-export * from "./onboarding";
 // Organization events
 export * from "./organizations";
 // Performance events
