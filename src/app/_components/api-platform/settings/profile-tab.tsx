@@ -3,7 +3,7 @@
 import { useOrganizationList } from "@clerk/nextjs";
 import type { OrganizationResource } from "@clerk/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, Trash2 } from "lucide-react";
+import { BadgeCopy, Building2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/ui/copy-button";
 import {
 	Card,
 	CardContent,
@@ -180,6 +181,15 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 								</p>
 							</div>
 						</div>
+						{organization?.id ? (
+							<div className="flex items-center gap-2 rounded-lg border bg-muted px-3 py-1.5 text-sm">
+								<BadgeCopy className="h-4 w-4 text-muted-foreground" />
+								<span className="font-mono text-xs text-muted-foreground">
+									{organization.id}
+								</span>
+								<CopyButton content={organization.id} />
+							</div>
+						) : null}
 					</div>
 
 					<Form {...form}>
