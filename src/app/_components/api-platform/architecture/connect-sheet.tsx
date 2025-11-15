@@ -111,7 +111,6 @@ const LlamaIndexIcon = () => (
 import NextLink from "next/link";
 import { useMemo, useState } from "react";
 import {
-	SiCodeblocks,
 	SiCodesandbox,
 	SiCurl,
 	SiGo,
