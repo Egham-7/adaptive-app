@@ -180,8 +180,9 @@ function ProviderBadge({ provider, model }: ProviderBadgeProps) {
 					<TooltipTrigger asChild>
 						<div>
 							<ProviderLogo
-								providerId={provider ?? "unknown"}
-								size={24}
+								provider={provider ?? "unknown"}
+								width={24}
+								height={24}
 								className="rounded border bg-muted"
 							/>
 						</div>
