@@ -163,21 +163,21 @@ export const projectAnalyticsRouter = createTRPCRouter({
 										existing.errorCount + (dayData.status_code >= 400 ? 1 : 0),
 								});
 
-								acc.recentRequests.push({
-									id: dayData.id,
-									apiKeyId: dayData.api_key_id,
-									endpoint: dayData.endpoint,
-									statusCode: dayData.status_code,
-									cost: dayData.cost,
-									provider: dayData.provider,
-									model: dayData.model,
-									promptTokens,
-									completionTokens,
-									cachedTokens,
-									latencyMs: dayData.latency_ms,
-									finishReason: dayData.finish_reason,
-									timestamp: new Date(dayData.timestamp),
-								});
+									acc.recentRequests.push({
+										id: dayData.id,
+										apiKeyId: dayData.api_key_id,
+										endpoint: dayData.endpoint,
+										statusCode: dayData.status_code,
+										cost: dayData.cost,
+										provider: dayData.provider,
+										model: dayData.model,
+										promptTokens,
+										completionTokens,
+										cachedTokens,
+										latencyMs: dayData.latency_ms ?? undefined,
+										finishReason: dayData.finish_reason,
+										timestamp: new Date(dayData.timestamp),
+									});
 
 								const providerKey = dayData.provider ?? "unknown";
 								const providerStats = acc.providerStats.get(providerKey) ?? {
