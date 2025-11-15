@@ -7,6 +7,7 @@ import {
 	CodeBlock,
 	CodeBlockCode,
 	CodeBlockGroup,
+	CodeBlockLanguageSelector,
 } from "@/components/ui/code-block";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -549,89 +550,86 @@ export function QuickstartExamples({
 				</div>
 			</div>
 
-			{selectedProvider && selectedProvider.endpoints.length > 0 && (
-				<Tabs
-					value={selectedEndpointId}
-					onValueChange={(value) =>
-						setSelectedEndpointId(value as EndpointId)
-					}
-					className="w-full rounded-xl border bg-card/50 p-4 sm:p-6"
-				>
-					<TabsList className="flex w-full flex-wrap gap-2 bg-transparent p-0">
+				{selectedProvider && selectedProvider.endpoints.length > 0 && (
+					<div className="space-y-4 rounded-xl border bg-card/50 p-4 sm:p-6">
+						<div className="flex w-full flex-wrap gap-2">
+							{selectedProvider.endpoints.map((endpointId) => {
+								const endpointMeta = ENDPOINT_DETAILS[endpointId];
+								const isActive = selectedEndpointId === endpointId;
+								return (
+									<button
+										key={endpointId}
+										type="button"
+										onClick={() => setSelectedEndpointId(endpointId)}
+										aria-pressed={isActive}
+										className={cn(
+											"flex min-w-[180px] flex-1 flex-col items-start gap-1 rounded-lg border bg-background px-3 py-2 text-left transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+											isActive
+												? "border-primary bg-primary/5"
+												: "hover:border-primary/40",
+										)}
+									>
+										<span className="font-medium text-sm">
+											{endpointMeta.label}
+										</span>
+										<span className="text-muted-foreground text-xs">
+											{endpointMeta.description}
+										</span>
+									</button>
+								);
+							})}
+						</div>
+
 						{selectedProvider.endpoints.map((endpointId) => {
-							const endpointMeta = ENDPOINT_DETAILS[endpointId];
+							if (endpointId !== selectedEndpointId) return null;
 
-							return (
-								<TabsTrigger
-									key={endpointId}
-									value={endpointId}
-									className="flex min-w-[180px] flex-1 flex-col items-start gap-1 rounded-lg border bg-background px-3 py-2 text-left data-[state=active]:border-primary data-[state=active]:bg-primary/5"
-								>
-									<span className="font-medium text-sm">
-										{endpointMeta.label}
-									</span>
-									<span className="text-muted-foreground text-xs">
-										{endpointMeta.description}
-									</span>
-								</TabsTrigger>
-							);
-						})}
-					</TabsList>
-
-					{selectedProvider.endpoints.map((endpointId) => {
 						const endpointExamples = CODE_EXAMPLES[endpointId];
-
 						if (!endpointExamples) {
 							return (
-								<TabsContent key={endpointId} value={endpointId} className="mt-6">
+								<div key={endpointId} className="mt-6">
 									<p className="text-muted-foreground text-sm">
 										Examples for this endpoint are coming soon.
 									</p>
-								</TabsContent>
+									</div>
+								);
+							}
+
+							const availableLanguages = LANGUAGES.filter((language) =>
+								Boolean(endpointExamples[language.id]),
 							);
-						}
+							const fallbackLanguageId =
+								availableLanguages[0]?.id ?? DEFAULT_LANGUAGE_ID;
+							const storedLanguageId = languageSelections[endpointId];
+							const activeLanguageId =
+								storedLanguageId && endpointExamples[storedLanguageId]
+									? storedLanguageId
+									: fallbackLanguageId;
+							const example =
+								endpointExamples[activeLanguageId] ||
+								endpointExamples[fallbackLanguageId];
 
-						const availableLanguageIds = Object.keys(
-							endpointExamples,
-						) as Language["id"][];
-						const fallbackLanguageId =
-							availableLanguageIds[0] ?? DEFAULT_LANGUAGE_ID;
-						const storedLanguageId = languageSelections[endpointId];
-						const activeLanguageId =
-							storedLanguageId && endpointExamples[storedLanguageId]
-								? storedLanguageId
-								: fallbackLanguageId;
-						const example = endpointExamples[activeLanguageId];
+							if (!example) {
+								return (
+									<div key={endpointId} className="mt-6">
+										<p className="text-muted-foreground text-sm">
+											Examples for this endpoint are coming soon.
+										</p>
+									</div>
+								);
+							}
 
-						if (!example) {
+							const code = example.code(apiKey, API_BASE_URL);
+							const languageMeta =
+								(
+									LANGUAGES.find(
+										(language) => language.id === activeLanguageId,
+									) ??
+									availableLanguages[0] ??
+									LANGUAGES[0]
+								) as Language;
+
 							return (
-								<TabsContent key={endpointId} value={endpointId} className="mt-6">
-									<p className="text-muted-foreground text-sm">
-										Examples for this endpoint are coming soon.
-									</p>
-								</TabsContent>
-							);
-						}
-
-						const code = example.code(apiKey, API_BASE_URL);
-						const languageMeta =
-							LANGUAGES.find((language) => language.id === activeLanguageId) ?? {
-								id: "curl",
-								name: "cURL",
-								badge: "bash",
-							};
-
-						const handleLanguageChange = (languageId: Language["id"]) => {
-							if (!endpointExamples[languageId]) return;
-							setLanguageSelections((prev) => ({
-								...prev,
-								[endpointId]: languageId,
-							}));
-						};
-
-						return (
-							<TabsContent key={endpointId} value={endpointId} className="mt-6">
-								<div className="space-y-4">
+								<div key={endpointId} className="space-y-4">
 									{example.installNote && (
 										<div className="rounded-lg border bg-muted/50 p-3">
 											<p className="text-sm font-medium">
@@ -653,32 +651,20 @@ export function QuickstartExamples({
 												</p>
 											</div>
 											<div className="flex flex-wrap items-center gap-2">
-												<div className="inline-flex items-center rounded-full border bg-background p-1 text-xs">
-													{LANGUAGES.map((language) => {
-														const isAvailable =
-															Boolean(endpointExamples[language.id]);
-														const isActive = activeLanguageId === language.id;
-														return (
-															<button
-																type="button"
-																key={language.id}
-																disabled={!isAvailable}
-																onClick={() => handleLanguageChange(language.id)}
-																className={cn(
-																	"rounded-full px-2 py-1 transition",
-																	isActive
-																		? "bg-primary text-primary-foreground shadow-sm"
-																		: "text-muted-foreground hover:text-foreground",
-																	!isAvailable &&
-																		"cursor-not-allowed opacity-40 hover:text-muted-foreground",
-																)}
-															>
-																{language.name}
-															</button>
-														);
-													})}
-												</div>
-												<Badge variant="secondary" className="text-xs">
+												<CodeBlockLanguageSelector
+													options={availableLanguages.map((language) => ({
+														id: language.id,
+														label: language.name,
+													}))}
+													value={activeLanguageId}
+													onChange={(id) =>
+														setLanguageSelections((prev) => ({
+															...prev,
+															[endpointId]: id as Language["id"],
+														}))
+													}
+												/>
+												<Badge variant="secondary" className="text-xs capitalize">
 													{languageMeta.badge}
 												</Badge>
 												<CopyButton
@@ -690,11 +676,10 @@ export function QuickstartExamples({
 										<CodeBlockCode code={code} language={example.language} />
 									</CodeBlock>
 								</div>
-							</TabsContent>
-						);
-					})}
-				</Tabs>
-			)}
+							);
+						})}
+					</div>
+				)}
 		</div>
 	);
 }

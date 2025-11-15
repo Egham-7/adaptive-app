@@ -189,7 +189,7 @@ chmod +x claude-code.sh
     "apiProvider": "openai-compatible",
     "baseUrl": "https://api.llmadaptive.uk/v1",
     "apiKey": "your-adaptive-api-key",
-    "model": ""
+    "model": "adaptive/auto"
   }
 }`,
 				},
@@ -338,60 +338,6 @@ export OPENAI_MODEL=""`,
 
 const INTEGRATION_QUICKSTARTS: DocQuickstart[] = [
 	{
-		id: "adaptive-api",
-		title: "Adaptive API",
-		logo: "/logos/adaptive-light.png",
-		docsUrl: "https://docs.llmadaptive.uk/api-reference/chat-completions",
-		summary: "Call Adaptive endpoints directly or hit the Select Model router.",
-		steps: [
-			{
-				title: "Authenticate",
-				description: "Use your Adaptive API key in the Authorization header.",
-			},
-			{
-				title: "Pick an endpoint",
-				description:
-					"Chat Completions, Messages, Gemini, and Select Model are all compatible.",
-			},
-		],
-		codeSamples: [
-			{
-				label: "cURL",
-				language: "bash",
-				content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -d '{
-    "model": "",
-    "messages": [
-      { "role": "user", "content": "Hello! How are you today?" }
-    ]
-  }'`,
-			},
-			{
-				label: "Select Model",
-				language: "javascript",
-				content: `const response = await fetch("https://api.llmadaptive.uk/v1/select-model", {
-  method: "POST",
-  headers: {
-    "Authorization": "Bearer YOUR_API_KEY",
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    prompt: "Summarize this support ticket.",
-    candidates: [
-      { provider: "openai", model: "gpt-4o-mini" },
-      { provider: "anthropic", model: "claude-3-5-sonnet" }
-    ]
-  })
-});
-
-const decision = await response.json();
-console.log(decision.selected_model);`,
-			},
-		],
-	},
-	{
 		id: "openai-sdk",
 		title: "OpenAI SDK",
 		logo: "/logos/openai",
@@ -416,6 +362,46 @@ await openai.chat.completions.create({
   model: "",
   messages: [{ role: "user", content: "Hello!" }],
 });`,
+				},
+			},
+			{
+				title: "cURL alternative",
+				code: {
+					label: "cURL",
+					language: "bash",
+					content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "model": "adaptive/auto",
+    "messages": [
+      { "role": "user", "content": "Hello! How are you today?" }
+    ]
+  }'`,
+				},
+			},
+			{
+				title: "Select Model example",
+				code: {
+					label: "JavaScript",
+					language: "javascript",
+					content: `const response = await fetch("https://api.llmadaptive.uk/v1/select-model", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    prompt: "Summarize this support ticket.",
+    candidates: [
+      { provider: "openai", model: "gpt-4o-mini" },
+      { provider: "anthropic", model: "claude-3-5-sonnet" }
+    ]
+  })
+});
+
+const decision = await response.json();
+console.log(decision.selected_model);`,
 				},
 			},
 		],
@@ -473,7 +459,7 @@ return streamText({ model, messages });`,
 					content: `llm = ChatOpenAI(
     api_key="your-adaptive-api-key",
     base_url="https://api.llmadaptive.uk/v1",
-    model=""
+    model="adaptive/auto"
 )
 llm.invoke("Explain RAG")`,
 				},
@@ -503,7 +489,7 @@ llm.invoke("Explain RAG")`,
 					content: `model = ChatOpenAI(
     api_key="your-adaptive-api-key",
     base_url="https://api.llmadaptive.uk/v1",
-    model=""
+    model="adaptive/auto"
 )
 workflow.add_node("agent", lambda state: {"messages": [model.invoke(state["messages"])]})`,
 				},
@@ -532,7 +518,7 @@ workflow.add_node("agent", lambda state: {"messages": [model.invoke(state["messa
 					label: "Python",
 					language: "python",
 					content: `llm = OpenAI(
-    model="",
+    model="adaptive/auto",
     api_base="https://api.llmadaptive.uk/v1",
     api_key="your-adaptive-api-key",
 )
@@ -562,7 +548,7 @@ Settings.llm = llm`,
 					label: "Python",
 					language: "python",
 					content: `llm = LLM(
-    model="",
+    model="adaptive/auto",
     api_key="your-adaptive-api-key",
     base_url="https://api.llmadaptive.uk/v1"
 )`,
