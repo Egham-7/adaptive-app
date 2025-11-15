@@ -568,7 +568,7 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 					</SheetDescription>
 				</SheetHeader>
 
-				<div className="max-w-full space-y-4 overflow-hidden px-6 pb-6">
+				<div className="max-w-full space-y-4 px-6 pb-6">
 					{/* API Key Creation Section */}
 					<div className="space-y-3 rounded-lg border bg-muted/30 p-4">
 						{!showCreateForm && !createdApiKey && (
