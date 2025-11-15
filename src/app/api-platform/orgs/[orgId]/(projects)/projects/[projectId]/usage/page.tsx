@@ -98,6 +98,7 @@ export default function DashboardPage() {
 			model: request.model,
 			promptTokens: request.promptTokens,
 			completionTokens: request.completionTokens,
+			cachedTokens: request.cachedTokens,
 			statusCode: request.statusCode,
 			cost: request.cost,
 			latencyMs: request.latencyMs,
