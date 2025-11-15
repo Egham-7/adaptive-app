@@ -234,11 +234,11 @@ export function EditProviderDialog({
 				<DialogHeader>
 					<div className="flex items-center gap-3">
 						<ProviderLogo
-							provider={selectedProvider}
+							provider={providerName}
 							width={32}
 							height={32}
 							className="rounded-lg"
-							alt={`${metadata?.displayName || selectedProvider} logo`}
+							alt={`${metadata?.displayName || providerName} logo`}
 						/>
 						<div>
 							<DialogTitle>
