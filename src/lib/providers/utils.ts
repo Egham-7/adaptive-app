@@ -3,8 +3,18 @@ import {
 	type ApiCompatibilityType,
 	type EndpointOverride,
 	type EndpointType,
+	PROVIDER_METADATA,
 	type ProviderConfigApiResponse,
 } from "@/types/providers";
+
+type ProviderMeta = (typeof PROVIDER_METADATA)[keyof typeof PROVIDER_METADATA];
+
+const providerLookup = new Map<string, ProviderMeta>();
+
+Object.values(PROVIDER_METADATA).forEach((meta) => {
+	providerLookup.set(meta.name.toLowerCase(), meta);
+	providerLookup.set(meta.displayName.toLowerCase(), meta);
+});
 
 /**
  * Convert API compatibility type to endpoint types array
@@ -111,4 +121,29 @@ export function countEndpointOverrides(
 	return Object.keys(overrides).filter((key) =>
 		overrides[key]?.base_url?.trim(),
 	).length;
+}
+
+// ============================================================================
+// PROVIDER METADATA HELPERS
+// ============================================================================
+
+export function getProviderMetadataById(
+	provider?: string | null,
+): ProviderMeta | null {
+	if (!provider) return null;
+	const normalized = provider.toLowerCase();
+
+	const directLookup = providerLookup.get(normalized);
+	if (directLookup) return directLookup;
+
+	const metadata = (PROVIDER_METADATA as Record<string, ProviderMeta>)[
+		normalized
+	];
+	return metadata ?? null;
+}
+
+export function getProviderDisplayName(provider?: string | null) {
+	return (
+		getProviderMetadataById(provider)?.displayName ?? provider ?? "Unknown"
+	);
 }

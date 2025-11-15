@@ -1,12 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import {
-	FaChartLine,
-	FaCoins,
-	FaExclamationTriangle,
-	FaServer,
-} from "react-icons/fa";
+import { FaChartLine, FaCoins, FaServer } from "react-icons/fa";
 import type { ProjectAnalytics } from "@/types/api-platform/dashboard";
 import { MetricCardSkeleton } from "./loading-skeleton";
 import { VersatileMetricChart } from "./versatile-metric-chart";
@@ -22,7 +17,7 @@ export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
 	if (loading) {
 		return (
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{Array.from({ length: 4 }).map((_, i) => (
+				{Array.from({ length: 3 }).map((_, i) => (
 					<MetricCardSkeleton key={`skeleton-${i}`} />
 				))}
 			</div>
@@ -73,17 +68,6 @@ export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
 			})),
 			color: "hsl(var(--chart-4))",
 			totalValue: data.totalRequests.toLocaleString(),
-		},
-		{
-			title: "Error Rate",
-			chartType: "area" as const,
-			icon: <FaExclamationTriangle className="h-5 w-5 text-destructive" />,
-			data: data.dailyTrends.map((d) => ({
-				date: d.date.toISOString().slice(0, 10),
-				value: d.requests > 0 ? (d.errorCount / d.requests) * 100 : 0,
-			})),
-			color: "hsl(var(--destructive))",
-			totalValue: `${data.errorRate.toFixed(2)}%`,
 		},
 	];
 
