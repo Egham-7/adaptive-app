@@ -40,7 +40,15 @@ interface ClaudeCodeLogoProps extends BaseLogoProps {
   brand: "claude-code";
 }
 
-type LogoProps = AdaptiveLogoProps | CursorLogoProps | ClineLogoProps | KiloCodeLogoProps | RooCodeLogoProps | QwenLogoProps | ClaudeCodeLogoProps;
+interface CrewAILogoProps extends BaseLogoProps {
+  brand: "crew-ai";
+}
+
+interface LlamaIndexLogoProps extends BaseLogoProps {
+  brand: "llama-index";
+}
+
+type LogoProps = AdaptiveLogoProps | CursorLogoProps | ClineLogoProps | KiloCodeLogoProps | RooCodeLogoProps | QwenLogoProps | ClaudeCodeLogoProps | CrewAILogoProps | LlamaIndexLogoProps;
 
 const textSizeMap = {
   sm: "text-sm",
@@ -92,6 +100,18 @@ const brandConfig = {
     darkSrc: "/logos/claude-code.png",
     alt: "Claude Code Logo",
     text: "Claude Code",
+  },
+  "crew-ai": {
+    lightSrc: "/logos/crew-ai-light.png",
+    darkSrc: "/logos/crew-ai-dark.png",
+    alt: "CrewAI Logo",
+    text: "CrewAI",
+  },
+  "llama-index": {
+    lightSrc: "/logos/llama-index.png",
+    darkSrc: "/logos/llama-index.png",
+    alt: "LlamaIndex Logo",
+    text: "LlamaIndex",
   },
 };
 

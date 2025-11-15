@@ -75,10 +75,42 @@ const ClaudeCodeIcon = () => (
 	/>
 );
 
+// Adaptive icon component
+const AdaptiveIcon = () => (
+	<Logo
+		brand="adaptive"
+		showText={false}
+		imageWidth={40}
+		imageHeight={40}
+		className="h-10 w-10"
+	/>
+);
+
+// CrewAI icon component
+const CrewAIIcon = () => (
+	<Logo
+		brand="crew-ai"
+		showText={false}
+		imageWidth={40}
+		imageHeight={40}
+		className="h-10 w-10"
+	/>
+);
+
+// LlamaIndex icon component
+const LlamaIndexIcon = () => (
+	<Logo
+		brand="llama-index"
+		showText={false}
+		imageWidth={40}
+		imageHeight={40}
+		className="h-10 w-10"
+	/>
+);
+
 import NextLink from "next/link";
 import { useMemo, useState } from "react";
 import {
-	SiCodeblocks,
 	SiCodesandbox,
 	SiCurl,
 	SiGo,
@@ -650,7 +682,7 @@ workflow.add_node("agent", lambda state: {"messages": [model.invoke(state["messa
 		title: "LlamaIndex",
 		docsUrl: "https://docs.llmadaptive.uk/integrations/llamaindex",
 		summary: "Set the OpenAI LLM/embedding clients to the Adaptive base.",
-		icon: SiCodeblocks,
+		icon: LlamaIndexIcon,
 		steps: [
 			{
 				title: "Install",
@@ -696,7 +728,7 @@ Settings.llm = llm`,
 		title: "CrewAI",
 		docsUrl: "https://docs.llmadaptive.uk/integrations/crewai",
 		summary: "Give CrewAI an Adaptive-backed LLM and run agents as usual.",
-		icon: SiCodeblocks,
+		icon: CrewAIIcon,
 		steps: [
 			{
 				title: "Install",
@@ -741,7 +773,7 @@ Settings.llm = llm`,
 		docsUrl: "https://docs.llmadaptive.uk/integrations/adaptive-router",
 		summary:
 			"Get intelligent model selection without inference. Provider-agnostic design works with any models, providers, or infrastructure.",
-		icon: SiCodeblocks,
+		icon: AdaptiveIcon,
 		steps: [
 			{
 				title: "Select Model",
