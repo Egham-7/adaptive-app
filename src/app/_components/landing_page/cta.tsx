@@ -75,7 +75,8 @@ export default function CallToAction() {
 						<SignedOut>
 							<SignUpButton
 								mode="modal"
-								signInForceRedirectUrl="/api-platform/orgs"
+								forceRedirectUrl="/api-platform/post-sign-up"
+								signInForceRedirectUrl="/api-platform/post-sign-up"
 							>
 								<Button
 									size="lg"

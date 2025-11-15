@@ -51,7 +51,10 @@ export default function GetStartedSection() {
 						</p>
 
 						<div className="flex justify-center">
-							<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
+							<SignUpButton
+								forceRedirectUrl="/api-platform/post-sign-up"
+								signInForceRedirectUrl="/api-platform/post-sign-up"
+							>
 								<Button
 									size="lg"
 									className="bg-primary px-8 py-6 font-semibold text-base text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-xl sm:text-lg"

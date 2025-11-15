@@ -10,7 +10,6 @@ src/lib/posthog/
 ├── client.ts                   # PostHog client wrapper utilities
 ├── events/                     # Pure tracking functions by domain
 │   ├── auth.ts                # Authentication events
-│   ├── onboarding.ts          # Onboarding flow events
 │   ├── organizations.ts       # Organization management
 │   ├── projects.ts            # Project management
 │   ├── api-keys.ts            # API key operations
@@ -26,7 +25,6 @@ src/hooks/posthog/
 ├── use-track-event.ts         # Generic event tracking hook
 ├── use-track-page-view.ts     # Page view tracking hook
 ├── use-auth-tracking.ts       # Auth event tracking hooks
-├── use-onboarding-tracking.ts # Onboarding hooks
 ├── use-org-tracking.ts        # Organization hooks
 ├── use-project-tracking.ts    # Project hooks
 ├── use-api-key-tracking.ts    # API key hooks
@@ -127,42 +125,7 @@ trackSignOut();
 const { trackSignUp, trackSignIn, trackSignOut } = useAuthTracking();
 ```
 
-### 2. Onboarding Events
-
-```typescript
-import {
-  trackOnboardingStepViewed,
-  trackOnboardingCompleted,
-  trackPromotionalCreditsAdded
-} from '@/lib/posthog/events/onboarding';
-
-// Track step viewed
-trackOnboardingStepViewed({
-  step: 'project',
-  stepNumber: 2,
-});
-
-// Track completion
-trackOnboardingCompleted({
-  projectId: 'proj_123',
-  hasApiKey: true,
-  completionTimeSeconds: 180,
-});
-
-// Track promotional credits
-trackPromotionalCreditsAdded({
-  amount: 5000,
-  isFirstOrg: true,
-  userCountAtSignup: 1,
-});
-```
-
-**Hook Usage:**
-```typescript
-const { trackStepViewed, trackCompleted, trackPromotionalCreditsAdded } = useOnboardingTracking();
-```
-
-### 3. Organization Events
+### 2. Organization Events
 
 ```typescript
 import {
@@ -199,7 +162,7 @@ trackMemberRoleChanged({
 const { trackCreated, trackMemberInvited, trackMemberRoleChanged } = useOrgTracking();
 ```
 
-### 4. Project Events
+### 3. Project Events
 
 ```typescript
 import {

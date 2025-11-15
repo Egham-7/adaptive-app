@@ -236,7 +236,7 @@ export const creditsRouter = createTRPCRouter({
 					type: "promotional",
 					description: "Welcome bonus for new organization",
 					metadata: {
-						source: "onboarding",
+						source: "signup_bootstrap",
 						timestamp: new Date().toISOString(),
 					},
 				});

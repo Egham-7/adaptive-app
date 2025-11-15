@@ -8,7 +8,6 @@ export * from "./use-api-key-tracking";
 export * from "./use-auth-tracking";
 export * from "./use-billing-tracking";
 export * from "./use-chat-tracking";
-export * from "./use-onboarding-tracking";
 export * from "./use-org-tracking";
 export * from "./use-project-tracking";
 export * from "./use-settings-tracking";

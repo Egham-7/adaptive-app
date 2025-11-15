@@ -4,7 +4,6 @@ Real-world examples of how to integrate PostHog event tracking into your compone
 
 ## Table of Contents
 - [Authentication Flow](#authentication-flow)
-- [Onboarding Flow](#onboarding-flow)
 - [Project Management](#project-management)
 - [Chat Platform](#chat-platform)
 - [Billing & Payments](#billing--payments)
@@ -39,7 +38,7 @@ export function SignUpPage() {
         utmCampaign: searchParams.get('utm_campaign') ?? undefined,
       });
 
-      router.push('/onboarding');
+      router.push('/api-platform/post-sign-up');
     } catch (error) {
       // Handle error
     }
@@ -73,87 +72,6 @@ export function middleware(request: NextRequest) {
 
 ---
 
-## Onboarding Flow
-
-### Multi-Step Onboarding
-
-```typescript
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useOnboardingTracking } from '@/hooks/posthog/use-onboarding-tracking';
-
-export function OnboardingPage() {
-  const [currentStep, setCurrentStep] = useState<number>(0);
-  const [startTime] = useState(Date.now());
-  const { trackStepViewed, trackCompleted, trackSkipped } = useOnboardingTracking();
-
-  const steps = ['welcome', 'project', 'api_key', 'quickstart', 'complete'] as const;
-
-  // Track step views
-  useEffect(() => {
-    trackStepViewed({
-      step: steps[currentStep],
-      stepNumber: currentStep + 1,
-    });
-  }, [currentStep, trackStepViewed]);
-
-  const handleComplete = (projectId: string, hasApiKey: boolean, skippedSteps: string[]) => {
-    const completionTimeSeconds = Math.floor((Date.now() - startTime) / 1000);
-
-    trackCompleted({
-      projectId,
-      hasApiKey,
-      skippedSteps,
-      completionTimeSeconds,
-    });
-
-    router.push('/dashboard');
-  };
-
-  const handleSkip = () => {
-    trackSkipped({
-      step: steps[currentStep],
-      reason: 'user_clicked_skip',
-    });
-
-    setCurrentStep(currentStep + 1);
-  };
-
-  return (
-    <div>
-      {/* Step content */}
-      <button onClick={handleSkip}>Skip</button>
-      <button onClick={handleNext}>Next</button>
-    </div>
-  );
-}
-```
-
-### Promotional Credits (Server Action)
-
-```typescript
-// app/api/onboarding/complete/route.ts
-import { trackPromotionalCreditsAdded } from '@/lib/posthog/events/onboarding';
-
-export async function POST(req: Request) {
-  const { userId, organizationId } = await req.json();
-
-  // Grant welcome credits
-  const credits = await grantWelcomeCredits(organizationId, 5000);
-
-  // Track promotional credits
-  trackPromotionalCreditsAdded({
-    amount: 5000,
-    isFirstOrg: await isFirstOrganization(userId),
-    userCountAtSignup: await getUserCountAtSignup(userId),
-  });
-
-  return Response.json({ success: true, credits });
-}
-```
-
----
 
 ## Project Management
 

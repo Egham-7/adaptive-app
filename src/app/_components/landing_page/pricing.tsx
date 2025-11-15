@@ -86,7 +86,10 @@ export default function Pricing() {
 								no model costs. Semantic cache: 50% off. Prompt cache: Free!
 							</CardDescription>
 							<SignedOut>
-								<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
+								<SignUpButton
+									forceRedirectUrl="/api-platform/post-sign-up"
+									signInForceRedirectUrl="/api-platform/post-sign-up"
+								>
 									<Button variant="outline" className="mt-4 w-full">
 										Get Started
 									</Button>
@@ -139,7 +142,10 @@ export default function Pricing() {
 								{isAnnual && " (20% savings vs monthly)"}
 							</CardDescription>
 							<SignedOut>
-								<SignUpButton signInForceRedirectUrl="/api-platform/orgs">
+								<SignUpButton
+									forceRedirectUrl="/api-platform/post-sign-up"
+									signInForceRedirectUrl="/api-platform/post-sign-up"
+								>
 									<Button className="mt-4 w-full bg-primary font-medium text-primary-foreground shadow-subtle transition-opacity hover:opacity-90">
 										<Zap className="relative mr-2 size-4" />
 										<span>Get Started</span>

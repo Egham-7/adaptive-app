@@ -6,6 +6,7 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
 import { SocialLogo } from "@/components/ui/social-logo";
 import { Tabs } from "@/components/ui/vercel-tabs";
+import { UserProfileMenu } from "@/components/user-profile-menu";
 import { useProject } from "@/hooks/projects/use-project";
 
 export function ProjectTopbar() {
@@ -67,24 +68,25 @@ export function ProjectTopbar() {
 	return (
 		<div className="border-b bg-background">
 			<div className="px-6 py-4">
-				{/* Header with Logo, Org, and Project */}
-				<div className="flex items-center gap-2">
-					<Link href={`/api-platform/orgs/${orgSlug}`}>
-						<SocialLogo width={60} height={20} className="shrink-0" />
-					</Link>
-					<span className="shrink-0 text-muted-foreground">/</span>
-					<div className="shrink-0">
-						<OrganizationSwitcher />
+				<div className="flex items-center justify-between gap-4">
+					<div className="flex flex-wrap items-center gap-2">
+						<Link href={`/api-platform/orgs/${orgSlug}`}>
+							<SocialLogo width={60} height={20} className="shrink-0" />
+						</Link>
+						<span className="shrink-0 text-muted-foreground">/</span>
+						<div className="shrink-0">
+							<OrganizationSwitcher />
+						</div>
+						{!projectLoading && project?.name && (
+							<>
+								<span className="shrink-0 text-muted-foreground">/</span>
+								<span className="truncate font-medium">{project.name}</span>
+							</>
+						)}
 					</div>
-					{!projectLoading && project?.name && (
-						<>
-							<span className="shrink-0 text-muted-foreground">/</span>
-							<span className="truncate font-medium">{project.name}</span>
-						</>
-					)}
+					<UserProfileMenu />
 				</div>
 
-				{/* Navigation Tabs */}
 				<Tabs
 					tabs={tabs}
 					activeTab={getActiveTab()}
