@@ -7,7 +7,7 @@ export const getProviderDisplayName = (provider: string): string => {
 		anthropic: "Anthropic",
 		openai: "OpenAI",
 		meta: "Meta",
-		gemini: "Gemini",
+		"google-ai-studio": "Google AI Studio",
 		google: "Google",
 		"z-ai": "Z-AI",
 	};

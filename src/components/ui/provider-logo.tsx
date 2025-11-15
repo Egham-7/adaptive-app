@@ -77,9 +77,8 @@ export const getProviderLogo = (provider: string): string | undefined => {
 		anthropic: "/logos/anthropic.jpeg",
 		openai: "/logos/openai.webp",
 		meta: "/logos/meta.png",
-		gemini: "/logos/google-ai-studio.svg",
-		google: "/logos/google-ai-studio.svg",
 		"google-ai-studio": "/logos/google-ai-studio.svg",
+		google: "/logos/google-ai-studio.svg",
 		"z-ai": "/logos/z-ai-light.png", // Default to light for backward compatibility
 	};
 	return logoMap[provider.toLowerCase()];

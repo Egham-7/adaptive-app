@@ -22,7 +22,7 @@ interface QuickstartExamplesProps {
 	description?: string;
 }
 
-type ProviderId = "openai" | "anthropic" | "gemini" | "select-model";
+type ProviderId = "openai" | "anthropic" | "google-ai-studio" | "select-model";
 type EndpointId =
 	| "chat-completions"
 	| "messages"
@@ -78,10 +78,10 @@ const PROVIDERS: ProviderCard[] = [
 		endpoints: ["messages"],
 	},
 	{
-		id: "gemini",
-		name: "Gemini",
+		id: "google-ai-studio",
+		name: "Google AI Studio",
 		description: "Gemini 2.5 Pro via Google AI Studio.",
-		logo: "/logos/google.svg",
+		logo: "/logos/google-ai-studio.svg",
 		endpoints: ["gemini-chat"],
 	},
 	{
@@ -104,7 +104,7 @@ const ENDPOINT_DETAILS: Record<EndpointId, EndpointMeta> = {
 	},
 	"gemini-chat": {
 		label: "Gemini Native",
-		description: "POST /v1beta/models/gemini-2.5-pro:generateContent",
+		description: "POST /v1beta/models/gemini-2.5-flash:generateContent",
 	},
 	"select-model": {
 		label: "Select Model",
@@ -126,7 +126,7 @@ const CODE_EXAMPLES: Record<EndpointId, EndpointExamples> = {
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey}" \\
   -d '{
-    "model": "gpt-4o-mini",
+    "model": "gpt-5.1-mini",
     "messages": [
       {
         "role": "user", 
@@ -159,7 +159,7 @@ async function main() {
         content: 'Hello! How are you today?' 
       }
     ],
-    model: 'gpt-4o-mini',
+    model: 'gpt-5.1-mini',
     max_tokens: 150,
     temperature: 0.7,
   });
@@ -184,7 +184,7 @@ client = OpenAI(
 )
 
 completion = client.chat.completions.create(
-    model="gpt-4o-mini",
+    model="gpt-5.1-mini",
     messages=[
         {
             "role": "user",
@@ -206,7 +206,7 @@ print(completion.choices[0].message.content)`,
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${apiKey}" \\
   -d '{
-    "model": "claude-3-5-sonnet",
+    "model": "claude-sonnet-4-5",
     "max_tokens": 150,
     "messages": [
       {
@@ -232,7 +232,7 @@ const client = new Anthropic({
 
 async function main() {
   const message = await client.messages.create({
-    model: 'claude-3-5-sonnet',
+    model: 'claude-sonnet-4-5',
     max_tokens: 150,
     messages: [
       {
@@ -262,7 +262,7 @@ client = anthropic.Anthropic(
 )
 
 message = client.messages.create(
-    model="claude-3-5-sonnet",
+    model="claude-sonnet-4-5",
     max_tokens=150,
     messages=[
         {
@@ -279,7 +279,7 @@ print(message.content[0].text)`,
 	"gemini-chat": {
 		curl: {
 			title: "Gemini Native API",
-			code: (apiKey, apiBaseUrl) => `curl -X POST "${apiBaseUrl}/v1beta/models/gemini-2.5-pro:generateContent" \\
+			code: (apiKey, apiBaseUrl) => `curl -X POST "${apiBaseUrl}/v1beta/models/gemini-2.5-flash:generateContent" \\
   -H "Content-Type: application/json" \\
   -H "x-goog-api-key: ${apiKey}" \\
   -d '{
@@ -307,7 +307,7 @@ print(message.content[0].text)`,
 				command: "No SDK installation required",
 			},
 			code: (apiKey, apiBaseUrl) => `const response = await fetch(
-  '${apiBaseUrl}/v1beta/models/gemini-2.5-pro:generateContent',
+    '${apiBaseUrl}/v1beta/models/gemini-2.5-flash:generateContent',
   {
     method: 'POST',
     headers: {
@@ -344,7 +344,7 @@ console.log(data.candidates[0].content.parts[0].text);`,
 			code: (apiKey, apiBaseUrl) => `import requests
 
 response = requests.post(
-    '${apiBaseUrl}/v1beta/models/gemini-2.5-pro:generateContent',
+  '${apiBaseUrl}/v1beta/models/gemini-2.5-flash:generateContent',
     headers={
         'x-goog-api-key': '${apiKey}',
         'Content-Type': 'application/json'
@@ -381,15 +381,15 @@ print(data['candidates'][0]['content']['parts'][0]['text'])`,
     "candidates": [
       {
         "provider": "openai",
-        "model": "gpt-4o-mini"
+        "model": "gpt-5.1-mini"
       },
       {
         "provider": "anthropic",
-        "model": "claude-3-5-sonnet"
+        "model": "claude-sonnet-4-5"
       },
       {
         "provider": "google-ai-studio",
-        "model": "gemini-2.0-flash"
+        "model": "gemini-2.5-flash"
       }
     ],
     "constraints": {
@@ -412,9 +412,9 @@ print(data['candidates'][0]['content']['parts'][0]['text'])`,
     body: JSON.stringify({
       prompt: "Choose the best model for a financial analysis request.",
       candidates: [
-        { provider: "openai", model: "gpt-4o-mini" },
-        { provider: "anthropic", model: "claude-3-5-sonnet" },
-        { provider: "google-ai-studio", model: "gemini-2.0-pro" }
+        { provider: "openai", model: "gpt-5.1-mini" },
+        { provider: "anthropic", model: "claude-sonnet-4-5" },
+        { provider: "google-ai-studio", model: "gemini-2.5-pro" }
       ],
       metadata: {
         cost_bias: 0.5,
@@ -435,9 +435,9 @@ console.log(routerDecision.selected_model);`,
 payload = {
     "prompt": "Pick the fastest model for summarizing support tickets.",
     "candidates": [
-        {"provider": "openai", "model": "gpt-4o-mini"},
-        {"provider": "anthropic", "model": "claude-3-5-sonnet"},
-        {"provider": "google-ai-studio", "model": "gemini-2.0-flash"}
+        {"provider": "openai", "model": "gpt-5.1-mini"},
+        {"provider": "anthropic", "model": "claude-sonnet-4-5"},
+        {"provider": "google-ai-studio", "model": "gemini-2.5-flash"}
     ],
     "metadata": {
         "cost_bias": 0.4,
