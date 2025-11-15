@@ -4,6 +4,12 @@ import { Key, Link as LinkIcon } from "lucide-react";
 import Image from "next/image";
 import NextLink from "next/link";
 import { useMemo, useState } from "react";
+import {
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +20,6 @@ import {
 import { CopyButton } from "@/components/ui/copy-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { QuickstartExamples } from "@/components/ui/quickstart-examples";
 import {
 	Sheet,
 	SheetContent,
@@ -333,6 +338,60 @@ export OPENAI_MODEL=""`,
 
 const INTEGRATION_QUICKSTARTS: DocQuickstart[] = [
 	{
+		id: "adaptive-api",
+		title: "Adaptive API",
+		logo: "/logos/adaptive-light.png",
+		docsUrl: "https://docs.llmadaptive.uk/api-reference/chat-completions",
+		summary: "Call Adaptive endpoints directly or hit the Select Model router.",
+		steps: [
+			{
+				title: "Authenticate",
+				description: "Use your Adaptive API key in the Authorization header.",
+			},
+			{
+				title: "Pick an endpoint",
+				description:
+					"Chat Completions, Messages, Gemini, and Select Model are all compatible.",
+			},
+		],
+		codeSamples: [
+			{
+				label: "cURL",
+				language: "bash",
+				content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '{
+    "model": "",
+    "messages": [
+      { "role": "user", "content": "Hello! How are you today?" }
+    ]
+  }'`,
+			},
+			{
+				label: "Select Model",
+				language: "javascript",
+				content: `const response = await fetch("https://api.llmadaptive.uk/v1/select-model", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    prompt: "Summarize this support ticket.",
+    candidates: [
+      { provider: "openai", model: "gpt-4o-mini" },
+      { provider: "anthropic", model: "claude-3-5-sonnet" }
+    ]
+  })
+});
+
+const decision = await response.json();
+console.log(decision.selected_model);`,
+			},
+		],
+	},
+	{
 		id: "openai-sdk",
 		title: "OpenAI SDK",
 		logo: "/logos/openai",
@@ -545,7 +604,7 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 		);
 	};
 
-	const displayApiKey = createdApiKey || "YOUR_API_KEY";
+	const _displayApiKey = createdApiKey || "YOUR_API_KEY";
 
 	return (
 		<Sheet>
@@ -626,8 +685,6 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 							</p>
 						)}
 					</div>
-
-					<QuickstartExamples apiKey={displayApiKey} showTitle={false} />
 					<DocsQuickstartSection
 						title="Developer Tools"
 						description="Configure local IDE agents and CLIs with your Adaptive API key."
@@ -666,153 +723,169 @@ function DocsQuickstartSection({
 	}
 
 	return (
-		<div className="space-y-4 rounded-2xl border bg-background/80 p-4 shadow-sm">
-			<div className="flex flex-wrap items-center justify-between gap-3">
-				<div>
-					<h3 className="font-semibold text-base">{title}</h3>
-					<p className="text-muted-foreground text-sm">{description}</p>
-				</div>
-				{selectedCard?.docsUrl && (
-					<Button variant="outline" size="sm" asChild>
-						<NextLink
-							href={selectedCard.docsUrl}
-							target="_blank"
-							rel="noreferrer"
-						>
-							View docs
-						</NextLink>
-					</Button>
-				)}
-			</div>
-
-			<div className="flex flex-wrap gap-3">
-				{cards.map((card) => {
-					const isActive = selectedCard?.id === card.id;
-					return (
-						<button
-							key={card.id}
-							type="button"
-							onClick={() => setSelectedId(card.id)}
-							aria-pressed={isActive}
-							className={cn(
-								"flex h-14 w-14 items-center justify-center rounded-2xl border bg-card p-2 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
-								isActive
-									? "border-primary shadow-md"
-									: "opacity-70 hover:opacity-100",
-							)}
-						>
-							<Image
-								src={card.logo}
-								alt={card.title}
-								width={40}
-								height={40}
-								className="h-10 w-10 object-contain"
-							/>
-							<span className="sr-only">{card.title}</span>
-						</button>
-					);
-				})}
-			</div>
-
-			{selectedCard && (
-				<div className="space-y-4 rounded-xl border bg-muted/30 p-4">
-					<div>
-						<h4 className="font-semibold text-base">{selectedCard.title}</h4>
-						<p className="text-muted-foreground text-sm">
-							{selectedCard.summary}
-						</p>
+		<Accordion type="single" collapsible defaultValue="section">
+			<AccordionItem
+				value="section"
+				className="rounded-2xl border bg-background/80 shadow-sm"
+			>
+				<AccordionTrigger className="px-4 py-3 text-left hover:no-underline">
+					<div className="text-left">
+						<p className="font-semibold text-base">{title}</p>
+						<p className="text-muted-foreground text-sm">{description}</p>
 					</div>
-
-					{selectedCard.tip && (
-						<div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
-							{selectedCard.tip}
-						</div>
-					)}
-
-					<div className="space-y-3">
-						{selectedCard.steps.map((step) => (
-							<div
-								key={`${selectedCard.id}-${step.title}`}
-								className="space-y-2 rounded-lg border bg-card/40 p-3"
-							>
-								<div>
-									<p className="font-medium text-sm">{step.title}</p>
-									{step.description && (
-										<p className="text-muted-foreground text-sm">
-											{step.description}
-										</p>
-									)}
-								</div>
-								{step.bullets && (
-									<ul className="list-disc space-y-1 pl-5 text-muted-foreground text-xs">
-										{step.bullets.map((bullet) => (
-											<li key={bullet}>{bullet}</li>
-										))}
-									</ul>
-								)}
-								{step.code && (
-									<CodeBlock>
-										<CodeBlockGroup className="flex items-center justify-between border-b px-4 py-2">
-											<span className="font-medium text-sm">
-												{step.code.label}
-											</span>
-											<div className="flex items-center gap-2">
-												<Badge
-													variant="secondary"
-													className="text-xs capitalize"
-												>
-													{step.code.language}
-												</Badge>
-												<CopyButton
-													content={step.code.content}
-													copyMessage="Snippet copied!"
-												/>
-											</div>
-										</CodeBlockGroup>
-										<CodeBlockCode
-											code={step.code.content}
-											language={step.code.language}
+				</AccordionTrigger>
+				<AccordionContent className="border-t px-4 py-4">
+					<div className="space-y-4">
+						<div className="flex flex-wrap gap-3">
+							{cards.map((card) => {
+								const isActive = selectedCard?.id === card.id;
+								return (
+									<button
+										key={card.id}
+										type="button"
+										onClick={() => setSelectedId(card.id)}
+										aria-pressed={isActive}
+										className={cn(
+											"flex h-14 w-14 items-center justify-center rounded-2xl border bg-card p-2 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+											isActive
+												? "border-primary shadow-md"
+												: "opacity-70 hover:opacity-100",
+										)}
+									>
+										<Image
+											src={card.logo}
+											alt={card.title}
+											width={40}
+											height={40}
+											className="h-10 w-10 object-contain"
 										/>
-									</CodeBlock>
+										<span className="sr-only">{card.title}</span>
+									</button>
+								);
+							})}
+						</div>
+
+						<div className="space-y-4 rounded-xl border bg-muted/30 p-4">
+							<div className="flex flex-wrap items-center justify-between gap-3">
+								<div>
+									<h4 className="font-semibold text-base">
+										{selectedCard.title}
+									</h4>
+									<p className="text-muted-foreground text-sm">
+										{selectedCard.summary}
+									</p>
+								</div>
+								{selectedCard.docsUrl && (
+									<Button variant="outline" size="sm" asChild>
+										<NextLink
+											href={selectedCard.docsUrl}
+											target="_blank"
+											rel="noreferrer"
+										>
+											View docs
+										</NextLink>
+									</Button>
 								)}
 							</div>
-						))}
-					</div>
 
-					{selectedCard.codeSamples && selectedCard.codeSamples.length > 0 && (
-						<div className="space-y-3">
-							{selectedCard.codeSamples.map((sample) => (
-								<CodeBlock key={`${selectedCard.id}-${sample.label}`}>
-									<CodeBlockGroup className="flex items-center justify-between border-b px-4 py-2">
-										<span className="font-medium text-sm">{sample.label}</span>
-										<div className="flex items-center gap-2">
-											<Badge variant="secondary" className="text-xs capitalize">
-												{sample.language}
-											</Badge>
-											<CopyButton
-												content={sample.content}
-												copyMessage="Snippet copied!"
-											/>
+							{selectedCard.tip && (
+								<div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+									{selectedCard.tip}
+								</div>
+							)}
+
+							<div className="space-y-3">
+								{selectedCard.steps.map((step) => (
+									<div
+										key={`${selectedCard.id}-${step.title}`}
+										className="space-y-2 rounded-lg border bg-card/40 p-3"
+									>
+										<div>
+											<p className="font-medium text-sm">{step.title}</p>
+											{step.description && (
+												<p className="text-muted-foreground text-sm">
+													{step.description}
+												</p>
+											)}
 										</div>
-									</CodeBlockGroup>
-									<CodeBlockCode
-										code={sample.content}
-										language={sample.language}
-									/>
-								</CodeBlock>
-							))}
-						</div>
-					)}
+										{step.bullets && (
+											<ul className="list-disc space-y-1 pl-5 text-muted-foreground text-xs">
+												{step.bullets.map((bullet) => (
+													<li key={bullet}>{bullet}</li>
+												))}
+											</ul>
+										)}
+										{step.code && (
+											<CodeBlock>
+												<CodeBlockGroup className="flex items-center justify-between border-b px-4 py-2">
+													<span className="font-medium text-sm">
+														{step.code.label}
+													</span>
+													<div className="flex items-center gap-2">
+														<Badge
+															variant="secondary"
+															className="text-xs capitalize"
+														>
+															{step.code.language}
+														</Badge>
+														<CopyButton
+															content={step.code.content}
+															copyMessage="Snippet copied!"
+														/>
+													</div>
+												</CodeBlockGroup>
+												<CodeBlockCode
+													code={step.code.content}
+													language={step.code.language}
+												/>
+											</CodeBlock>
+										)}
+									</div>
+								))}
+							</div>
 
-					{selectedCard.notes && selectedCard.notes.length > 0 && (
-						<ul className="list-disc space-y-1 pl-5 text-muted-foreground text-sm">
-							{selectedCard.notes.map((note) => (
-								<li key={note}>{note}</li>
-							))}
-						</ul>
-					)}
-				</div>
-			)}
-		</div>
+							{selectedCard.codeSamples &&
+								selectedCard.codeSamples.length > 0 && (
+									<div className="space-y-3">
+										{selectedCard.codeSamples.map((sample) => (
+											<CodeBlock key={`${selectedCard.id}-${sample.label}`}>
+												<CodeBlockGroup className="flex items-center justify-between border-b px-4 py-2">
+													<span className="font-medium text-sm">
+														{sample.label}
+													</span>
+													<div className="flex items-center gap-2">
+														<Badge
+															variant="secondary"
+															className="text-xs capitalize"
+														>
+															{sample.language}
+														</Badge>
+														<CopyButton
+															content={sample.content}
+															copyMessage="Snippet copied!"
+														/>
+													</div>
+												</CodeBlockGroup>
+												<CodeBlockCode
+													code={sample.content}
+													language={sample.language}
+												/>
+											</CodeBlock>
+										))}
+									</div>
+								)}
+
+							{selectedCard.notes && selectedCard.notes.length > 0 && (
+								<ul className="list-disc space-y-1 pl-5 text-muted-foreground text-sm">
+									{selectedCard.notes.map((note) => (
+										<li key={note}>{note}</li>
+									))}
+								</ul>
+							)}
+						</div>
+					</div>
+				</AccordionContent>
+			</AccordionItem>
+		</Accordion>
 	);
 }

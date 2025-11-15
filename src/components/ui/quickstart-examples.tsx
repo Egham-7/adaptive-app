@@ -2,8 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { FaTerminal } from "react-icons/fa";
-import { SiJavascript, SiPython } from "react-icons/si";
 import { Badge } from "@/components/ui/badge";
 import {
 	CodeBlock,
@@ -12,15 +10,8 @@ import {
 } from "@/components/ui/code-block";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { env } from "@/env";
 import { cn } from "@/lib/shared/utils";
-import { type IconType } from "react-icons";
 
 interface QuickstartExamplesProps {
 	apiKey: string;
@@ -53,7 +44,6 @@ interface EndpointMeta {
 interface Language {
 	id: "curl" | "javascript" | "python";
 	name: string;
-	icon: IconType;
 	badge: string;
 }
 
@@ -122,14 +112,9 @@ const ENDPOINT_DETAILS: Record<EndpointId, EndpointMeta> = {
 };
 
 const LANGUAGES: Language[] = [
-	{ id: "curl", name: "cURL", icon: FaTerminal, badge: "bash" },
-	{
-		id: "javascript",
-		name: "JavaScript",
-		icon: SiJavascript,
-		badge: "javascript",
-	},
-	{ id: "python", name: "Python", icon: SiPython, badge: "python" },
+	{ id: "curl", name: "cURL", badge: "bash" },
+	{ id: "javascript", name: "JavaScript", badge: "javascript" },
+	{ id: "python", name: "Python", badge: "python" },
 ];
 
 const CODE_EXAMPLES: Record<EndpointId, EndpointExamples> = {
@@ -491,6 +476,9 @@ export function QuickstartExamples({
 		useState<ProviderId>(DEFAULT_PROVIDER_ID);
 	const [selectedEndpointId, setSelectedEndpointId] =
 		useState<EndpointId>(DEFAULT_ENDPOINT_ID);
+	const [languageSelections, setLanguageSelections] = useState<
+		Partial<Record<EndpointId, Language["id"]>>
+	>({});
 
 	useEffect(() => {
 		const provider = PROVIDERS.find((entry) => entry.id === selectedProviderId);
@@ -603,74 +591,105 @@ export function QuickstartExamples({
 							);
 						}
 
+						const availableLanguageIds = Object.keys(
+							endpointExamples,
+						) as Language["id"][];
+						const fallbackLanguageId =
+							availableLanguageIds[0] ?? DEFAULT_LANGUAGE_ID;
+						const storedLanguageId = languageSelections[endpointId];
+						const activeLanguageId =
+							storedLanguageId && endpointExamples[storedLanguageId]
+								? storedLanguageId
+								: fallbackLanguageId;
+						const example = endpointExamples[activeLanguageId];
+
+						if (!example) {
+							return (
+								<TabsContent key={endpointId} value={endpointId} className="mt-6">
+									<p className="text-muted-foreground text-sm">
+										Examples for this endpoint are coming soon.
+									</p>
+								</TabsContent>
+							);
+						}
+
+						const code = example.code(apiKey, API_BASE_URL);
+						const languageMeta =
+							LANGUAGES.find((language) => language.id === activeLanguageId) ?? {
+								id: "curl",
+								name: "cURL",
+								badge: "bash",
+							};
+
+						const handleLanguageChange = (languageId: Language["id"]) => {
+							if (!endpointExamples[languageId]) return;
+							setLanguageSelections((prev) => ({
+								...prev,
+								[endpointId]: languageId,
+							}));
+						};
+
 						return (
 							<TabsContent key={endpointId} value={endpointId} className="mt-6">
-								<Tabs defaultValue={DEFAULT_LANGUAGE_ID} className="w-full">
-									<TooltipProvider>
-										<TabsList className="flex w-full gap-1">
-											{LANGUAGES.map((language) => (
-												<Tooltip key={language.id}>
-													<TooltipTrigger asChild>
-														<TabsTrigger value={language.id}>
-															<language.icon className="h-4 w-4" />
-														</TabsTrigger>
-													</TooltipTrigger>
-													<TooltipContent>
-														<p>{language.name}</p>
-													</TooltipContent>
-												</Tooltip>
-											))}
-										</TabsList>
-									</TooltipProvider>
-
-									{LANGUAGES.map((language) => {
-										const example = endpointExamples[language.id];
-										if (!example) return null;
-
-										const code = example.code(apiKey, API_BASE_URL);
-
-										return (
-											<TabsContent
-												key={language.id}
-												value={language.id}
-												className="mt-4"
-											>
-												<div className="space-y-4">
-													{example.installNote && (
-														<div className="rounded-lg border bg-muted/50 p-3">
-															<p className="text-sm font-medium">
-																{example.installNote.text}
-															</p>
-															<code className="mt-1 block text-muted-foreground text-sm">
-																{example.installNote.command}
-															</code>
-														</div>
-													)}
-													<CodeBlock>
-														<CodeBlockGroup className="border-b px-4 py-2">
-															<span className="font-medium text-sm">
-																{example.title}
-															</span>
-															<div className="flex items-center gap-2">
-																<Badge variant="secondary" className="text-xs">
-																	{language.badge}
-																</Badge>
-																<CopyButton
-																	content={code}
-																	copyMessage={`${language.name} code copied!`}
-																/>
-															</div>
-														</CodeBlockGroup>
-														<CodeBlockCode
-															code={code}
-															language={example.language}
-														/>
-													</CodeBlock>
+								<div className="space-y-4">
+									{example.installNote && (
+										<div className="rounded-lg border bg-muted/50 p-3">
+											<p className="text-sm font-medium">
+												{example.installNote.text}
+											</p>
+											<code className="mt-1 block text-muted-foreground text-sm">
+												{example.installNote.command}
+											</code>
+										</div>
+									)}
+									<CodeBlock>
+										<CodeBlockGroup className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-2">
+											<div>
+												<span className="font-medium text-sm">
+													{example.title}
+												</span>
+												<p className="text-muted-foreground text-xs">
+													{ENDPOINT_DETAILS[endpointId]?.description}
+												</p>
+											</div>
+											<div className="flex flex-wrap items-center gap-2">
+												<div className="inline-flex items-center rounded-full border bg-background p-1 text-xs">
+													{LANGUAGES.map((language) => {
+														const isAvailable =
+															Boolean(endpointExamples[language.id]);
+														const isActive = activeLanguageId === language.id;
+														return (
+															<button
+																type="button"
+																key={language.id}
+																disabled={!isAvailable}
+																onClick={() => handleLanguageChange(language.id)}
+																className={cn(
+																	"rounded-full px-2 py-1 transition",
+																	isActive
+																		? "bg-primary text-primary-foreground shadow-sm"
+																		: "text-muted-foreground hover:text-foreground",
+																	!isAvailable &&
+																		"cursor-not-allowed opacity-40 hover:text-muted-foreground",
+																)}
+															>
+																{language.name}
+															</button>
+														);
+													})}
 												</div>
-											</TabsContent>
-										);
-									})}
-								</Tabs>
+												<Badge variant="secondary" className="text-xs">
+													{languageMeta.badge}
+												</Badge>
+												<CopyButton
+													content={code}
+													copyMessage={`${languageMeta.name} code copied!`}
+												/>
+											</div>
+										</CodeBlockGroup>
+										<CodeBlockCode code={code} language={example.language} />
+									</CodeBlock>
+								</div>
 							</TabsContent>
 						);
 					})}
