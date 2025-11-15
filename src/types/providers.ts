@@ -7,7 +7,12 @@ import { z } from "zod";
 /**
  * Supported provider types
  */
-export const providerEnum = ["openai", "anthropic", "google-ai-studio", "z-ai"] as const;
+export const providerEnum = [
+	"openai",
+	"anthropic",
+	"google-ai-studio",
+	"z-ai",
+] as const;
 
 export type ProviderType = (typeof providerEnum)[number];
 
