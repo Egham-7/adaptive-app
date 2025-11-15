@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 import {
 	Table,
 	TableBody,
@@ -16,7 +17,6 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ProviderLogo } from "@/components/ui/provider-logo";
 import { getProviderMetadataById } from "@/lib/providers/utils";
 
 export interface UsageRequestRow {
