@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 import { HiOutlineDocumentText } from "react-icons/hi2";
+import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/shared/utils";
 import type { IconMenuItem, MenuItem } from "@/types/landing-page";
-import { Logo } from "../logo";
 import { DesktopActions } from "./header/desktop-actions";
 import { DesktopNavigation } from "./header/desktop-navigation";
 import { MenuToggleButton } from "./header/menu-toggle-button";
@@ -91,7 +91,12 @@ export default function Header() {
 								className="flex items-center space-x-2"
 								onClick={closeMenu}
 							>
-								<Logo imageWidth={84} imageHeight={68} textSize="lg" />
+								<Logo
+									brand="adaptive"
+									imageWidth={84}
+									imageHeight={68}
+									textSize="lg"
+								/>
 							</Link>
 
 							<div className="flex items-center gap-2 lg:hidden">

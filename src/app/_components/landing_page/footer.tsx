@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Logo } from "../logo";
+import { Logo } from "@/components/ui/logo";
 
 const links = [
 	{
@@ -49,6 +49,7 @@ export default function FooterSection() {
 							className="flex justify-center lg:justify-start"
 						>
 							<Logo
+								brand="adaptive"
 								showText={false}
 								className="mr-0 flex items-center justify-center"
 							/>
