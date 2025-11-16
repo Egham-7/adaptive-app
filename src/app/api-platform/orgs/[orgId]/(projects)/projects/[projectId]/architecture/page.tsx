@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { ArchitectureCanvas } from "@/app/_components/api-platform/architecture/architecture-canvas";
+import { ArchitectureTour } from "@/components/tours";
 import { useProjectProviders } from "@/hooks/provider-configs";
 
 export default function ArchitecturePage() {
@@ -23,11 +24,14 @@ export default function ArchitecturePage() {
 	}
 
 	return (
-		<div className="h-[calc(100vh-9rem)] w-full">
-			<ArchitectureCanvas
-				projectId={projectId}
-				providers={providersData?.providers ?? []}
-			/>
-		</div>
+		<>
+			<ArchitectureTour />
+			<div className="h-[calc(100vh-9rem)] w-full">
+				<ArchitectureCanvas
+					projectId={projectId}
+					providers={providersData?.providers ?? []}
+				/>
+			</div>
+		</>
 	);
 }
