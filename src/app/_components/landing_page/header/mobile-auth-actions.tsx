@@ -38,7 +38,10 @@ export function MobileAuthActions({ closeMenu }: MobileAuthActionsProps) {
 						</LoadingLink>
 					</Button>
 					<Button asChild size="sm" className="w-full sm:flex-1">
-						<LoadingLink href="/api-platform/orgs" onNavigate={closeMenu}>
+						<LoadingLink
+							href="/sign-up?redirect_url=/api-platform/post-sign-up"
+							onNavigate={closeMenu}
+						>
 							API Platform
 						</LoadingLink>
 					</Button>
