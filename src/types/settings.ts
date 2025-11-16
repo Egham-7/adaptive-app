@@ -12,6 +12,6 @@ export type UserMetadata = Partial<
 		| "personalPreferences"
 		| "fullName"
 		| "preferredName"
-		| "tourCompleted"
+		| "completedTours"
 	>
 >;

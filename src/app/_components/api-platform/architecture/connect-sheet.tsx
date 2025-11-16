@@ -872,7 +872,7 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 	return (
 		<Sheet>
 			<SheetTrigger asChild>
-				<Button variant="default" size="sm">
+				<Button id="connect-button" variant="default" size="sm">
 					<LinkIcon className="mr-2 h-4 w-4" />
 					Connect
 				</Button>
@@ -892,7 +892,10 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 
 				<div className="max-w-full space-y-4 px-6 pb-6">
 					{/* API Key Creation Section */}
-					<div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+					<div
+						id="create-api-key-form"
+						className="space-y-3 rounded-lg border bg-muted/30 p-4"
+					>
 						{!showCreateForm && !createdApiKey && (
 							<Button
 								onClick={() => setShowCreateForm(true)}
@@ -948,19 +951,23 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 							</p>
 						)}
 					</div>
-					<DocsQuickstartSection
-						title="Developer Tools"
-						description="Configure local IDE agents and CLIs with your Adaptive API key."
-						cards={DEVELOPER_TOOL_QUICKSTARTS}
-						defaultOpen={true}
-						showLanguageToggle={false}
-					/>
-					<DocsQuickstartSection
-						title="Integrations"
-						description="Follow the official integration quickstarts pulled directly from the docs."
-						cards={INTEGRATION_QUICKSTARTS}
-						defaultOpen={false}
-					/>
+					<div id="dev-tools-section">
+						<DocsQuickstartSection
+							title="Developer Tools"
+							description="Configure local IDE agents and CLIs with your Adaptive API key."
+							cards={DEVELOPER_TOOL_QUICKSTARTS}
+							defaultOpen={true}
+							showLanguageToggle={false}
+						/>
+					</div>
+					<div id="integration-section">
+						<DocsQuickstartSection
+							title="Integrations"
+							description="Follow the official integration quickstarts pulled directly from the docs."
+							cards={INTEGRATION_QUICKSTARTS}
+							defaultOpen={false}
+						/>
+					</div>
 				</div>
 			</SheetContent>
 		</Sheet>

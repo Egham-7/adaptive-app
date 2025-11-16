@@ -14,6 +14,7 @@ import type { UsageRequestRow } from "@/app/_components/api-platform/organizatio
 import { UsageRequestsTable } from "@/app/_components/api-platform/organizations/projects/dashboard/usage-requests-table";
 import type { UsageTrendPoint } from "@/app/_components/api-platform/organizations/projects/dashboard/usage-trends-card";
 import { UsageTrendsCard } from "@/app/_components/api-platform/organizations/projects/dashboard/usage-trends-card";
+import { UsageTour } from "@/components/tours";
 import { Button } from "@/components/ui/button";
 import {
 	Select,
@@ -195,105 +196,108 @@ export default function DashboardPage() {
 	}
 
 	return (
-		<div className="w-full px-6 py-2">
-			{/* Header Section */}
-			<div className="mb-8" id="dashboard-header">
-				<DashboardHeader
-					dateRange={dateRange}
-					onDateRangeChange={setDateRange}
-					onExport={handleExport}
-				/>
-			</div>
+		<>
+			<UsageTour />
+			<div className="w-full px-6 py-2">
+				{/* Header Section */}
+				<div className="mb-8" id="dashboard-header">
+					<DashboardHeader
+						dateRange={dateRange}
+						onDateRangeChange={setDateRange}
+						onExport={handleExport}
+					/>
+				</div>
 
-			{/* Main Dashboard Grid */}
-			<div className="space-y-8">
-				{/* Key Metrics Section */}
-				<section className="space-y-6" id="dashboard-metrics">
-					<h2 className="font-semibold text-2xl text-foreground">
-						Key Performance Metrics
-					</h2>
-					<p className="text-muted-foreground">
-						Real-time insights into your API usage and costs
-					</p>
-					<MetricsOverview data={data ?? null} loading={loading} />
-				</section>
+				{/* Main Dashboard Grid */}
+				<div className="space-y-8">
+					{/* Key Metrics Section */}
+					<section className="space-y-6" id="dashboard-metrics">
+						<h2 className="font-semibold text-2xl text-foreground">
+							Key Performance Metrics
+						</h2>
+						<p className="text-muted-foreground">
+							Real-time insights into your API usage and costs
+						</p>
+						<MetricsOverview data={data ?? null} loading={loading} />
+					</section>
 
-				<section className="space-y-6" id="usage-visualizations">
-					<h2 className="font-semibold text-2xl text-foreground">
-						Usage Overview
-					</h2>
-					<div className="grid gap-6 xl:grid-cols-3">
-						<div className="space-y-6 xl:col-span-2">
-							<UsageTrendsCard data={formattedTrends} />
-							<RequestBreakdownCard
-								data={requestBreakdown}
-								totalRequests={data?.totalRequests ?? 0}
-							/>
+					<section className="space-y-6" id="usage-visualizations">
+						<h2 className="font-semibold text-2xl text-foreground">
+							Usage Overview
+						</h2>
+						<div className="grid gap-6 xl:grid-cols-3">
+							<div className="space-y-6 xl:col-span-2">
+								<UsageTrendsCard data={formattedTrends} />
+								<RequestBreakdownCard
+									data={requestBreakdown}
+									totalRequests={data?.totalRequests ?? 0}
+								/>
+							</div>
+							<div className="flex flex-col gap-6">
+								<ReliabilityCard
+									data={reliabilitySeries}
+									totalRequests={data?.totalRequests ?? 0}
+									errorCount={data?.errorCount ?? 0}
+									errorRate={data?.errorRate ?? 0}
+								/>
+								<ProviderPerformanceCard
+									data={providerPerformance}
+									totalSpend={data?.totalSpend ?? 0}
+								/>
+							</div>
 						</div>
-						<div className="flex flex-col gap-6">
-							<ReliabilityCard
-								data={reliabilitySeries}
-								totalRequests={data?.totalRequests ?? 0}
-								errorCount={data?.errorCount ?? 0}
-								errorRate={data?.errorRate ?? 0}
-							/>
-							<ProviderPerformanceCard
-								data={providerPerformance}
-								totalSpend={data?.totalSpend ?? 0}
-							/>
-						</div>
-					</div>
-				</section>
+					</section>
 
-				<section className="space-y-4" id="usage-requests">
-					<h2 className="font-semibold text-2xl text-foreground">
-						Request Activity
-					</h2>
-					<p className="text-muted-foreground">
-						Inspect recent API calls and validate their performance
-					</p>
-					<div className="flex flex-wrap items-center gap-4">
-						<div>
-							<p className="text-muted-foreground text-xs">Provider</p>
-							<Select
-								value={requestProviderFilter}
-								onValueChange={setRequestProviderFilter}
-							>
-								<SelectTrigger className="w-[200px]">
-									<SelectValue placeholder="All providers" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All providers</SelectItem>
-									{providerFilterOptions.map((option) => (
-										<SelectItem key={option.value} value={option.value}>
-											{option.label}
+					<section className="space-y-4" id="usage-requests">
+						<h2 className="font-semibold text-2xl text-foreground">
+							Request Activity
+						</h2>
+						<p className="text-muted-foreground">
+							Inspect recent API calls and validate their performance
+						</p>
+						<div className="flex flex-wrap items-center gap-4">
+							<div>
+								<p className="text-muted-foreground text-xs">Provider</p>
+								<Select
+									value={requestProviderFilter}
+									onValueChange={setRequestProviderFilter}
+								>
+									<SelectTrigger className="w-[200px]">
+										<SelectValue placeholder="All providers" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All providers</SelectItem>
+										{providerFilterOptions.map((option) => (
+											<SelectItem key={option.value} value={option.value}>
+												{option.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+							<div>
+								<p className="text-muted-foreground text-xs">Status</p>
+								<Select value={statusFilter} onValueChange={setStatusFilter}>
+									<SelectTrigger className="w-[200px]">
+										<SelectValue placeholder="All statuses" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All statuses</SelectItem>
+										<SelectItem value="success">Success (2xx/3xx)</SelectItem>
+										<SelectItem value="client-error">
+											Client errors (4xx)
 										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
+										<SelectItem value="server-error">
+											Server errors (5xx)
+										</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
 						</div>
-						<div>
-							<p className="text-muted-foreground text-xs">Status</p>
-							<Select value={statusFilter} onValueChange={setStatusFilter}>
-								<SelectTrigger className="w-[200px]">
-									<SelectValue placeholder="All statuses" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">All statuses</SelectItem>
-									<SelectItem value="success">Success (2xx/3xx)</SelectItem>
-									<SelectItem value="client-error">
-										Client errors (4xx)
-									</SelectItem>
-									<SelectItem value="server-error">
-										Server errors (5xx)
-									</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-					</div>
-					<UsageRequestsTable rows={filteredRequests} loading={loading} />
-				</section>
+						<UsageRequestsTable rows={filteredRequests} loading={loading} />
+					</section>
+				</div>
 			</div>
-		</div>
+		</>
 	);
 }

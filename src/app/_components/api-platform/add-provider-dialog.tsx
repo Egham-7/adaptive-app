@@ -283,7 +283,11 @@ export function AddProviderDialog({
 				</DialogHeader>
 
 				<Form {...form}>
-					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+					<form
+						id="add-provider-form"
+						onSubmit={form.handleSubmit(onSubmit)}
+						className="space-y-4"
+					>
 						<FormField
 							control={form.control}
 							name="provider"
@@ -291,17 +295,19 @@ export function AddProviderDialog({
 								<FormItem>
 									<FormLabel>Provider</FormLabel>
 									<FormControl>
-										<Combobox
-											options={builtInProviders}
-											value={field.value}
-											onValueChange={field.onChange}
-											placeholder="Select or type provider name..."
-											searchPlaceholder="Search providers..."
-											emptyText="No provider found."
-											allowCustomValue={true}
-											customValuePattern={/^[a-z0-9-]+$/}
-											customValueError="Only lowercase letters, numbers, and hyphens allowed"
-										/>
+										<div id="provider-select">
+											<Combobox
+												options={builtInProviders}
+												value={field.value}
+												onValueChange={field.onChange}
+												placeholder="Select or type provider name..."
+												searchPlaceholder="Search providers..."
+												emptyText="No provider found."
+												allowCustomValue={true}
+												customValuePattern={/^[a-z0-9-]+$/}
+												customValueError="Only lowercase letters, numbers, and hyphens allowed"
+											/>
+										</div>
 									</FormControl>
 									<FormDescription>
 										{isCustomProvider
@@ -372,6 +378,7 @@ export function AddProviderDialog({
 									<FormControl>
 										<div className="relative">
 											<Input
+												id="api-key-input"
 												type={showApiKey ? "text" : "password"}
 												placeholder={
 													isCustomProvider
@@ -423,6 +430,7 @@ export function AddProviderDialog({
 									</FormLabel>
 									<FormControl>
 										<Input
+											id="base-url-input"
 											type="url"
 											placeholder="https://api.example.com"
 											disabled={!selectedProvider}
@@ -531,7 +539,11 @@ export function AddProviderDialog({
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={isLoading || !selectedProvider}>
+							<Button
+								id="submit-provider-button"
+								type="submit"
+								disabled={isLoading || !selectedProvider}
+							>
 								{isLoading ? "Adding..." : "Add Provider"}
 							</Button>
 						</DialogFooter>

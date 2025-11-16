@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ProjectMembersTab } from "@/app/_components/api-platform/organizations/projects/project-members-tab";
 import { ProjectSettingsGeneral } from "@/app/_components/api-platform/organizations/projects/settings/general";
+import { SettingsTour } from "@/components/tours";
 import { Button } from "@/components/ui/button";
 import { useProject } from "@/hooks/projects/use-project";
 
@@ -24,49 +25,52 @@ export default function ProjectSettingsPage() {
 	};
 
 	return (
-		<div className="flex min-h-screen bg-background">
-			<div className="w-64 bg-background p-6">
-				<nav className="space-y-1">
-					<Button
-						type="button"
-						onClick={() => handleTabChange("general")}
-						variant="ghost"
-						className={`w-full justify-start ${
-							activeTab === "general"
-								? "bg-accent text-accent-foreground"
-								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-						}`}
-					>
-						General
-					</Button>
+		<>
+			<SettingsTour />
+			<div className="flex min-h-screen bg-background">
+				<div className="w-64 bg-background p-6">
+					<nav className="space-y-1">
+						<Button
+							type="button"
+							onClick={() => handleTabChange("general")}
+							variant="ghost"
+							className={`w-full justify-start ${
+								activeTab === "general"
+									? "bg-accent text-accent-foreground"
+									: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+							}`}
+						>
+							General
+						</Button>
 
-					<Button
-						type="button"
-						onClick={() => handleTabChange("members")}
-						variant="ghost"
-						className={`w-full justify-start ${
-							activeTab === "members"
-								? "bg-accent text-accent-foreground"
-								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-						}`}
-					>
-						Members
-					</Button>
-				</nav>
-			</div>
+						<Button
+							type="button"
+							onClick={() => handleTabChange("members")}
+							variant="ghost"
+							className={`w-full justify-start ${
+								activeTab === "members"
+									? "bg-accent text-accent-foreground"
+									: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+							}`}
+						>
+							Members
+						</Button>
+					</nav>
+				</div>
 
-			<div className="flex-1 p-8">
-				{activeTab === "general" && (
-					<ProjectSettingsGeneral projectId={Number(projectId)} />
-				)}
-				{activeTab === "members" && (
-					<ProjectMembersTab
-						projectId={Number(projectId)}
-						organizationId={project?.organization_id ?? orgSlug}
-						currentUserRole={project?.currentUserRole}
-					/>
-				)}
+				<div className="flex-1 p-8">
+					{activeTab === "general" && (
+						<ProjectSettingsGeneral projectId={Number(projectId)} />
+					)}
+					{activeTab === "members" && (
+						<ProjectMembersTab
+							projectId={Number(projectId)}
+							organizationId={project?.organization_id ?? orgSlug}
+							currentUserRole={project?.currentUserRole}
+						/>
+					)}
+				</div>
 			</div>
-		</div>
+		</>
 	);
 }

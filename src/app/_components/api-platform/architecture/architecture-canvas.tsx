@@ -490,10 +490,14 @@ function ArchitectureCanvasInner({
 		: null;
 
 	return (
-		<div className="relative h-screen w-full overflow-hidden rounded-lg border">
+		<div
+			id="architecture-canvas"
+			className="relative h-screen w-full overflow-hidden rounded-lg border"
+		>
 			<div className="absolute top-4 right-4 z-10 flex gap-2">
 				<ConnectSheet projectId={projectId} />
 				<Button
+					id="add-provider-button"
 					onClick={() => setShowAddDialog(true)}
 					variant="default"
 					size="sm"

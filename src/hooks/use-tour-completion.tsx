@@ -4,7 +4,7 @@ import { useUser } from "@clerk/nextjs";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/trpc/react";
 
-export function useTourCompletion() {
+export function useTourCompletion(tourId: string) {
 	const { user, isLoaded } = useUser();
 	const { data: preferences, isPending } = api.user.getPreferences.useQuery(
 		undefined,
@@ -13,41 +13,45 @@ export function useTourCompletion() {
 		},
 	);
 
-	const [isTourCompleted, setIsTourCompletedState] = useState<boolean>(false);
+	const [completedTours, setCompletedToursState] = useState<string[]>([]);
 
 	// Update local state when preferences are loaded
 	useEffect(() => {
-		if (preferences?.tourCompleted !== undefined) {
-			setIsTourCompletedState(preferences.tourCompleted);
+		if (preferences?.completedTours !== undefined) {
+			setCompletedToursState(preferences.completedTours as string[]);
 		}
-	}, [preferences?.tourCompleted]);
+	}, [preferences?.completedTours]);
 
 	const updateMetadataMutation = api.user.updateMetadata.useMutation();
 
-	const setIsTourCompleted = useCallback(
-		async (completed: boolean) => {
-			if (!user) return;
+	// Check if this specific tour is completed
+	const isCompleted = completedTours.includes(tourId);
 
-			try {
-				setIsTourCompletedState(completed);
-				await updateMetadataMutation.mutateAsync({
-					tourCompleted: completed,
-				});
+	// Mark this tour as complete
+	const markComplete = useCallback(async () => {
+		if (!user || completedTours.includes(tourId)) return;
 
-				// Update the user's metadata in Clerk
-				await user.reload();
-			} catch (error) {
-				console.error("Failed to update tour completion state:", error);
-				// Revert on error
-				setIsTourCompletedState(!completed);
-			}
-		},
-		[user, updateMetadataMutation],
-	);
+		const updatedTours = [...completedTours, tourId];
+
+		try {
+			setCompletedToursState(updatedTours);
+			await updateMetadataMutation.mutateAsync({
+				completedTours: updatedTours,
+			});
+
+			// Update the user's metadata in Clerk
+			await user.reload();
+		} catch (error) {
+			console.error("Failed to update tour completion state:", error);
+			// Revert on error
+			setCompletedToursState(completedTours);
+		}
+	}, [user, tourId, completedTours, updateMetadataMutation]);
 
 	return {
-		isTourCompleted,
-		setIsTourCompleted,
+		isCompleted,
+		markComplete,
 		isLoading: !isLoaded || isPending || updateMetadataMutation.isPending,
+		completedTours,
 	};
 }
