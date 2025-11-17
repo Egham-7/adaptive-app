@@ -27,13 +27,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProviderLogo } from "@/components/ui/provider-logo";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -48,11 +41,9 @@ import {
 } from "@/hooks/provider-configs";
 import { cleanEndpointOverrides } from "@/lib/providers/utils";
 import {
-	API_COMPATIBILITY_METADATA,
-	type ApiCompatibilityType,
 	type EndpointOverride,
 	type EndpointType,
-	PROVIDER_COMPATIBILITY_DEFAULTS,
+	PROVIDER_ENDPOINT_CONFIG,
 	PROVIDER_METADATA,
 	type ProviderName,
 } from "@/types/providers";
@@ -60,7 +51,6 @@ import {
 const createProviderSchema = z
 	.object({
 		provider: z.string().min(1, "Provider is required"),
-		apiCompatibility: z.enum(["openai", "anthropic", "google-ai-studio"]),
 		apiKey: z.string().optional(),
 		baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
 		useEndpointOverrides: z.boolean(),
@@ -148,7 +138,6 @@ export function AddProviderDialog({
 		resolver: zodResolver(createProviderSchema),
 		defaultValues: {
 			provider: "",
-			apiCompatibility: "openai", // Default to OpenAI-compatible
 			apiKey: "",
 			baseUrl: "",
 			useEndpointOverrides: false,
@@ -186,7 +175,6 @@ export function AddProviderDialog({
 
 	const selectedProvider = form.watch("provider");
 	const useEndpointOverrides = form.watch("useEndpointOverrides");
-	const apiCompatibility = form.watch("apiCompatibility");
 
 	const metadata =
 		selectedProvider && PROVIDER_METADATA[selectedProvider as ProviderName]
@@ -195,22 +183,26 @@ export function AddProviderDialog({
 
 	const isCustomProvider = selectedProvider && !metadata;
 
-	// Get available endpoints based on API compatibility
-	const availableEndpoints = useMemo(
-		() => API_COMPATIBILITY_METADATA[apiCompatibility]?.endpoints || [],
-		[apiCompatibility],
-	);
+	// Get available endpoints based on provider configuration
+	const availableEndpoints = useMemo(() => {
+		if (selectedProvider && !isCustomProvider) {
+			return (
+				PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
+					?.supported_endpoints ?? []
+			);
+		}
+		return [];
+	}, [selectedProvider, isCustomProvider]);
 
-	// Auto-select API compatibility for built-in providers
+	// Auto-populate endpoint types for built-in providers
 	useEffect(() => {
 		if (selectedProvider && !isCustomProvider) {
-			const defaultCompatibility =
-				PROVIDER_COMPATIBILITY_DEFAULTS[selectedProvider as ProviderName];
-			if (defaultCompatibility) {
-				form.setValue("apiCompatibility", defaultCompatibility);
-			}
+			const _supportedEndpoints =
+				PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
+					?.supported_endpoints ?? [];
+			// Note: We don't auto-set endpoint_types in form since it's optional and can be inferred
 		}
-	}, [selectedProvider, isCustomProvider, form]);
+	}, [selectedProvider, isCustomProvider]);
 
 	useEffect(() => {
 		if (!open) {
@@ -227,10 +219,18 @@ export function AddProviderDialog({
 				)
 			: undefined;
 
+		// Get supported endpoints for built-in providers
+		let endpointTypes: EndpointType[] | undefined;
+		if (!isCustomProvider && selectedProvider) {
+			endpointTypes =
+				PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
+					?.supported_endpoints;
+		}
+
 		// Prepare form data for tRPC
 		const formData = {
 			provider_name: values.provider,
-			api_compatibility: values.apiCompatibility,
+			endpoint_types: endpointTypes,
 			api_key: values.apiKey || undefined,
 			base_url: values.baseUrl,
 			endpoint_overrides: cleanedOverrides,
@@ -318,51 +318,6 @@ export function AddProviderDialog({
 								</FormItem>
 							)}
 						/>
-
-						{isCustomProvider && (
-							<FormField
-								control={form.control}
-								name="apiCompatibility"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											API Compatibility <span className="text-red-500">*</span>
-										</FormLabel>
-										<Select onValueChange={field.onChange} value={field.value}>
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue placeholder="Select API compatibility" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												{Object.entries(API_COMPATIBILITY_METADATA).map(
-													([key, metadata]) => (
-														<SelectItem key={key} value={key}>
-															{metadata.label}
-														</SelectItem>
-													),
-												)}
-											</SelectContent>
-										</Select>
-										<FormDescription>
-											{field.value &&
-												API_COMPATIBILITY_METADATA[
-													field.value as ApiCompatibilityType
-												]?.description}
-											<br />
-											<span className="text-muted-foreground text-xs">
-												Examples:{" "}
-												{field.value &&
-													API_COMPATIBILITY_METADATA[
-														field.value as ApiCompatibilityType
-													]?.examples.join(", ")}
-											</span>
-										</FormDescription>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						)}
 
 						<FormField
 							control={form.control}

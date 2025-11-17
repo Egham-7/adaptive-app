@@ -122,7 +122,6 @@ export function useProviderConfigForm({
 			} else {
 				const createData = {
 					provider_name: providerName,
-					api_compatibility: "openai" as const,
 					...apiData,
 				};
 

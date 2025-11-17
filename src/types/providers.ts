@@ -30,114 +30,128 @@ export const endpointTypes = [
 export type EndpointType = (typeof endpointTypes)[number];
 
 /**
- * API compatibility types for custom providers
- */
-export const apiCompatibilityTypes = [
-	"openai",
-	"anthropic",
-	"google-ai-studio",
-] as const;
-
-export type ApiCompatibilityType = (typeof apiCompatibilityTypes)[number];
-
-/**
  * Endpoint override configuration for per-endpoint base URLs
  */
 export interface EndpointOverride {
 	base_url?: string;
 }
 
-// ============================================================================
-// METADATA & CONFIGURATION
-// ============================================================================
+/**
+ * Endpoint metadata with display information
+ */
+export interface EndpointMetadata {
+	label: string;
+	description: string;
+	compatible_providers: ProviderType[];
+}
 
 /**
- * API compatibility metadata with endpoint mappings and examples
+ * Endpoint metadata for UI display
  */
-export const API_COMPATIBILITY_METADATA: Record<
-	ApiCompatibilityType,
-	{
-		label: string;
-		description: string;
-		endpoints: EndpointType[];
-		examples: string[];
-	}
-> = {
-	openai: {
-		label: "OpenAI-compatible",
-		description: "Providers using OpenAI's chat completions API format",
-		endpoints: ["chat_completions", "select_model"],
-		examples: [
-			"OpenAI",
-			"DeepSeek",
-			"Groq",
-			"Together AI",
-			"Fireworks",
-			"Perplexity",
-			"OpenRouter",
-		],
+export const ENDPOINT_METADATA: Record<EndpointType, EndpointMetadata> = {
+	chat_completions: {
+		label: "OpenAI Compatible",
+		description: "Standard chat completion API for generating responses",
+		compatible_providers: ["openai", "anthropic", "google-ai-studio", "z-ai"],
 	},
-	anthropic: {
-		label: "Anthropic-compatible",
-		description: "Providers using Anthropic's messages API format",
-		endpoints: ["messages", "select_model", "chat_completions"],
-		examples: ["Anthropic", "Cohere", "AWS Bedrock (Anthropic)"],
+	messages: {
+		label: "Anthropic Compatible",
+		description: "Anthropic-style messages API for conversational AI",
+		compatible_providers: ["anthropic", "z-ai"],
 	},
-	"google-ai-studio": {
-		label: "Gemini-compatible",
-		description: "Providers using Google's Gemini API format",
-		endpoints: ["generate", "count_tokens", "chat_completions", "select_model"],
-		examples: ["Google Gemini", "Vertex AI"],
+	generate: {
+		label: "Google Compatible",
+		description: "Google-style content generation API",
+		compatible_providers: ["google-ai-studio"],
+	},
+	count_tokens: {
+		label: "Count Tokens",
+		description: "Token counting and estimation API",
+		compatible_providers: ["google-ai-studio"],
+	},
+	select_model: {
+		label: "select_model",
+		description: "Model selection and information API",
+		compatible_providers: ["openai", "anthropic", "google-ai-studio", "z-ai"],
 	},
 };
 
+// ============================================================================
+// PROVIDER ENDPOINT CONFIGURATION
+// ============================================================================
+
 /**
- * Provider metadata with logos and descriptions
+ * Provider endpoint configuration with defaults
+ */
+export interface ProviderEndpointConfig {
+	// Endpoints this provider supports
+	supported_endpoints: EndpointType[];
+	// Default base URL overrides for specific endpoints
+	// Used for providers like z-ai that have different URLs per endpoint
+	default_endpoint_overrides?: Partial<Record<EndpointType, EndpointOverride>>;
+}
+
+/**
+ * Provider endpoint configurations
+ */
+export const PROVIDER_ENDPOINT_CONFIG: Record<
+	ProviderType,
+	ProviderEndpointConfig
+> = {
+	openai: {
+		supported_endpoints: ["chat_completions", "select_model"],
+	},
+	anthropic: {
+		supported_endpoints: ["messages", "chat_completions", "select_model"],
+	},
+	"google-ai-studio": {
+		supported_endpoints: [
+			"generate",
+			"count_tokens",
+			"chat_completions",
+			"select_model",
+		],
+	},
+	"z-ai": {
+		supported_endpoints: ["messages", "chat_completions", "select_model"],
+		default_endpoint_overrides: {
+			messages: { base_url: "https://api.z.ai/api/anthropic" },
+			chat_completions: { base_url: "https://api.z.ai/api/paas/v4" },
+		},
+	},
+};
+
+// ============================================================================
+// PROVIDER METADATA
+// ============================================================================
+
+/**
+ * Provider metadata with display information
  */
 export const PROVIDER_METADATA = {
 	openai: {
 		name: "openai",
 		displayName: "OpenAI",
-		logo: "/logos/openai.webp",
-		description:
-			"GPT-4o, o1, o3-mini and other flagship models for reasoning and generation",
+		description: "GPT-4o, o1, o3-mini and other flagship models",
 	},
 	anthropic: {
 		name: "anthropic",
 		displayName: "Anthropic",
-		logo: "/logos/anthropic.jpeg",
-		description:
-			"Claude Sonnet 4.5, Haiku 4.5, Opus 4.1 with extended thinking and vision",
+		description: "Claude Sonnet 4.5, Haiku 4.5, Opus 4.1",
 	},
 	"google-ai-studio": {
 		name: "google-ai-studio",
 		displayName: "Google AI Studio",
-		logo: "/logos/google-ai-studio.svg",
-		description: "Gemini 2.5 Flash, Pro models with multimodal capabilities",
+		description: "Gemini 2.5 Flash, Pro models",
 	},
-
 	"z-ai": {
 		name: "z-ai",
 		displayName: "Z-AI",
-		logo: undefined, // Theme-aware logos handled by ProviderLogo component
-		description: "Z-AI models with both OpenAI and Anthropic compatibility",
+		description: "Z-AI models with multi-endpoint support",
 	},
 } as const;
 
 export type ProviderName = keyof typeof PROVIDER_METADATA;
-
-/**
- * Default API compatibility for built-in providers
- */
-export const PROVIDER_COMPATIBILITY_DEFAULTS: Record<
-	ProviderName,
-	ApiCompatibilityType
-> = {
-	openai: "openai",
-	anthropic: "anthropic",
-	"google-ai-studio": "google-ai-studio",
-	"z-ai": "openai",
-} as const;
 
 // ============================================================================
 // CORE TYPES
@@ -152,14 +166,6 @@ export interface ProviderRuntimeConfig {
 	endpoint_types?: EndpointType[];
 }
 
-/**
- * Provider config for request overrides (backward compatibility)
- */
-export type ProviderConfig = Pick<
-	ProviderRuntimeConfig,
-	"api_key" | "base_url"
->;
-
 // ============================================================================
 // FORM TYPES
 // ============================================================================
@@ -169,10 +175,10 @@ export type ProviderConfig = Pick<
  */
 export interface CreateProviderFormData {
 	provider_name: string;
-	api_compatibility: ApiCompatibilityType;
 	api_key?: string;
 	base_url?: string;
-	endpoint_overrides?: Record<EndpointType, EndpointOverride>;
+	endpoint_types?: EndpointType[];
+	endpoint_overrides?: Partial<Record<EndpointType, EndpointOverride>>;
 }
 
 // ============================================================================
@@ -187,7 +193,7 @@ export interface CreateProviderApiRequest {
 	endpoint_types: EndpointType[];
 	api_key?: string;
 	base_url?: string;
-	endpoint_overrides?: Record<EndpointType, EndpointOverride>;
+	endpoint_overrides?: Partial<Record<EndpointType, EndpointOverride>>;
 }
 
 /**
@@ -197,7 +203,7 @@ export interface UpdateProviderApiRequest {
 	endpoint_types?: EndpointType[];
 	api_key?: string;
 	base_url?: string;
-	endpoint_overrides?: Record<EndpointType, EndpointOverride>;
+	endpoint_overrides?: Partial<Record<EndpointType, EndpointOverride>>;
 	enabled?: boolean;
 }
 
@@ -213,7 +219,7 @@ export interface ProviderConfigApiResponse {
 	provider_name: string;
 	endpoint_types: EndpointType[];
 	base_url: string;
-	endpoint_overrides?: Record<EndpointType, EndpointOverride>;
+	endpoint_overrides?: Partial<Record<EndpointType, EndpointOverride>>;
 	has_api_key: boolean;
 	enabled: boolean;
 	source: "project" | "organization";
@@ -267,9 +273,13 @@ export const endpointOverrideSchema = z.object({
  */
 export const createProviderFormSchema = z.object({
 	provider_name: z.string().min(1).max(100),
-	api_compatibility: z.enum(apiCompatibilityTypes),
 	api_key: z.string().optional(),
-	base_url: z.string().optional(),
+	base_url: z
+		.string()
+		.url("Please enter a valid URL")
+		.or(z.literal(""))
+		.optional(),
+	endpoint_types: z.array(z.enum(endpointTypes)).optional(),
 	endpoint_overrides: z
 		.record(z.enum(endpointTypes), endpointOverrideSchema.optional())
 		.optional(),
@@ -279,33 +289,14 @@ export const createProviderFormSchema = z.object({
  * Zod schema for updating a provider
  */
 export const updateProviderFormSchema = z.object({
-	api_compatibility: z.enum(apiCompatibilityTypes).optional(),
 	api_key: z.string().optional(),
 	base_url: z.url("Please enter a valid URL").or(z.literal("")).optional(),
+	endpoint_types: z.array(z.enum(endpointTypes)).optional(),
 	enabled: z.boolean().optional(),
 	endpoint_overrides: z
 		.record(z.enum(endpointTypes), endpointOverrideSchema.optional())
 		.optional(),
 });
-
-/**
- * Create a schema for provider config form with custom provider validation
- */
-export const createProviderConfigFormSchema = (isCustom: boolean) => {
-	if (isCustom) {
-		// Custom providers require both fields
-		return z.object({
-			apiKey: z.string().min(1, "API key is required for custom providers"),
-			baseUrl: z.url("Please enter a valid URL"),
-		});
-	}
-
-	// Default providers - fields are optional but must be valid if provided
-	return z.object({
-		apiKey: z.string().optional(),
-		baseUrl: z.url("Please enter a valid URL").or(z.literal("")).optional(),
-	});
-};
 
 // ============================================================================
 // FALLBACK CONFIGURATION
