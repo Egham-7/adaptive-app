@@ -5,7 +5,7 @@ export const useRevokeOrganizationInvitation = () => {
 	const utils = api.useUtils();
 
 	return api.organizations.revokeInvitation.useMutation({
-		onSuccess: (data, variables) => {
+		onSuccess: (_data, variables) => {
 			toast.success("Invitation revoked successfully!");
 			utils.organizations.listInvitations.invalidate({
 				organizationId: variables.organizationId,

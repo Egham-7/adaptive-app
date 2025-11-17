@@ -32,9 +32,7 @@ export function AuditLogEntry({
 	entry,
 	defaultExpanded = false,
 }: AuditLogEntryProps) {
-	const [viewMode] = useState<"structured" | "json">(
-		"structured",
-	);
+	const [viewMode] = useState<"structured" | "json">("structured");
 
 	// Parse changes for summary
 	const parsedChanges = parseChanges(entry.changes);

@@ -5,7 +5,7 @@ export const useCreateOrganizationInvitation = () => {
 	const utils = api.useUtils();
 
 	return api.organizations.createInvitation.useMutation({
-		onSuccess: (data, variables) => {
+		onSuccess: (_data, variables) => {
 			toast.success("Invitation sent successfully!");
 			utils.organizations.listInvitations.invalidate({
 				organizationId: variables.organizationId,

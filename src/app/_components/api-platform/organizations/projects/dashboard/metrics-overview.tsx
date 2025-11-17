@@ -1,6 +1,5 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { FaChartLine, FaCoins, FaServer } from "react-icons/fa";
 import type { ProjectAnalytics } from "@/types/api-platform/dashboard";
 import { MetricCardSkeleton } from "./loading-skeleton";
