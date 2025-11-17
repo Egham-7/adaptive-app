@@ -34,10 +34,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-	useUpdateOrganizationProvider,
-	useUpdateProjectProvider,
-} from "@/hooks/provider-configs";
+import { useUpdateProjectProvider } from "@/hooks/provider-configs";
 import { cleanEndpointOverrides } from "@/lib/providers/utils";
 import {
 	type EndpointOverride,
@@ -89,9 +86,7 @@ interface EditProviderDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	providerName: string;
-	level: "project" | "organization";
-	projectId?: number;
-	organizationId?: string;
+	projectId: number;
 	existingConfig?: {
 		endpoint_types?: EndpointType[];
 		has_api_key?: boolean;
@@ -104,9 +99,7 @@ export function EditProviderDialog({
 	open,
 	onOpenChange,
 	providerName,
-	level,
 	projectId,
-	organizationId,
 	existingConfig,
 }: EditProviderDialogProps) {
 	const metadata = PROVIDER_METADATA[providerName as ProviderName];
@@ -128,7 +121,6 @@ export function EditProviderDialog({
 	});
 
 	const updateProjectProvider = useUpdateProjectProvider();
-	const updateOrgProvider = useUpdateOrganizationProvider();
 
 	const useEndpointOverrides = form.watch("useEndpointOverrides");
 
@@ -174,37 +166,21 @@ export function EditProviderDialog({
 			data.endpoint_overrides = undefined;
 		}
 
-		if (level === "project" && projectId) {
-			updateProjectProvider.mutate(
-				{
-					projectId,
-					provider: providerName,
-					data,
+		updateProjectProvider.mutate(
+			{
+				projectId,
+				provider: providerName,
+				data,
+			},
+			{
+				onSuccess: () => {
+					onOpenChange(false);
 				},
-				{
-					onSuccess: () => {
-						onOpenChange(false);
-					},
-				},
-			);
-		} else if (level === "organization" && organizationId) {
-			updateOrgProvider.mutate(
-				{
-					organizationId,
-					provider: providerName,
-					data,
-				},
-				{
-					onSuccess: () => {
-						onOpenChange(false);
-					},
-				},
-			);
-		}
+			},
+		);
 	};
 
-	const isLoading =
-		updateProjectProvider.isPending || updateOrgProvider.isPending;
+	const isLoading = updateProjectProvider.isPending;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -223,9 +199,7 @@ export function EditProviderDialog({
 								Edit {metadata?.displayName ?? providerName}
 							</DialogTitle>
 							<DialogDescription>
-								{level === "project"
-									? "Update provider configuration for this project"
-									: "Update provider configuration for this organization"}
+								Update provider configuration for this project
 							</DialogDescription>
 						</div>
 					</div>

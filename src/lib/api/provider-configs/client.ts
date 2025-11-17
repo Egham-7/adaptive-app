@@ -8,7 +8,7 @@ import type {
 import { BaseApiClient } from "../base-client";
 
 /**
- * API client for managing provider configurations at project and organization levels
+ * API client for managing provider configurations at project level
  */
 export class ProviderConfigsClient extends BaseApiClient {
 	constructor(token: string) {
@@ -98,102 +98,6 @@ export class ProviderConfigsClient extends BaseApiClient {
 				throw new Error(error.message || "Failed to delete project provider");
 			}
 			throw new Error("Failed to delete project provider");
-		}
-	}
-
-	// ==================== Organization-level Provider Configs ====================
-
-	/**
-	 * List all provider configurations for an organization
-	 * Returns a map of provider names to their configurations
-	 */
-	async listOrganizationProviders(
-		organizationId: string,
-		endpoint?: string,
-	): Promise<ListProvidersApiResponse> {
-		try {
-			return await this.get<ListProvidersApiResponse>(
-				`/organizations/${organizationId}/providers`,
-				{ params: endpoint ? { endpoint } : undefined },
-			);
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(
-					error.message || "Failed to list organization providers",
-				);
-			}
-			throw new Error("Failed to list organization providers");
-		}
-	}
-
-	/**
-	 * Create a provider configuration for an organization
-	 */
-	async createOrganizationProvider(
-		organizationId: string,
-		provider: string,
-		data: CreateProviderApiRequest,
-	): Promise<ProviderConfigApiResponse> {
-		try {
-			return await this.post<
-				ProviderConfigApiResponse,
-				CreateProviderApiRequest
-			>(`/organizations/${organizationId}/providers/${provider}`, {
-				body: data,
-			});
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(
-					error.message || "Failed to create organization provider",
-				);
-			}
-			throw new Error("Failed to create organization provider");
-		}
-	}
-
-	/**
-	 * Update a provider configuration for an organization
-	 */
-	async updateOrganizationProvider(
-		organizationId: string,
-		provider: string,
-		data: UpdateProviderApiRequest,
-	): Promise<ProviderConfigApiResponse> {
-		try {
-			return await this.patch<
-				ProviderConfigApiResponse,
-				UpdateProviderApiRequest
-			>(`/organizations/${organizationId}/providers/${provider}`, {
-				body: data,
-			});
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(
-					error.message || "Failed to update organization provider",
-				);
-			}
-			throw new Error("Failed to update organization provider");
-		}
-	}
-
-	/**
-	 * Delete a provider configuration for an organization
-	 */
-	async deleteOrganizationProvider(
-		organizationId: string,
-		provider: string,
-	): Promise<void> {
-		try {
-			await this.delete(
-				`/organizations/${organizationId}/providers/${provider}`,
-			);
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(
-					error.message || "Failed to delete organization provider",
-				);
-			}
-			throw new Error("Failed to delete organization provider");
 		}
 	}
 

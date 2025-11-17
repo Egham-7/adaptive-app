@@ -223,7 +223,7 @@ export interface ProviderConfigApiResponse {
 	endpoint_overrides?: Partial<Record<EndpointType, EndpointOverride>>;
 	has_api_key: boolean;
 	enabled: boolean;
-	source: "project" | "organization";
+	source: "project";
 	created_at: string;
 	updated_at: string;
 	created_by: string;
@@ -235,7 +235,6 @@ export interface ProviderConfigApiResponse {
  */
 export interface ListProvidersApiResponse {
 	project_id?: number;
-	organization_id?: string;
 	providers: ProviderConfigApiResponse[];
 }
 

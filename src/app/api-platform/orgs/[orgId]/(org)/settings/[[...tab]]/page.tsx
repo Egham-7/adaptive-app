@@ -2,7 +2,6 @@
 
 import { useOrganization } from "@clerk/nextjs";
 import { useParams, useRouter } from "next/navigation";
-import { AdaptiveConfigTab } from "@/app/_components/api-platform/settings/adaptive-config-tab";
 import { ApiKeysTab } from "@/app/_components/api-platform/settings/api-keys-tab";
 import { AppearanceTab } from "@/app/_components/api-platform/settings/appearance-tab";
 import { BillingTab } from "@/app/_components/api-platform/settings/billing-tab";
@@ -10,11 +9,10 @@ import { MembersTab } from "@/app/_components/api-platform/settings/members-tab"
 import { PrivacyTab } from "@/app/_components/api-platform/settings/privacy-tab";
 import { ProfileTab } from "@/app/_components/api-platform/settings/profile-tab";
 import { ProjectsTab } from "@/app/_components/api-platform/settings/projects-tab";
-import { OrganizationProvidersTab } from "@/app/_components/api-platform/settings/providers-tab";
 import { Button } from "@/components/ui/button";
 
 const OrganizationSettingsPage: React.FC = () => {
-	const { organization, membership, isLoaded } = useOrganization();
+	const { organization, isLoaded } = useOrganization();
 	const params = useParams();
 	const router = useRouter();
 	const orgId = params.orgId as string;
@@ -103,32 +101,6 @@ const OrganizationSettingsPage: React.FC = () => {
 
 					<Button
 						type="button"
-						onClick={() => handleTabChange("providers")}
-						variant="ghost"
-						className={`w-full justify-start ${
-							activeTab === "providers"
-								? "bg-accent text-accent-foreground"
-								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-						}`}
-					>
-						Providers
-					</Button>
-
-					<Button
-						type="button"
-						onClick={() => handleTabChange("adaptive-config")}
-						variant="ghost"
-						className={`w-full justify-start ${
-							activeTab === "adaptive-config"
-								? "bg-accent text-accent-foreground"
-								: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-						}`}
-					>
-						Adaptive Config
-					</Button>
-
-					<Button
-						type="button"
 						onClick={() => handleTabChange("billing")}
 						variant="ghost"
 						className={`w-full justify-start ${
@@ -167,18 +139,7 @@ const OrganizationSettingsPage: React.FC = () => {
 				{activeTab === "api-keys" && (
 					<ApiKeysTab organizationId={organization.id} />
 				)}
-				{activeTab === "providers" && (
-					<OrganizationProvidersTab
-						organizationId={organization.id}
-						isAdmin={membership?.role === "org:admin"}
-					/>
-				)}
-				{activeTab === "adaptive-config" && (
-					<AdaptiveConfigTab
-						organizationId={organization.id}
-						isAdmin={membership?.role === "org:admin"}
-					/>
-				)}
+
 				{activeTab === "billing" && (
 					<BillingTab organizationId={organization.id} />
 				)}

@@ -4,17 +4,12 @@ import { Check } from "lucide-react";
 import { Handle, Position } from "reactflow";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 import { cn } from "@/lib/shared/utils";
-import {
-	PROVIDER_METADATA,
-	type ProviderConfigApiResponse,
-	type ProviderName,
-} from "@/types/providers";
+import { PROVIDER_METADATA, type ProviderName } from "@/types/providers";
 
 interface ProviderNodeCardProps {
 	providerName: string;
 	isCustom: boolean;
 	isConfigured: boolean;
-	config?: ProviderConfigApiResponse;
 	onClick: () => void;
 }
 
@@ -22,14 +17,11 @@ export function ProviderNodeCard({
 	providerName,
 	isCustom,
 	isConfigured,
-	config,
 	onClick,
 }: ProviderNodeCardProps) {
 	const metadata = !isCustom
 		? PROVIDER_METADATA[providerName as ProviderName]
 		: null;
-
-	const isOrgLevel = config?.source === "organization";
 
 	const handleClick = (e: React.MouseEvent) => {
 		// Don't trigger onClick on right-click (context menu)
@@ -81,33 +73,8 @@ export function ProviderNodeCard({
 				{/* Status Badge */}
 				{isConfigured && (
 					<div className="absolute top-2 left-2">
-						<div
-							className={cn(
-								"rounded-full border p-0.5 shadow-sm",
-								isOrgLevel
-									? "border-primary/20 bg-primary/10"
-									: "border-success/20 bg-success/10",
-							)}
-						>
-							{isOrgLevel ? (
-								<svg
-									className="h-3.5 w-3.5 text-primary"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									role="img"
-									aria-label="Organization level"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-									/>
-								</svg>
-							) : (
-								<Check className="h-3.5 w-3.5 text-success" />
-							)}
+						<div className="rounded-full border border-success/20 bg-success/10 p-0.5 shadow-sm">
+							<Check className="h-3.5 w-3.5 text-success" />
 						</div>
 					</div>
 				)}
@@ -143,18 +110,10 @@ export function ProviderNodeCard({
 						<span
 							className={cn(
 								"font-medium text-xs",
-								isConfigured
-									? isOrgLevel
-										? "text-primary"
-										: "text-success"
-									: "text-muted-foreground",
+								isConfigured ? "text-success" : "text-muted-foreground",
 							)}
 						>
-							{isConfigured
-								? isOrgLevel
-									? "Org-level"
-									: "Configured"
-								: "Not configured"}
+							{isConfigured ? "Configured" : "Not configured"}
 						</span>
 					</div>
 				</div>

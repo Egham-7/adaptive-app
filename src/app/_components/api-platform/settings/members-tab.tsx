@@ -30,6 +30,7 @@ import { useOrganizationMembers } from "@/hooks/organizations/use-organization-m
 import { usePendingOrganizationInvitations } from "@/hooks/organizations/use-pending-organization-invitations";
 import { useRemoveOrganizationMember } from "@/hooks/organizations/use-remove-organization-member";
 import { useUpdateOrganizationMemberRole } from "@/hooks/organizations/use-update-organization-member-role";
+import type { OrganizationMember } from "@/types/organizations";
 import { InvitationsTable } from "./invitations-table";
 import { InviteMemberDialog } from "./invite-member-dialog";
 
@@ -112,7 +113,7 @@ export const MembersTab: React.FC<MembersTabProps> = ({ organizationId }) => {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{currentMembers.map((member) => (
+							{currentMembers.map((member: OrganizationMember) => (
 								<TableRow key={member.id}>
 									<TableCell className="font-medium">
 										<div className="flex items-center gap-3">

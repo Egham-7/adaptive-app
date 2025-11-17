@@ -69,7 +69,7 @@ const RADIUS = 500; // Fixed radius for circular layout
 
 interface AdaptiveNodeData {
 	isConfigured: boolean;
-	configSource: "project" | "organization";
+	configSource: "project";
 	onClick: () => void;
 	highlight: boolean;
 }
@@ -112,7 +112,6 @@ const nodeTypes = {
 			providerName={data.providerName}
 			isCustom={data.isCustom}
 			isConfigured={data.isConfigured}
-			config={data.config}
 			onClick={data.onClick}
 		/>
 	),
@@ -219,8 +218,6 @@ function ArchitectureCanvasInner({
 			const provider = allProviders.find(
 				(p) => p.name === contextMenuContext.providerId,
 			);
-			const isOrgLevel = provider?.config?.source === "organization";
-
 			const commands = [
 				{
 					id: "configure-provider",
@@ -242,8 +239,8 @@ function ArchitectureCanvasInner({
 				},
 			];
 
-			// Only show delete for project-level configs that are actually configured
-			if (!isOrgLevel && provider?.isConfigured) {
+			// Only show delete for configured providers
+			if (provider?.isConfigured) {
 				commands.push({
 					id: "delete-provider",
 					label: "Delete Provider",
@@ -353,9 +350,7 @@ function ArchitectureCanvasInner({
 
 	// Update nodes when providers or config changes
 	useEffect(() => {
-		const isAdaptiveConfigured =
-			adaptiveConfig?.source === "project" ||
-			adaptiveConfig?.source === "organization";
+		const isAdaptiveConfigured = !!adaptiveConfig;
 
 		const newNodes: Node[] = [
 			// Adaptive node at center
@@ -583,7 +578,6 @@ function ArchitectureCanvasInner({
 			<AddProviderDialog
 				open={showAddDialog}
 				onOpenChange={setShowAddDialog}
-				level="project"
 				projectId={projectId}
 				configuredProviders={providers.map((p) => p.provider_name)}
 				onSuccess={() => {

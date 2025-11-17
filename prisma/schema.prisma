@@ -5,18 +5,6 @@ enum CreditTransactionType {
   promotional
 }
 
-enum FallbackMode {
-  sequential
-  race
-}
-
-enum ProviderVisibility {
-  system
-  project
-  organization
-  community
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
