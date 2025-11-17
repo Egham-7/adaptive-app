@@ -83,7 +83,7 @@ export function useProviderConfigForm({
 	const form = useForm<FormData>({
 		resolver: zodResolver(providerConfigFormSchema),
 		defaultValues: {
-			apiKey: "",
+			apiKey: existingConfig?.api_key || "",
 			baseUrl: existingConfig?.base_url || "",
 			useEndpointOverrides: hasExistingOverrides || false,
 			endpointOverrides: existingConfig?.endpoint_overrides || {},
@@ -97,7 +97,7 @@ export function useProviderConfigForm({
 			Object.keys(existingConfig.endpoint_overrides).length > 0;
 
 		form.reset({
-			apiKey: "",
+			apiKey: existingConfig?.api_key || "",
 			baseUrl: existingConfig?.base_url || "",
 			useEndpointOverrides: hasOverrides || false,
 			endpointOverrides: existingConfig?.endpoint_overrides || {},
@@ -105,6 +105,7 @@ export function useProviderConfigForm({
 		createMutation.reset();
 		updateMutation.reset();
 	}, [
+		existingConfig?.api_key,
 		existingConfig?.base_url,
 		existingConfig?.endpoint_overrides,
 		createMutation.reset,
@@ -115,8 +116,10 @@ export function useProviderConfigForm({
 	const onSubmit = async (data: FormData) => {
 		const apiData: UpdateProviderApiRequest = {};
 
-		if (data.apiKey?.trim()) {
-			apiData.api_key = data.apiKey.trim();
+		// Only send API key if it has changed from the existing value
+		const trimmedApiKey = data.apiKey?.trim();
+		if (trimmedApiKey && trimmedApiKey !== existingConfig?.api_key) {
+			apiData.api_key = trimmedApiKey;
 		}
 
 		// Always send base_url if it's defined (including empty string to clear it)
@@ -155,7 +158,7 @@ export function useProviderConfigForm({
 			}
 
 			form.reset({
-				apiKey: "",
+				apiKey: existingConfig?.api_key || "",
 				baseUrl: existingConfig?.base_url || "",
 				useEndpointOverrides: false,
 				endpointOverrides: {},

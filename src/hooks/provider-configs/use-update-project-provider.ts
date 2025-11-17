@@ -34,7 +34,7 @@ export const useUpdateProjectProvider = (
 											base_url: variables.data.base_url,
 										}),
 										...(variables.data.api_key !== undefined && {
-											has_api_key: true,
+											api_key: variables.data.api_key,
 										}),
 										...(variables.data.enabled !== undefined && {
 											enabled: variables.data.enabled,
