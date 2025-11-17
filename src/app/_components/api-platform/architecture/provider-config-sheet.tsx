@@ -276,196 +276,235 @@ export function ProviderConfigSheet({
 
 				{uiState.showConfigForm && (
 					<Form {...form}>
-						<form
-							onSubmit={form.handleSubmit(onSubmit)}
-							className="mt-6 space-y-6 px-6"
-						>
-							<FormField
-								control={form.control}
-								name="apiKey"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											API Key
-											{!isProjectLevel && (
-												<span className="ml-1 text-destructive">*</span>
-											)}
-										</FormLabel>
-										<FormControl>
-											<div className="relative">
-												<Input
-													{...field}
-													type={uiState.showApiKey ? "text" : "password"}
-													placeholder={
-														isProjectLevel
-															? "Enter new API key to update"
-															: "Enter your API key"
-													}
-													autoComplete="off"
-												/>
-												<Button
-													type="button"
-													variant="ghost"
-													size="sm"
-													className="absolute top-0 right-0 h-full px-3 hover:bg-transparent"
-													onClick={() =>
-														setUiState((prev) => ({
-															...prev,
-															showApiKey: !prev.showApiKey,
-														}))
-													}
-												>
-													{uiState.showApiKey ? (
-														<EyeOff className="h-4 w-4" />
-													) : (
-														<Eye className="h-4 w-4" />
-													)}
-												</Button>
-											</div>
-										</FormControl>
-										<FormDescription>
-											{isProjectLevel
-												? "Leave empty to keep existing API key"
-												: isOrgLevel
-													? "Provide a project-specific API key to override organization settings"
-													: "Your API key will be stored securely"}
-										</FormDescription>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={form.control}
-								name="baseUrl"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											{useEndpointOverrides
-												? "Default Base URL (Optional)"
-												: "Base URL"}
-										</FormLabel>
-										<FormControl>
-											<Input
-												{...field}
-												placeholder="https://api.example.com/v1"
-											/>
-										</FormControl>
-										<FormDescription>
-											{useEndpointOverrides
-												? "Fallback for endpoints without custom URL"
-												: "Custom API endpoint URL (optional)"}
-										</FormDescription>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							{/* Endpoint Override Toggle */}
-							<div className="rounded-lg border p-4">
-								<div className="flex items-center justify-between">
-									<div className="space-y-0.5">
-										<Label className="text-base">
-											Configure per-endpoint URLs
-										</Label>
-										<p className="text-muted-foreground text-sm">
-											Use different base URLs for each endpoint type
-										</p>
-									</div>
-									<FormField
-										control={form.control}
-										name="useEndpointOverrides"
-										render={({ field }) => (
-											<FormControl>
-												<div className="flex items-center gap-2">
-													<Switch
-														checked={field.value}
-														onCheckedChange={field.onChange}
-													/>
-													<TooltipProvider>
+						<TooltipProvider>
+							<form
+								onSubmit={form.handleSubmit(onSubmit)}
+								className="mt-6 space-y-6 px-6"
+							>
+								<FormField
+									control={form.control}
+									name="apiKey"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>
+												<div className="flex items-center gap-1.5">
+													<span>
+														API Key
+														{!isProjectLevel && (
+															<span className="ml-1 text-destructive">*</span>
+														)}
+													</span>
+													{!isCustom && (
 														<Tooltip>
 															<TooltipTrigger asChild>
-																<HelpCircle className="h-4 w-4 cursor-help text-muted-foreground" />
+																<Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" />
 															</TooltipTrigger>
 															<TooltipContent>
-																<p>
-																	Useful when your provider supports multiple
-																	compatibility formats like OpenAI, Anthropic,
-																	or Gemini
+																<p className="max-w-xs">
+																	If not filled for built-in providers, Adaptive
+																	will use our managed API keys automatically
 																</p>
 															</TooltipContent>
 														</Tooltip>
-													</TooltipProvider>
+													)}
+												</div>
+											</FormLabel>
+											<FormControl>
+												<div className="relative">
+													<Input
+														{...field}
+														type={uiState.showApiKey ? "text" : "password"}
+														placeholder={
+															isProjectLevel
+																? "Enter new API key to update"
+																: "Enter your API key"
+														}
+														autoComplete="off"
+													/>
+													<Button
+														type="button"
+														variant="ghost"
+														size="sm"
+														className="absolute top-0 right-0 h-full px-3 hover:bg-transparent"
+														onClick={() =>
+															setUiState((prev) => ({
+																...prev,
+																showApiKey: !prev.showApiKey,
+															}))
+														}
+													>
+														{uiState.showApiKey ? (
+															<EyeOff className="h-4 w-4" />
+														) : (
+															<Eye className="h-4 w-4" />
+														)}
+													</Button>
 												</div>
 											</FormControl>
-										)}
-									/>
-								</div>
-							</div>
+											<FormDescription>
+												{isProjectLevel
+													? "Leave empty to keep existing API key"
+													: isOrgLevel
+														? "Provide a project-specific API key to override organization settings"
+														: "Your API key will be stored securely"}
+											</FormDescription>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-							{/* Endpoint Override Fields */}
-							{useEndpointOverrides && availableEndpoints.length > 0 && (
-								<div className="space-y-4">
-									<Separator />
-									<div className="space-y-1">
-										<Label className="font-medium text-sm">Endpoint URLs</Label>
-										<p className="text-muted-foreground text-xs">
-											Configure base URLs for each endpoint type. Leave empty to
-											use default above.
-										</p>
-									</div>
+								<FormField
+									control={form.control}
+									name="baseUrl"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>
+												<div className="flex items-center gap-1.5">
+													<span>
+														{useEndpointOverrides
+															? "Default Base URL (Optional)"
+															: "Base URL"}
+													</span>
+													{!isCustom && (
+														<Tooltip>
+															<TooltipTrigger asChild>
+																<Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" />
+															</TooltipTrigger>
+															<TooltipContent>
+																<p className="max-w-xs">
+																	If not filled for built-in providers, Adaptive
+																	will use our default API endpoints
+																	automatically
+																</p>
+															</TooltipContent>
+														</Tooltip>
+													)}
+												</div>
+											</FormLabel>
+											<FormControl>
+												<Input
+													{...field}
+													placeholder="https://api.example.com/v1"
+												/>
+											</FormControl>
+											<FormDescription>
+												{useEndpointOverrides
+													? "Fallback for endpoints without custom URL"
+													: "Custom API endpoint URL (optional)"}
+											</FormDescription>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
 
-									{availableEndpoints.map((endpoint) => (
+								{/* Endpoint Override Toggle */}
+								<div className="rounded-lg border p-4">
+									<div className="flex items-center justify-between">
+										<div className="space-y-0.5">
+											<Label className="text-base">
+												Configure per-endpoint URLs
+											</Label>
+											<p className="text-muted-foreground text-sm">
+												Use different base URLs for each endpoint type
+											</p>
+										</div>
 										<FormField
-											key={endpoint}
 											control={form.control}
-											name={`endpointOverrides.${endpoint}.base_url`}
+											name="useEndpointOverrides"
 											render={({ field }) => (
-												<FormItem>
-													<FormLabel className="text-sm">
-														{endpoint.replace(/_/g, " ")}
-													</FormLabel>
-													<FormControl>
-														<Input
-															type="url"
-															placeholder="https://api.example.com"
-															{...field}
-															value={field.value || ""}
+												<FormControl>
+													<div className="flex items-center gap-2">
+														<Switch
+															checked={field.value}
+															onCheckedChange={field.onChange}
 														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
+														<TooltipProvider>
+															<Tooltip>
+																<TooltipTrigger asChild>
+																	<HelpCircle className="h-4 w-4 cursor-help text-muted-foreground" />
+																</TooltipTrigger>
+																<TooltipContent>
+																	<p>
+																		Useful when your provider supports multiple
+																		compatibility formats like OpenAI,
+																		Anthropic, or Gemini
+																	</p>
+																</TooltipContent>
+															</Tooltip>
+														</TooltipProvider>
+													</div>
+												</FormControl>
 											)}
 										/>
-									))}
+									</div>
 								</div>
-							)}
 
-							<div className="flex gap-2 pt-4">
-								<Button
-									type="button"
-									variant="outline"
-									className="flex-1"
-									onClick={() => form.reset()}
-									disabled={!isDirty || isLoading}
-								>
-									Reset
-								</Button>
-								<Button
-									type="submit"
-									className="flex-1"
-									disabled={!isValid || isLoading}
-								>
-									{saveState === "loading"
-										? "Saving..."
-										: saveState === "success"
-											? "Saved!"
-											: isProjectLevel
-												? "Update"
-												: "Create Override"}
-								</Button>
-							</div>
-						</form>
+								{/* Endpoint Override Fields */}
+								{useEndpointOverrides && availableEndpoints.length > 0 && (
+									<div className="space-y-4">
+										<Separator />
+										<div className="space-y-1">
+											<Label className="font-medium text-sm">
+												Endpoint URLs
+											</Label>
+											<p className="text-muted-foreground text-xs">
+												Configure base URLs for each endpoint type. Leave empty
+												to use default above.
+											</p>
+										</div>
+
+										{availableEndpoints.map((endpoint) => (
+											<FormField
+												key={endpoint}
+												control={form.control}
+												name={`endpointOverrides.${endpoint}.base_url`}
+												render={({ field }) => (
+													<FormItem>
+														<FormLabel className="text-sm">
+															{endpoint.replace(/_/g, " ")}
+														</FormLabel>
+														<FormControl>
+															<Input
+																type="url"
+																placeholder="https://api.example.com"
+																{...field}
+																value={field.value || ""}
+															/>
+														</FormControl>
+														<FormMessage />
+													</FormItem>
+												)}
+											/>
+										))}
+									</div>
+								)}
+
+								<div className="flex gap-2 pt-4">
+									<Button
+										type="button"
+										variant="outline"
+										className="flex-1"
+										onClick={() => form.reset()}
+										disabled={!isDirty || isLoading}
+									>
+										Reset
+									</Button>
+									<Button
+										type="submit"
+										className="flex-1"
+										disabled={!isValid || isLoading}
+									>
+										{saveState === "loading"
+											? "Saving..."
+											: saveState === "success"
+												? "Saved!"
+												: isProjectLevel
+													? "Update"
+													: "Create Override"}
+									</Button>
+								</div>
+							</form>
+						</TooltipProvider>
 					</Form>
 				)}
 			</SheetContent>
