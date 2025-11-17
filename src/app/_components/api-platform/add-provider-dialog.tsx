@@ -55,41 +55,43 @@ const createProviderSchema = z
 		baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
 		useEndpointOverrides: z.boolean(),
 		endpointOverrides: z
-			.record(
-				z.string(),
-				z.object({
-					base_url: z.union([z.string().url(), z.literal("")]).optional(),
-				}),
-			)
+			.object({
+				chat_completions: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+				messages: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+				generate: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+				count_tokens: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+				select_model: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+			})
 			.optional(),
 	})
 	.superRefine((data, ctx) => {
-		const isCustomProvider = !PROVIDER_METADATA[data.provider as ProviderName];
-		if (isCustomProvider) {
-			if (!/^[a-z0-9-]+$/.test(data.provider)) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "Only lowercase letters, numbers, and hyphens allowed",
-					path: ["provider"],
-				});
-			}
-			// Custom providers require both API key and BaseURL (if not using overrides)
-			if (!data.apiKey || data.apiKey.trim() === "") {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "API key is required for custom providers",
-					path: ["apiKey"],
-				});
-			}
-			if (!data.useEndpointOverrides) {
-				if (!data.baseUrl || data.baseUrl.trim() === "") {
-					ctx.addIssue({
-						code: z.ZodIssueCode.custom,
-						message: "Base URL is required for custom providers",
-						path: ["baseUrl"],
-					});
-				}
-			}
+		// Validate that provider is a known built-in provider
+		if (!PROVIDER_METADATA[data.provider as ProviderName]) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "Please select a valid provider",
+				path: ["provider"],
+			});
 		}
 
 		// Validate endpoint overrides if enabled
@@ -181,28 +183,26 @@ export function AddProviderDialog({
 			? PROVIDER_METADATA[selectedProvider as ProviderName]
 			: null;
 
-	const isCustomProvider = selectedProvider && !metadata;
-
 	// Get available endpoints based on provider configuration
 	const availableEndpoints = useMemo(() => {
-		if (selectedProvider && !isCustomProvider) {
+		if (selectedProvider && metadata) {
 			return (
 				PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
 					?.supported_endpoints ?? []
 			);
 		}
 		return [];
-	}, [selectedProvider, isCustomProvider]);
+	}, [selectedProvider, metadata]);
 
 	// Auto-populate endpoint types for built-in providers
 	useEffect(() => {
-		if (selectedProvider && !isCustomProvider) {
+		if (selectedProvider && metadata) {
 			const _supportedEndpoints =
 				PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
 					?.supported_endpoints ?? [];
 			// Note: We don't auto-set endpoint_types in form since it's optional and can be inferred
 		}
-	}, [selectedProvider, isCustomProvider]);
+	}, [selectedProvider, metadata]);
 
 	useEffect(() => {
 		if (!open) {
@@ -219,13 +219,12 @@ export function AddProviderDialog({
 				)
 			: undefined;
 
-		// Get supported endpoints for built-in providers
-		let endpointTypes: EndpointType[] | undefined;
-		if (!isCustomProvider && selectedProvider) {
-			endpointTypes =
-				PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
-					?.supported_endpoints;
-		}
+		// Get supported endpoints for the provider
+		const endpointTypes =
+			selectedProvider && metadata
+				? PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
+						?.supported_endpoints
+				: undefined;
 
 		// Prepare form data for tRPC
 		const formData = {
@@ -300,19 +299,14 @@ export function AddProviderDialog({
 												options={builtInProviders}
 												value={field.value}
 												onValueChange={field.onChange}
-												placeholder="Select or type provider name..."
+												placeholder="Select provider..."
 												searchPlaceholder="Search providers..."
 												emptyText="No provider found."
-												allowCustomValue={true}
-												customValuePattern={/^[a-z0-9-]+$/}
-												customValueError="Only lowercase letters, numbers, and hyphens allowed"
 											/>
 										</div>
 									</FormControl>
 									<FormDescription>
-										{isCustomProvider
-											? "Custom provider name (lowercase letters, numbers, hyphens)"
-											: "Select a built-in provider or type a custom name"}
+										Select a provider from the list
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -324,22 +318,13 @@ export function AddProviderDialog({
 							name="apiKey"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>
-										API Key
-										{isCustomProvider && (
-											<span className="text-red-500"> *</span>
-										)}
-									</FormLabel>
+									<FormLabel>API Key</FormLabel>
 									<FormControl>
 										<div className="relative">
 											<Input
 												id="api-key-input"
 												type={showApiKey ? "text" : "password"}
-												placeholder={
-													isCustomProvider
-														? "Enter API key (required)"
-														: "Enter API key (optional)"
-												}
+												placeholder="Enter API key (optional)"
 												disabled={!selectedProvider}
 												className="pr-10"
 												{...field}
@@ -361,9 +346,7 @@ export function AddProviderDialog({
 										</div>
 									</FormControl>
 									<FormDescription>
-										{isCustomProvider
-											? "API key is required for custom providers"
-											: "Leave empty to use YAML config default"}
+										Leave empty to use default configuration
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -379,9 +362,6 @@ export function AddProviderDialog({
 										{useEndpointOverrides
 											? "Default Base URL (Optional)"
 											: "Base URL"}
-										{isCustomProvider && !useEndpointOverrides && (
-											<span className="text-red-500"> *</span>
-										)}
 									</FormLabel>
 									<FormControl>
 										<Input
@@ -395,9 +375,7 @@ export function AddProviderDialog({
 									<FormDescription>
 										{useEndpointOverrides
 											? "Fallback for endpoints without custom URL"
-											: isCustomProvider
-												? "Base URL is required for custom providers"
-												: "Leave empty to use YAML config default"}
+											: "Leave empty to use default configuration"}
 									</FormDescription>
 									<FormMessage />
 								</FormItem>

@@ -53,12 +53,33 @@ const editProviderSchema = z.object({
 	baseUrl: z.union([z.url(), z.literal("")]).optional(),
 	useEndpointOverrides: z.boolean(),
 	endpointOverrides: z
-		.record(
-			z.string(),
-			z.object({
-				base_url: z.union([z.url(), z.literal("")]).optional(),
-			}),
-		)
+		.object({
+			chat_completions: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			messages: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			generate: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			count_tokens: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			select_model: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+		})
 		.optional(),
 });
 
@@ -75,7 +96,7 @@ interface EditProviderDialogProps {
 		endpoint_types?: EndpointType[];
 		has_api_key?: boolean;
 		base_url?: string;
-		endpoint_overrides?: Record<EndpointType, EndpointOverride>;
+		endpoint_overrides?: Partial<Record<EndpointType, EndpointOverride>>;
 	};
 }
 
@@ -89,7 +110,6 @@ export function EditProviderDialog({
 	existingConfig,
 }: EditProviderDialogProps) {
 	const metadata = PROVIDER_METADATA[providerName as ProviderName];
-	const isCustomProvider = !metadata;
 	const [showApiKey, setShowApiKey] = useState(false);
 
 	// Auto-detect if existing config has endpoint overrides
@@ -114,14 +134,14 @@ export function EditProviderDialog({
 
 	// Get available endpoints based on provider configuration
 	const availableEndpoints = useMemo(() => {
-		if (!isCustomProvider) {
+		if (metadata) {
 			return (
 				PROVIDER_ENDPOINT_CONFIG[providerName as ProviderName]
 					?.supported_endpoints ?? []
 			);
 		}
 		return existingConfig?.endpoint_types || [];
-	}, [isCustomProvider, providerName, existingConfig?.endpoint_types]);
+	}, [metadata, providerName, existingConfig?.endpoint_types]);
 
 	useEffect(() => {
 		if (!open) {

@@ -117,6 +117,7 @@ export const PROVIDER_ENDPOINT_CONFIG: Record<
 		default_endpoint_overrides: {
 			messages: { base_url: "https://api.z.ai/api/anthropic" },
 			chat_completions: { base_url: "https://api.z.ai/api/paas/v4" },
+			select_model: { base_url: "https://api.z.ai/api/paas/v4" },
 		},
 	},
 };
@@ -281,7 +282,13 @@ export const createProviderFormSchema = z.object({
 		.optional(),
 	endpoint_types: z.array(z.enum(endpointTypes)).optional(),
 	endpoint_overrides: z
-		.record(z.enum(endpointTypes), endpointOverrideSchema.optional())
+		.object({
+			chat_completions: endpointOverrideSchema.optional(),
+			messages: endpointOverrideSchema.optional(),
+			generate: endpointOverrideSchema.optional(),
+			count_tokens: endpointOverrideSchema.optional(),
+			select_model: endpointOverrideSchema.optional(),
+		})
 		.optional(),
 });
 
@@ -294,7 +301,13 @@ export const updateProviderFormSchema = z.object({
 	endpoint_types: z.array(z.enum(endpointTypes)).optional(),
 	enabled: z.boolean().optional(),
 	endpoint_overrides: z
-		.record(z.enum(endpointTypes), endpointOverrideSchema.optional())
+		.object({
+			chat_completions: endpointOverrideSchema.optional(),
+			messages: endpointOverrideSchema.optional(),
+			generate: endpointOverrideSchema.optional(),
+			count_tokens: endpointOverrideSchema.optional(),
+			select_model: endpointOverrideSchema.optional(),
+		})
 		.optional(),
 });
 

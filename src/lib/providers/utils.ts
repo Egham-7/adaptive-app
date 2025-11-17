@@ -87,15 +87,17 @@ export function getProviderEndpointLabels(provider: ProviderName): string[] {
  * @returns Cleaned overrides with empty entries removed, or undefined if all empty
  */
 export function cleanEndpointOverrides(
-	overrides: Record<string, EndpointOverride | undefined> | undefined,
-): Record<string, EndpointOverride> | undefined {
+	overrides: Partial<Record<EndpointType, EndpointOverride>> | undefined,
+): Partial<Record<EndpointType, EndpointOverride>> | undefined {
 	if (!overrides) return undefined;
 
-	const cleaned: Record<string, EndpointOverride> = {};
+	const cleaned: Partial<Record<EndpointType, EndpointOverride>> = {};
 	for (const [endpoint, override] of Object.entries(overrides)) {
 		// Include override if it exists and has a base_url (including empty strings for clearing)
 		if (override && typeof override.base_url === "string") {
-			cleaned[endpoint] = { base_url: override.base_url.trim() };
+			cleaned[endpoint as EndpointType] = {
+				base_url: override.base_url.trim(),
+			};
 		}
 	}
 
