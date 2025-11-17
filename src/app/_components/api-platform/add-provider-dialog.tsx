@@ -27,13 +27,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProviderLogo } from "@/components/ui/provider-logo";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -48,11 +41,9 @@ import {
 } from "@/hooks/provider-configs";
 import { cleanEndpointOverrides } from "@/lib/providers/utils";
 import {
-	API_COMPATIBILITY_METADATA,
-	type ApiCompatibilityType,
 	type EndpointOverride,
 	type EndpointType,
-	PROVIDER_COMPATIBILITY_DEFAULTS,
+	PROVIDER_ENDPOINT_CONFIG,
 	PROVIDER_METADATA,
 	type ProviderName,
 } from "@/types/providers";
@@ -60,46 +51,47 @@ import {
 const createProviderSchema = z
 	.object({
 		provider: z.string().min(1, "Provider is required"),
-		apiCompatibility: z.enum(["openai", "anthropic", "google-ai-studio"]),
 		apiKey: z.string().optional(),
 		baseUrl: z.union([z.string().url(), z.literal("")]).optional(),
 		useEndpointOverrides: z.boolean(),
 		endpointOverrides: z
-			.record(
-				z.string(),
-				z.object({
-					base_url: z.union([z.string().url(), z.literal("")]).optional(),
-				}),
-			)
+			.object({
+				chat_completions: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+				messages: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+				generate: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+				count_tokens: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+				select_model: z
+					.object({
+						base_url: z.union([z.string().url(), z.literal("")]).optional(),
+					})
+					.optional(),
+			})
 			.optional(),
 	})
 	.superRefine((data, ctx) => {
-		const isCustomProvider = !PROVIDER_METADATA[data.provider as ProviderName];
-		if (isCustomProvider) {
-			if (!/^[a-z0-9-]+$/.test(data.provider)) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "Only lowercase letters, numbers, and hyphens allowed",
-					path: ["provider"],
-				});
-			}
-			// Custom providers require both API key and BaseURL (if not using overrides)
-			if (!data.apiKey || data.apiKey.trim() === "") {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "API key is required for custom providers",
-					path: ["apiKey"],
-				});
-			}
-			if (!data.useEndpointOverrides) {
-				if (!data.baseUrl || data.baseUrl.trim() === "") {
-					ctx.addIssue({
-						code: z.ZodIssueCode.custom,
-						message: "Base URL is required for custom providers",
-						path: ["baseUrl"],
-					});
-				}
-			}
+		// Validate that provider is a known built-in provider
+		if (!PROVIDER_METADATA[data.provider as ProviderName]) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "Please select a valid provider",
+				path: ["provider"],
+			});
 		}
 
 		// Validate endpoint overrides if enabled
@@ -148,7 +140,6 @@ export function AddProviderDialog({
 		resolver: zodResolver(createProviderSchema),
 		defaultValues: {
 			provider: "",
-			apiCompatibility: "openai", // Default to OpenAI-compatible
 			apiKey: "",
 			baseUrl: "",
 			useEndpointOverrides: false,
@@ -186,31 +177,29 @@ export function AddProviderDialog({
 
 	const selectedProvider = form.watch("provider");
 	const useEndpointOverrides = form.watch("useEndpointOverrides");
-	const apiCompatibility = form.watch("apiCompatibility");
 
 	const metadata =
 		selectedProvider && PROVIDER_METADATA[selectedProvider as ProviderName]
 			? PROVIDER_METADATA[selectedProvider as ProviderName]
 			: null;
 
-	const isCustomProvider = selectedProvider && !metadata;
-
-	// Get available endpoints based on API compatibility
-	const availableEndpoints = useMemo(
-		() => API_COMPATIBILITY_METADATA[apiCompatibility]?.endpoints || [],
-		[apiCompatibility],
-	);
-
-	// Auto-select API compatibility for built-in providers
-	useEffect(() => {
-		if (selectedProvider && !isCustomProvider) {
-			const defaultCompatibility =
-				PROVIDER_COMPATIBILITY_DEFAULTS[selectedProvider as ProviderName];
-			if (defaultCompatibility) {
-				form.setValue("apiCompatibility", defaultCompatibility);
-			}
+	// Get available endpoints based on provider configuration
+	const availableEndpoints = useMemo(() => {
+		if (selectedProvider && metadata) {
+			return (
+				PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
+					?.supported_endpoints ?? []
+			);
 		}
-	}, [selectedProvider, isCustomProvider, form]);
+		return [];
+	}, [selectedProvider, metadata]);
+
+	// Auto-populate endpoint types for built-in providers
+	useEffect(() => {
+		if (selectedProvider && metadata) {
+			// Note: We don't auto-set endpoint_types in form since it's optional and can be inferred
+		}
+	}, [selectedProvider, metadata]);
 
 	useEffect(() => {
 		if (!open) {
@@ -227,10 +216,17 @@ export function AddProviderDialog({
 				)
 			: undefined;
 
+		// Get supported endpoints for the provider
+		const endpointTypes =
+			selectedProvider && metadata
+				? PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
+						?.supported_endpoints
+				: undefined;
+
 		// Prepare form data for tRPC
 		const formData = {
 			provider_name: values.provider,
-			api_compatibility: values.apiCompatibility,
+			endpoint_types: endpointTypes,
 			api_key: values.apiKey || undefined,
 			base_url: values.baseUrl,
 			endpoint_overrides: cleanedOverrides,
@@ -300,91 +296,32 @@ export function AddProviderDialog({
 												options={builtInProviders}
 												value={field.value}
 												onValueChange={field.onChange}
-												placeholder="Select or type provider name..."
+												placeholder="Select provider..."
 												searchPlaceholder="Search providers..."
 												emptyText="No provider found."
-												allowCustomValue={true}
-												customValuePattern={/^[a-z0-9-]+$/}
-												customValueError="Only lowercase letters, numbers, and hyphens allowed"
 											/>
 										</div>
 									</FormControl>
 									<FormDescription>
-										{isCustomProvider
-											? "Custom provider name (lowercase letters, numbers, hyphens)"
-											: "Select a built-in provider or type a custom name"}
+										Select a provider from the list
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}
 						/>
 
-						{isCustomProvider && (
-							<FormField
-								control={form.control}
-								name="apiCompatibility"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											API Compatibility <span className="text-red-500">*</span>
-										</FormLabel>
-										<Select onValueChange={field.onChange} value={field.value}>
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue placeholder="Select API compatibility" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												{Object.entries(API_COMPATIBILITY_METADATA).map(
-													([key, metadata]) => (
-														<SelectItem key={key} value={key}>
-															{metadata.label}
-														</SelectItem>
-													),
-												)}
-											</SelectContent>
-										</Select>
-										<FormDescription>
-											{field.value &&
-												API_COMPATIBILITY_METADATA[
-													field.value as ApiCompatibilityType
-												]?.description}
-											<br />
-											<span className="text-muted-foreground text-xs">
-												Examples:{" "}
-												{field.value &&
-													API_COMPATIBILITY_METADATA[
-														field.value as ApiCompatibilityType
-													]?.examples.join(", ")}
-											</span>
-										</FormDescription>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						)}
-
 						<FormField
 							control={form.control}
 							name="apiKey"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>
-										API Key
-										{isCustomProvider && (
-											<span className="text-red-500"> *</span>
-										)}
-									</FormLabel>
+									<FormLabel>API Key</FormLabel>
 									<FormControl>
 										<div className="relative">
 											<Input
 												id="api-key-input"
 												type={showApiKey ? "text" : "password"}
-												placeholder={
-													isCustomProvider
-														? "Enter API key (required)"
-														: "Enter API key (optional)"
-												}
+												placeholder="Enter API key (optional)"
 												disabled={!selectedProvider}
 												className="pr-10"
 												{...field}
@@ -406,9 +343,7 @@ export function AddProviderDialog({
 										</div>
 									</FormControl>
 									<FormDescription>
-										{isCustomProvider
-											? "API key is required for custom providers"
-											: "Leave empty to use YAML config default"}
+										Leave empty to use default configuration
 									</FormDescription>
 									<FormMessage />
 								</FormItem>
@@ -424,9 +359,6 @@ export function AddProviderDialog({
 										{useEndpointOverrides
 											? "Default Base URL (Optional)"
 											: "Base URL"}
-										{isCustomProvider && !useEndpointOverrides && (
-											<span className="text-red-500"> *</span>
-										)}
 									</FormLabel>
 									<FormControl>
 										<Input
@@ -440,9 +372,7 @@ export function AddProviderDialog({
 									<FormDescription>
 										{useEndpointOverrides
 											? "Fallback for endpoints without custom URL"
-											: isCustomProvider
-												? "Base URL is required for custom providers"
-												: "Leave empty to use YAML config default"}
+											: "Leave empty to use default configuration"}
 									</FormDescription>
 									<FormMessage />
 								</FormItem>

@@ -1,10 +1,11 @@
 import {
-	API_COMPATIBILITY_METADATA,
-	type ApiCompatibilityType,
+	ENDPOINT_METADATA,
 	type EndpointOverride,
 	type EndpointType,
+	PROVIDER_ENDPOINT_CONFIG,
 	PROVIDER_METADATA,
 	type ProviderConfigApiResponse,
+	type ProviderName,
 } from "@/types/providers";
 
 type ProviderMeta = (typeof PROVIDER_METADATA)[keyof typeof PROVIDER_METADATA];
@@ -17,37 +18,63 @@ Object.values(PROVIDER_METADATA).forEach((meta) => {
 });
 
 /**
- * Convert API compatibility type to endpoint types array
- * @param compatibility - The API compatibility type (openai, anthropic, google-ai-studio)
- * @returns Array of endpoint types supported by this compatibility mode
+ * Get supported endpoints for a provider
  */
-export function getEndpointTypesFromCompatibility(
-	compatibility: ApiCompatibilityType,
+export function getProviderSupportedEndpoints(
+	provider: ProviderName,
 ): EndpointType[] {
-	return API_COMPATIBILITY_METADATA[compatibility].endpoints;
+	return PROVIDER_ENDPOINT_CONFIG[provider]?.supported_endpoints ?? [];
 }
 
 /**
- * Get API compatibility from endpoint types (best match)
- * @param endpointTypes - Array of endpoint types to match
- * @returns The matching API compatibility type, or null if no match found
+ * Get default endpoint overrides for a provider
  */
-export function getCompatibilityFromEndpointTypes(
-	endpointTypes: EndpointType[],
-): ApiCompatibilityType | null {
-	// Sort to normalize comparison
-	const sorted = [...endpointTypes].sort().join(",");
+export function getProviderDefaultOverrides(
+	provider: ProviderName,
+): Partial<Record<EndpointType, EndpointOverride>> {
+	return PROVIDER_ENDPOINT_CONFIG[provider]?.default_endpoint_overrides ?? {};
+}
 
-	for (const [compatibility, metadata] of Object.entries(
-		API_COMPATIBILITY_METADATA,
-	)) {
-		const metadataEndpoints = [...metadata.endpoints].sort().join(",");
-		if (sorted === metadataEndpoints) {
-			return compatibility as ApiCompatibilityType;
-		}
-	}
+/**
+ * Merge user overrides with provider defaults
+ */
+export function mergeEndpointOverrides(
+	provider: ProviderName,
+	userOverrides?: Partial<Record<EndpointType, EndpointOverride>>,
+): Partial<Record<EndpointType, EndpointOverride>> {
+	const defaults = getProviderDefaultOverrides(provider);
+	return { ...defaults, ...userOverrides };
+}
 
-	return null; // Custom/mixed endpoints
+/**
+ * Get user-friendly endpoint label
+ */
+export function getEndpointLabel(endpoint: EndpointType): string {
+	return ENDPOINT_METADATA[endpoint]?.label ?? endpoint;
+}
+
+/**
+ * Get endpoint description
+ */
+export function getEndpointDescription(endpoint: EndpointType): string {
+	return ENDPOINT_METADATA[endpoint]?.description ?? "";
+}
+
+/**
+ * Get providers compatible with an endpoint
+ */
+export function getEndpointCompatibleProviders(
+	endpoint: EndpointType,
+): ProviderName[] {
+	return ENDPOINT_METADATA[endpoint]?.compatible_providers ?? [];
+}
+
+/**
+ * Get user-friendly labels for provider's supported endpoints
+ */
+export function getProviderEndpointLabels(provider: ProviderName): string[] {
+	const endpoints = getProviderSupportedEndpoints(provider);
+	return endpoints.map(getEndpointLabel);
 }
 
 // ============================================================================
@@ -60,15 +87,17 @@ export function getCompatibilityFromEndpointTypes(
  * @returns Cleaned overrides with empty entries removed, or undefined if all empty
  */
 export function cleanEndpointOverrides(
-	overrides: Record<string, EndpointOverride | undefined> | undefined,
-): Record<string, EndpointOverride> | undefined {
+	overrides: Partial<Record<EndpointType, EndpointOverride>> | undefined,
+): Partial<Record<EndpointType, EndpointOverride>> | undefined {
 	if (!overrides) return undefined;
 
-	const cleaned: Record<string, EndpointOverride> = {};
+	const cleaned: Partial<Record<EndpointType, EndpointOverride>> = {};
 	for (const [endpoint, override] of Object.entries(overrides)) {
 		// Include override if it exists and has a base_url (including empty strings for clearing)
 		if (override && typeof override.base_url === "string") {
-			cleaned[endpoint] = { base_url: override.base_url.trim() };
+			cleaned[endpoint as EndpointType] = {
+				base_url: override.base_url.trim(),
+			};
 		}
 	}
 

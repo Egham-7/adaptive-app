@@ -26,13 +26,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProviderLogo } from "@/components/ui/provider-logo";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -45,35 +38,48 @@ import {
 	useUpdateOrganizationProvider,
 	useUpdateProjectProvider,
 } from "@/hooks/provider-configs";
-import {
-	getCompatibilityFromEndpointTypes,
-	getEndpointTypesFromCompatibility,
-} from "@/lib/providers";
 import { cleanEndpointOverrides } from "@/lib/providers/utils";
 import {
-	API_COMPATIBILITY_METADATA,
-	type ApiCompatibilityType,
 	type EndpointOverride,
 	type EndpointType,
+	PROVIDER_ENDPOINT_CONFIG,
 	PROVIDER_METADATA,
 	type ProviderName,
 	type UpdateProviderApiRequest,
 } from "@/types/providers";
 
 const editProviderSchema = z.object({
-	apiCompatibility: z
-		.enum(["openai", "anthropic", "google-ai-studio"])
-		.optional(),
 	apiKey: z.string().optional(),
 	baseUrl: z.union([z.url(), z.literal("")]).optional(),
 	useEndpointOverrides: z.boolean(),
 	endpointOverrides: z
-		.record(
-			z.string(),
-			z.object({
-				base_url: z.union([z.url(), z.literal("")]).optional(),
-			}),
-		)
+		.object({
+			chat_completions: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			messages: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			generate: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			count_tokens: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			select_model: z
+				.object({
+					base_url: z.union([z.string().url(), z.literal("")]).optional(),
+				})
+				.optional(),
+		})
 		.optional(),
 });
 
@@ -90,7 +96,7 @@ interface EditProviderDialogProps {
 		endpoint_types?: EndpointType[];
 		has_api_key?: boolean;
 		base_url?: string;
-		endpoint_overrides?: Record<EndpointType, EndpointOverride>;
+		endpoint_overrides?: Partial<Record<EndpointType, EndpointOverride>>;
 	};
 }
 
@@ -104,15 +110,7 @@ export function EditProviderDialog({
 	existingConfig,
 }: EditProviderDialogProps) {
 	const metadata = PROVIDER_METADATA[providerName as ProviderName];
-	const isCustomProvider = !metadata;
 	const [showApiKey, setShowApiKey] = useState(false);
-	const [showCompatibilityWarning, setShowCompatibilityWarning] =
-		useState(false);
-
-	// Derive API compatibility from existing endpoint_types
-	const currentCompatibility = existingConfig?.endpoint_types
-		? getCompatibilityFromEndpointTypes(existingConfig.endpoint_types)
-		: null;
 
 	// Auto-detect if existing config has endpoint overrides
 	const hasExistingOverrides =
@@ -122,7 +120,6 @@ export function EditProviderDialog({
 	const form = useForm<EditProviderFormValues>({
 		resolver: zodResolver(editProviderSchema),
 		defaultValues: {
-			apiCompatibility: currentCompatibility ?? undefined,
 			apiKey: "",
 			baseUrl: existingConfig?.base_url || "",
 			useEndpointOverrides: hasExistingOverrides || false,
@@ -134,56 +131,37 @@ export function EditProviderDialog({
 	const updateOrgProvider = useUpdateOrganizationProvider();
 
 	const useEndpointOverrides = form.watch("useEndpointOverrides");
-	const selectedApiCompatibility = form.watch("apiCompatibility");
 
-	// Get available endpoints based on API compatibility
-	const availableEndpoints = useMemo(
-		() =>
-			selectedApiCompatibility
-				? API_COMPATIBILITY_METADATA[selectedApiCompatibility]?.endpoints || []
-				: existingConfig?.endpoint_types || [],
-		[selectedApiCompatibility, existingConfig?.endpoint_types],
-	);
+	// Get available endpoints based on provider configuration
+	const availableEndpoints = useMemo(() => {
+		if (metadata) {
+			return (
+				PROVIDER_ENDPOINT_CONFIG[providerName as ProviderName]
+					?.supported_endpoints ?? []
+			);
+		}
+		return existingConfig?.endpoint_types || [];
+	}, [metadata, providerName, existingConfig?.endpoint_types]);
 
 	useEffect(() => {
 		if (!open) {
 			form.reset();
 			setShowApiKey(false);
-			setShowCompatibilityWarning(false);
 		} else {
-			const hasExistingOverrides =
-				existingConfig?.endpoint_overrides &&
-				Object.keys(existingConfig.endpoint_overrides).length > 0;
-
-			const currentCompatibility = existingConfig?.endpoint_types
-				? getCompatibilityFromEndpointTypes(existingConfig.endpoint_types)
-				: null;
-
 			form.reset({
-				apiCompatibility: currentCompatibility ?? undefined,
 				apiKey: "",
 				baseUrl: existingConfig?.base_url || "",
 				useEndpointOverrides: hasExistingOverrides || false,
 				endpointOverrides: existingConfig?.endpoint_overrides || {},
 			});
 		}
-	}, [open, existingConfig, form.reset]); // Simplified dependencies
+	}, [open, existingConfig, form.reset, hasExistingOverrides]); // Simplified dependencies
 
 	const onSubmit = (values: EditProviderFormValues) => {
 		const data: UpdateProviderApiRequest = {
 			...(values.apiKey?.trim() && { api_key: values.apiKey.trim() }),
 			...(values.baseUrl?.trim() && { base_url: values.baseUrl.trim() }),
 		};
-
-		// Include endpoint_types if API compatibility changed
-		if (
-			values.apiCompatibility &&
-			values.apiCompatibility !== currentCompatibility
-		) {
-			data.endpoint_types = getEndpointTypesFromCompatibility(
-				values.apiCompatibility as ApiCompatibilityType,
-			);
-		}
 
 		// Include endpoint overrides if enabled
 		if (values.useEndpointOverrides) {
@@ -291,57 +269,6 @@ export function EditProviderDialog({
 								</FormItem>
 							)}
 						/>
-
-						{isCustomProvider && (
-							<FormField
-								control={form.control}
-								name="apiCompatibility"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>API Compatibility</FormLabel>
-										<Select
-											onValueChange={(value) => {
-												if (value !== currentCompatibility) {
-													setShowCompatibilityWarning(true);
-												}
-												field.onChange(value);
-											}}
-											value={field.value || ""}
-										>
-											<FormControl>
-												<SelectTrigger>
-													<SelectValue placeholder="Select API compatibility" />
-												</SelectTrigger>
-											</FormControl>
-											<SelectContent>
-												{Object.entries(API_COMPATIBILITY_METADATA).map(
-													([key, metadata]) => (
-														<SelectItem key={key} value={key}>
-															{metadata.label}
-														</SelectItem>
-													),
-												)}
-											</SelectContent>
-										</Select>
-										{showCompatibilityWarning &&
-											field.value !== currentCompatibility && (
-												<div className="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200">
-													<strong>! Warning:</strong> Changing API compatibility
-													may break existing integrations. Make sure the new
-													format matches your provider's API.
-												</div>
-											)}
-										<FormDescription>
-											{field.value &&
-												API_COMPATIBILITY_METADATA[
-													field.value as ApiCompatibilityType
-												]?.description}
-										</FormDescription>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						)}
 
 						<FormField
 							control={form.control}

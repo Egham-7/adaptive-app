@@ -1,6 +1,5 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { FaChartLine, FaCoins, FaServer } from "react-icons/fa";
 import type { ProjectAnalytics } from "@/types/api-platform/dashboard";
 import { MetricCardSkeleton } from "./loading-skeleton";
@@ -12,8 +11,6 @@ interface MetricsOverviewProps {
 }
 
 export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
-	const _params = useParams();
-
 	if (loading) {
 		return (
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

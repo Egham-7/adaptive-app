@@ -32,10 +32,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useDeleteProjectProvider } from "@/hooks/provider-configs";
 import { useProviderConfigForm } from "@/hooks/provider-configs/use-provider-config-form";
-import { getCompatibilityFromEndpointTypes } from "@/lib/providers";
 import {
-	API_COMPATIBILITY_METADATA,
-	PROVIDER_COMPATIBILITY_DEFAULTS,
+	PROVIDER_ENDPOINT_CONFIG,
 	PROVIDER_METADATA,
 	type ProviderConfigApiResponse,
 	type ProviderName,
@@ -102,24 +100,18 @@ export function ProviderConfigSheet({
 	// Watch form state for endpoint overrides
 	const useEndpointOverrides = form.watch("useEndpointOverrides");
 
-	// Get available endpoints based on provider's API compatibility
-	const currentCompatibility = useMemo(() => {
-		if (existingConfig?.endpoint_types) {
-			return getCompatibilityFromEndpointTypes(existingConfig.endpoint_types);
-		}
+	// Get available endpoints based on provider configuration
+	const availableEndpoints = useMemo(() => {
 		if (!isCustom && metadata) {
-			return PROVIDER_COMPATIBILITY_DEFAULTS[providerName as ProviderName];
+			// For built-in providers, use the configured supported endpoints
+			return (
+				PROVIDER_ENDPOINT_CONFIG[providerName as ProviderName]
+					?.supported_endpoints ?? []
+			);
 		}
-		return "openai";
-	}, [existingConfig?.endpoint_types, isCustom, metadata, providerName]);
-
-	const availableEndpoints = useMemo(
-		() =>
-			currentCompatibility
-				? API_COMPATIBILITY_METADATA[currentCompatibility]?.endpoints || []
-				: [],
-		[currentCompatibility],
-	);
+		// For custom providers, use existing config or empty array
+		return existingConfig?.endpoint_types ?? [];
+	}, [isCustom, metadata, providerName, existingConfig?.endpoint_types]);
 
 	const handleDelete = useCallback(async () => {
 		if (!existingConfig) return;

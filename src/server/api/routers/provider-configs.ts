@@ -1,10 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { ProviderConfigsClient } from "@/lib/api/provider-configs";
-import {
-	cleanEndpointOverrides,
-	getEndpointTypesFromCompatibility,
-} from "@/lib/providers";
+import { cleanEndpointOverrides } from "@/lib/providers/utils";
 import {
 	invalidateOrganizationProviderCache,
 	invalidateProjectCache,
@@ -15,6 +12,8 @@ import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import {
 	type CreateProviderApiRequest,
 	createProviderFormSchema,
+	PROVIDER_ENDPOINT_CONFIG,
+	type ProviderName,
 	updateProviderFormSchema,
 } from "@/types/providers";
 
@@ -80,12 +79,15 @@ export const providerConfigsRouter = createTRPCRouter({
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
 				const client = new ProviderConfigsClient(token);
+
 				// Convert form data to API request format
 				const apiRequest: CreateProviderApiRequest = {
 					...input.data,
-					endpoint_types: getEndpointTypesFromCompatibility(
-						input.data.api_compatibility,
-					),
+					endpoint_types:
+						input.data.endpoint_types ||
+						PROVIDER_ENDPOINT_CONFIG[input.provider as ProviderName]
+							?.supported_endpoints ||
+						[],
 					endpoint_overrides: cleanEndpointOverrides(
 						input.data.endpoint_overrides,
 					),
@@ -147,12 +149,15 @@ export const providerConfigsRouter = createTRPCRouter({
 				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
 
 				const client = new ProviderConfigsClient(token);
+
 				// Convert form data to API request format
 				const apiRequest: CreateProviderApiRequest = {
 					...input.data,
-					endpoint_types: getEndpointTypesFromCompatibility(
-						input.data.api_compatibility,
-					),
+					endpoint_types:
+						input.data.endpoint_types ||
+						PROVIDER_ENDPOINT_CONFIG[input.provider as ProviderName]
+							?.supported_endpoints ||
+						[],
 					endpoint_overrides: cleanEndpointOverrides(
 						input.data.endpoint_overrides,
 					),
@@ -213,9 +218,6 @@ export const providerConfigsRouter = createTRPCRouter({
 				// Convert form data to API request format
 				const apiRequest = {
 					...input.data,
-					endpoint_types: input.data.api_compatibility
-						? getEndpointTypesFromCompatibility(input.data.api_compatibility)
-						: undefined,
 					endpoint_overrides: cleanEndpointOverrides(
 						input.data.endpoint_overrides,
 					),
@@ -368,9 +370,6 @@ export const providerConfigsRouter = createTRPCRouter({
 				// Convert form data to API request format
 				const apiRequest = {
 					...input.data,
-					endpoint_types: input.data.api_compatibility
-						? getEndpointTypesFromCompatibility(input.data.api_compatibility)
-						: undefined,
 					endpoint_overrides: cleanEndpointOverrides(
 						input.data.endpoint_overrides,
 					),

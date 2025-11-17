@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { getEndpointTypesFromCompatibility } from "@/lib/providers";
+
 import { api } from "@/trpc/react";
 import type {
 	ListProvidersApiResponse,
@@ -31,9 +31,7 @@ export const useCreateProjectProvider = (
 					const newProvider: ListProvidersApiResponse["providers"][0] = {
 						id: Date.now(),
 						provider_name: variables.data.provider_name,
-						endpoint_types: getEndpointTypesFromCompatibility(
-							variables.data.api_compatibility,
-						),
+						endpoint_types: variables.data.endpoint_types || [],
 						base_url: variables.data.base_url || "",
 						has_api_key: !!variables.data.api_key,
 						enabled: true,

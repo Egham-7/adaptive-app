@@ -9,6 +9,10 @@ export { getProviderDisplayName } from "./logos";
 // Provider configuration utilities
 export {
 	cleanEndpointOverrides,
-	getCompatibilityFromEndpointTypes,
-	getEndpointTypesFromCompatibility,
+	getEndpointCompatibleProviders,
+	getEndpointLabel,
+	getProviderDefaultOverrides,
+	getProviderEndpointLabels,
+	getProviderSupportedEndpoints,
+	mergeEndpointOverrides,
 } from "./utils";

@@ -9,6 +9,7 @@ import {
 import { cleanEndpointOverrides } from "@/lib/providers/utils";
 import type {
 	EndpointOverride,
+	EndpointType,
 	ProviderConfigApiResponse,
 	UpdateProviderApiRequest,
 } from "@/types/providers";
@@ -18,12 +19,33 @@ const providerConfigFormSchema = z.object({
 	baseUrl: z.union([z.url(), z.literal("")]).optional(),
 	useEndpointOverrides: z.boolean(),
 	endpointOverrides: z
-		.record(
-			z.string(),
-			z.object({
-				base_url: z.union([z.url(), z.literal("")]).optional(),
-			}),
-		)
+		.object({
+			chat_completions: z
+				.object({
+					base_url: z.union([z.url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			messages: z
+				.object({
+					base_url: z.union([z.url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			generate: z
+				.object({
+					base_url: z.union([z.url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			count_tokens: z
+				.object({
+					base_url: z.union([z.url(), z.literal("")]).optional(),
+				})
+				.optional(),
+			select_model: z
+				.object({
+					base_url: z.union([z.url(), z.literal("")]).optional(),
+				})
+				.optional(),
+		})
 		.optional(),
 });
 
@@ -31,7 +53,7 @@ interface FormData {
 	apiKey?: string;
 	baseUrl?: string;
 	useEndpointOverrides: boolean;
-	endpointOverrides?: Record<string, EndpointOverride>;
+	endpointOverrides?: Partial<Record<EndpointType, EndpointOverride>>;
 }
 
 interface UseProviderConfigFormProps {
@@ -122,7 +144,6 @@ export function useProviderConfigForm({
 			} else {
 				const createData = {
 					provider_name: providerName,
-					api_compatibility: "openai" as const,
 					...apiData,
 				};
 
