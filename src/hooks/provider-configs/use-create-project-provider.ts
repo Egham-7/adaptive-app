@@ -33,7 +33,7 @@ export const useCreateProjectProvider = (
 						provider_name: variables.data.provider_name,
 						endpoint_types: variables.data.endpoint_types || [],
 						base_url: variables.data.base_url || "",
-						has_api_key: !!variables.data.api_key,
+						api_key: variables.data.api_key || "",
 						enabled: true,
 						source: "project",
 						created_at: new Date().toISOString(),

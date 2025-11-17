@@ -253,7 +253,11 @@ export function ProviderConfigSheet({
 													<Input
 														{...field}
 														type={uiState.showApiKey ? "text" : "password"}
-														placeholder="Enter new API key to update"
+														placeholder={
+															existingConfig
+																? "Update API key"
+																: "Enter API key"
+														}
 														autoComplete="off"
 													/>
 													<Button
@@ -267,6 +271,11 @@ export function ProviderConfigSheet({
 																showApiKey: !prev.showApiKey,
 															}))
 														}
+														aria-label={
+															uiState.showApiKey
+																? "Hide API key"
+																: "Show API key"
+														}
 													>
 														{uiState.showApiKey ? (
 															<EyeOff className="h-4 w-4" />
@@ -277,7 +286,9 @@ export function ProviderConfigSheet({
 												</div>
 											</FormControl>
 											<FormDescription>
-												Leave empty to keep existing API key
+												{existingConfig
+													? "Update the API key or leave unchanged"
+													: "Enter your API key for this provider"}
 											</FormDescription>
 											<FormMessage />
 										</FormItem>

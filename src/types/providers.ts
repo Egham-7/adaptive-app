@@ -221,7 +221,7 @@ export interface ProviderConfigApiResponse {
 	endpoint_types: EndpointType[];
 	base_url: string;
 	endpoint_overrides?: Partial<Record<EndpointType, EndpointOverride>>;
-	has_api_key: boolean;
+	api_key: string;
 	enabled: boolean;
 	source: "project";
 	created_at: string;
