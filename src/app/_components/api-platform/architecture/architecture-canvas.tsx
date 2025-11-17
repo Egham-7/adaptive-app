@@ -69,7 +69,6 @@ const RADIUS = 500; // Fixed radius for circular layout
 
 interface AdaptiveNodeData {
 	isConfigured: boolean;
-	configSource: "project";
 	onClick: () => void;
 	highlight: boolean;
 }
@@ -118,7 +117,6 @@ const nodeTypes = {
 	adaptive: ({ data }: { data: AdaptiveNodeData }) => (
 		<AdaptiveNodeCard
 			isConfigured={data.isConfigured}
-			configSource={data.configSource}
 			onClick={data.onClick}
 			highlight={data.highlight}
 		/>
@@ -363,9 +361,6 @@ function ArchitectureCanvasInner({
 				},
 				data: {
 					isConfigured: isAdaptiveConfigured,
-					configSource: isAdaptiveConfigured
-						? adaptiveConfig.source
-						: "project",
 					onClick: handleAdaptiveClick,
 					highlight: adaptiveNodeHighlight,
 				},
