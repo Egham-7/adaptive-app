@@ -1,5 +1,6 @@
 "use client";
 
+import { Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProviderLogo } from "@/components/ui/provider-logo";
@@ -66,6 +67,28 @@ const formatLatency = (value?: number | null) => {
 	return `${Math.round(value)} ms`;
 };
 
+interface ColumnHeaderProps {
+	children: React.ReactNode;
+	tooltip: string;
+	className?: string;
+}
+
+function ColumnHeader({ children, tooltip, className }: ColumnHeaderProps) {
+	return (
+		<div className={`flex items-center gap-1.5 ${className ?? ""}`}>
+			<span>{children}</span>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Info className="h-3.5 w-3.5 cursor-help text-muted-foreground" />
+				</TooltipTrigger>
+				<TooltipContent>
+					<p className="max-w-xs">{tooltip}</p>
+				</TooltipContent>
+			</Tooltip>
+		</div>
+	);
+}
+
 export function UsageRequestsTable({ rows, loading }: UsageRequestsTableProps) {
 	return (
 		<Card>
@@ -93,70 +116,107 @@ export function UsageRequestsTable({ rows, loading }: UsageRequestsTableProps) {
 					</div>
 				) : (
 					<div className="max-h-[480px] overflow-auto">
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Timestamp</TableHead>
-									<TableHead>Endpoint</TableHead>
-									<TableHead>Provider / Model</TableHead>
-									<TableHead>Tokens</TableHead>
-									<TableHead className="text-right">Cost</TableHead>
-									<TableHead>Latency</TableHead>
-									<TableHead>Finish Reason</TableHead>
-									<TableHead>Status</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{rows.map((row) => (
-									<TableRow key={`${row.id}-${row.timestamp.getTime()}`}>
-										<TableCell className="whitespace-nowrap">
-											<div className="flex flex-col">
-												<span className="font-medium">
-													{dateFormatter.format(row.timestamp)}
-												</span>
-											</div>
-										</TableCell>
-										<TableCell className="font-medium">
-											{row.endpoint}
-										</TableCell>
-										<TableCell>
-											<ProviderBadge
-												provider={row.provider}
-												model={row.model}
-											/>
-										</TableCell>
-										<TableCell>
-											<div className="flex flex-col">
-												<span className="font-mono text-sm">
-													{(row.promptTokens ?? 0).toLocaleString()} {arrow}{" "}
-													{(row.completionTokens ?? 0).toLocaleString()}
-												</span>
-												<span className="text-muted-foreground text-xs">
-													{(
-														(row.promptTokens ?? 0) +
-														(row.completionTokens ?? 0)
-													).toLocaleString()}{" "}
-													total
-													{row.cachedTokens ? (
-														<> · {row.cachedTokens.toLocaleString()} cached</>
-													) : null}
-												</span>
-											</div>
-										</TableCell>
-										<TableCell className="text-right font-mono text-sm">
-											{currency.format(row.cost)}
-										</TableCell>
-										<TableCell>{formatLatency(row.latencyMs)}</TableCell>
-										<TableCell>{row.finishReason ?? "—"}</TableCell>
-										<TableCell>
-											<Badge variant={statusVariant(row.statusCode)}>
-												{row.statusCode}
-											</Badge>
-										</TableCell>
+						<TooltipProvider>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>
+											<ColumnHeader tooltip="The date and time when the API request was made">
+												Timestamp
+											</ColumnHeader>
+										</TableHead>
+										<TableHead>
+											<ColumnHeader tooltip="The API endpoint path that was called">
+												Endpoint
+											</ColumnHeader>
+										</TableHead>
+										<TableHead>
+											<ColumnHeader tooltip="The AI provider and model used to process this request">
+												Provider / Model
+											</ColumnHeader>
+										</TableHead>
+										<TableHead>
+											<ColumnHeader tooltip="Input tokens → Output tokens. Shows prompt tokens sent and completion tokens received, plus total and cached tokens">
+												Tokens
+											</ColumnHeader>
+										</TableHead>
+										<TableHead className="text-right">
+											<ColumnHeader
+												tooltip="The cost of this API request in USD"
+												className="justify-end"
+											>
+												Cost
+											</ColumnHeader>
+										</TableHead>
+										<TableHead>
+											<ColumnHeader tooltip="How long the request took to complete (in milliseconds or seconds)">
+												Latency
+											</ColumnHeader>
+										</TableHead>
+										<TableHead>
+											<ColumnHeader tooltip="Why the model stopped generating (e.g., 'stop', 'length', 'content_filter')">
+												Finish Reason
+											</ColumnHeader>
+										</TableHead>
+										<TableHead>
+											<ColumnHeader tooltip="HTTP status code of the response (2xx = success, 4xx = client error, 5xx = server error)">
+												Status
+											</ColumnHeader>
+										</TableHead>
 									</TableRow>
-								))}
-							</TableBody>
-						</Table>
+								</TableHeader>
+								<TableBody>
+									{rows.map((row) => (
+										<TableRow key={`${row.id}-${row.timestamp.getTime()}`}>
+											<TableCell className="whitespace-nowrap">
+												<div className="flex flex-col">
+													<span className="font-medium">
+														{dateFormatter.format(row.timestamp)}
+													</span>
+												</div>
+											</TableCell>
+											<TableCell className="font-medium">
+												{row.endpoint}
+											</TableCell>
+											<TableCell>
+												<ProviderBadge
+													provider={row.provider}
+													model={row.model}
+												/>
+											</TableCell>
+											<TableCell>
+												<div className="flex flex-col">
+													<span className="font-mono text-sm">
+														{(row.promptTokens ?? 0).toLocaleString()} {arrow}{" "}
+														{(row.completionTokens ?? 0).toLocaleString()}
+													</span>
+													<span className="text-muted-foreground text-xs">
+														{(
+															(row.promptTokens ?? 0) +
+															(row.completionTokens ?? 0)
+														).toLocaleString()}{" "}
+														total
+														{row.cachedTokens ? (
+															<> · {row.cachedTokens.toLocaleString()} cached</>
+														) : null}
+													</span>
+												</div>
+											</TableCell>
+											<TableCell className="text-right font-mono text-sm">
+												{currency.format(row.cost)}
+											</TableCell>
+											<TableCell>{formatLatency(row.latencyMs)}</TableCell>
+											<TableCell>{row.finishReason ?? "—"}</TableCell>
+											<TableCell>
+												<Badge variant={statusVariant(row.statusCode)}>
+													{row.statusCode}
+												</Badge>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</TooltipProvider>
 					</div>
 				)}
 			</CardContent>
