@@ -65,12 +65,12 @@ export const ENDPOINT_METADATA: Record<EndpointType, EndpointMetadata> = {
 		compatible_providers: ["google-ai-studio"],
 	},
 	count_tokens: {
-		label: "Gemini Count Tokens",
+		label: "Google Count Tokens",
 		description: "Token counting and estimation API",
 		compatible_providers: ["google-ai-studio"],
 	},
 	select_model: {
-		label: "select_model",
+		label: "Adaptive Router Compatible",
 		description: "Model selection and information API",
 		compatible_providers: ["openai", "anthropic", "google-ai-studio", "z-ai"],
 	},
