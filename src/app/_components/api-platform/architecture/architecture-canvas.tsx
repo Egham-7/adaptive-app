@@ -291,7 +291,7 @@ function ArchitectureCanvasInner({
 
 	// Use React Flow's built-in state management hooks
 	const [nodes, setNodes, onNodesChange] = useNodesState([]);
-	const [edges, setEdges, _onEdgesChange] = useEdgesState([]);
+	const [edges, setEdges] = useEdgesState([]);
 
 	// Track next available position index
 	const nextPositionIndex = useRef(0);

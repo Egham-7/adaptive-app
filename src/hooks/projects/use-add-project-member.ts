@@ -5,7 +5,7 @@ export const useAddProjectMember = () => {
 	const utils = api.useUtils();
 
 	return api.projects.addMember.useMutation({
-		onSuccess: (_data, variables) => {
+		onSuccess: (data, variables) => {
 			toast.success("Member added successfully!");
 			utils.projects.listMembers.invalidate({ projectId: variables.projectId });
 			utils.projects.getById.invalidate({ id: variables.projectId });

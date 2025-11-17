@@ -32,7 +32,7 @@ export function AuditLogEntry({
 	entry,
 	defaultExpanded = false,
 }: AuditLogEntryProps) {
-	const [viewMode, _setViewMode] = useState<"structured" | "json">(
+	const [viewMode] = useState<"structured" | "json">(
 		"structured",
 	);
 

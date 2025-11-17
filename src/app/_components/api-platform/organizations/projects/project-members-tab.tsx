@@ -73,9 +73,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 	const [newMemberRole, setNewMemberRole] = useState<"admin" | "member">(
 		"member",
 	);
-	const [_editingRoleUserId, setEditingRoleUserId] = useState<string | null>(
-		null,
-	);
+	const [, setEditingRoleUserId] = useState<string | null>(null);
 
 	const isAdminOrOwner =
 		currentUserRole === "admin" || currentUserRole === "owner";

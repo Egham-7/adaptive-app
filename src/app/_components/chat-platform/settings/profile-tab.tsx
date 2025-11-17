@@ -77,7 +77,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ user }) => {
 
 			return { previousData };
 		},
-		onError: (_err, _newMetadata, context) => {
+		onError: (error, variables, context) => {
 			if (context?.previousData) {
 				utils.user.getPreferences.setData(undefined, context.previousData);
 			}

@@ -867,8 +867,6 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 		);
 	};
 
-	const _displayApiKey = createdApiKey || "YOUR_API_KEY";
-
 	return (
 		<Sheet>
 			<SheetTrigger asChild>

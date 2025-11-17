@@ -197,9 +197,6 @@ export function AddProviderDialog({
 	// Auto-populate endpoint types for built-in providers
 	useEffect(() => {
 		if (selectedProvider && metadata) {
-			const _supportedEndpoints =
-				PROVIDER_ENDPOINT_CONFIG[selectedProvider as ProviderName]
-					?.supported_endpoints ?? [];
 			// Note: We don't auto-set endpoint_types in form since it's optional and can be inferred
 		}
 	}, [selectedProvider, metadata]);
