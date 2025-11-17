@@ -56,6 +56,7 @@ import { useAddProjectMember } from "@/hooks/projects/use-add-project-member";
 import { useRemoveProjectMember } from "@/hooks/projects/use-remove-project-member";
 import { useUpdateProjectMemberRole } from "@/hooks/projects/use-update-project-member-role";
 import { api } from "@/trpc/react";
+import type { OrganizationMember } from "@/types/organizations";
 
 interface ProjectMembersTabProps {
 	projectId: number;
@@ -314,10 +315,10 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 							<div className="max-h-96 space-y-2 overflow-y-auto rounded-md border p-4">
 								{orgMembersData?.members
 									.filter(
-										(orgMember) =>
+										(orgMember: OrganizationMember) =>
 											!members?.some((m) => m.user_id === orgMember.userId),
 									)
-									.map((orgMember) => {
+									.map((orgMember: OrganizationMember) => {
 										const isSelected = selectedUserIds.includes(
 											orgMember.userId ?? "",
 										);
@@ -372,7 +373,7 @@ export const ProjectMembersTab: React.FC<ProjectMembersTabProps> = ({
 										);
 									})}
 								{orgMembersData?.members.filter(
-									(orgMember) =>
+									(orgMember: OrganizationMember) =>
 										!members?.some((m) => m.user_id === orgMember.userId),
 								).length === 0 && (
 									<div className="py-8 text-center text-muted-foreground">

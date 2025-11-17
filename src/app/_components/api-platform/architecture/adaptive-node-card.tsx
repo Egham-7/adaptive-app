@@ -7,14 +7,12 @@ import { cn } from "@/lib/shared/utils";
 
 interface AdaptiveNodeCardProps {
 	isConfigured: boolean;
-	configSource: "project" | "organization";
 	onClick: () => void;
 	highlight?: boolean;
 }
 
 export function AdaptiveNodeCard({
 	isConfigured,
-	configSource,
 	onClick,
 	highlight = false,
 }: AdaptiveNodeCardProps) {
@@ -26,16 +24,15 @@ export function AdaptiveNodeCard({
 		onClick();
 	};
 
-	// Determine status text based on config source
+	// Determine status text
 	const getStatusText = () => {
 		if (!isConfigured) return "Click to Configure";
-		if (configSource === "project") return "Project Config";
-		return "Org-level Config";
+		return "Project Config";
 	};
 
-	// Determine badge text based on config source
+	// Badge text is always "Project"
 	const getBadgeText = () => {
-		return configSource === "project" ? "Project" : "Organization";
+		return "Project";
 	};
 
 	return (

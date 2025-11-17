@@ -19,8 +19,6 @@ interface ProviderCardProps {
 	isConfigured: boolean;
 	hasApiKey?: boolean;
 	baseUrl?: string;
-	isInherited?: boolean;
-	source?: "project" | "organization";
 	enabled?: boolean;
 	isLoading?: boolean;
 	onConfigure: () => void;
@@ -35,7 +33,6 @@ export function ProviderCard({
 	isConfigured,
 	hasApiKey,
 	baseUrl,
-	isInherited = false,
 	enabled = true,
 	isLoading = false,
 	onConfigure,
@@ -59,11 +56,6 @@ export function ProviderCard({
 				<div className="absolute top-2 right-2 flex items-center gap-2 rounded-md bg-gray-100 px-3 py-1.5 text-gray-700 text-xs dark:bg-gray-800 dark:text-gray-300">
 					<LoadingSpinner size="sm" />
 					<span>Syncing...</span>
-				</div>
-			)}
-			{!isLoading && isInherited && (
-				<div className="absolute top-2 right-2 rounded-md bg-blue-100 px-2 py-1 text-blue-700 text-xs dark:bg-blue-900 dark:text-blue-300">
-					Inherited from organization
 				</div>
 			)}
 
@@ -112,7 +104,7 @@ export function ProviderCard({
 					</div>
 
 					{/* Enable/Disable Toggle */}
-					{isConfigured && !isInherited && onToggle && (
+					{isConfigured && onToggle && (
 						<div className="flex items-center justify-between">
 							<span className="text-muted-foreground text-sm">Enabled</span>
 							<Switch
@@ -149,7 +141,7 @@ export function ProviderCard({
 						<div className="flex gap-2">
 							{isConfigured ? (
 								<>
-									{!isInherited && onEdit && (
+									{onEdit && (
 										<Button
 											variant="outline"
 											size="sm"
@@ -161,7 +153,7 @@ export function ProviderCard({
 											Edit
 										</Button>
 									)}
-									{!isInherited && onDelete && (
+									{onDelete && (
 										<Button
 											variant="outline"
 											size="sm"
@@ -170,17 +162,6 @@ export function ProviderCard({
 											className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
 										>
 											Delete
-										</Button>
-									)}
-									{isInherited && (
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={onConfigure}
-											disabled={isLoading}
-											className="flex-1"
-										>
-											Override
 										</Button>
 									)}
 								</>
@@ -198,7 +179,7 @@ export function ProviderCard({
 						</div>
 
 						{/* View History Button */}
-						{isConfigured && !isInherited && onViewHistory && (
+						{isConfigured && onViewHistory && (
 							<Button
 								variant="ghost"
 								size="sm"

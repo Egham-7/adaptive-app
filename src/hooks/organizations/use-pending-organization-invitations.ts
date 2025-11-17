@@ -1,16 +1,5 @@
-import { useOrganizationInvitations } from "./use-organization-invitations";
+import { api } from "@/trpc/react";
 
-export const usePendingOrganizationInvitations = (organizationId: string) => {
-	const query = useOrganizationInvitations(organizationId);
-
-	return {
-		...query,
-		data: query.data
-			? {
-					invitations: query.data.invitations.filter(
-						(inv) => inv.status === "pending",
-					),
-				}
-			: undefined,
-	};
-};
+export function usePendingOrganizationInvitations(organizationId: string) {
+	return api.organizations.listInvitations.useQuery({ organizationId });
+}

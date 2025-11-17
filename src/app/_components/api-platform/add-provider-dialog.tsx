@@ -35,10 +35,7 @@ import {
 	TooltipProvider,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-	useCreateOrganizationProvider,
-	useCreateProjectProvider,
-} from "@/hooks/provider-configs";
+import { useCreateProjectProvider } from "@/hooks/provider-configs";
 import { cleanEndpointOverrides } from "@/lib/providers/utils";
 import {
 	type EndpointOverride,
@@ -118,9 +115,7 @@ type AddProviderFormValues = z.infer<typeof createProviderSchema>;
 interface AddProviderDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	level: "project" | "organization";
-	projectId?: number;
-	organizationId?: string;
+	projectId: number;
 	configuredProviders?: string[];
 	onSuccess?: () => void;
 }
@@ -128,9 +123,7 @@ interface AddProviderDialogProps {
 export function AddProviderDialog({
 	open,
 	onOpenChange,
-	level,
 	projectId,
-	organizationId,
 	configuredProviders = [],
 	onSuccess,
 }: AddProviderDialogProps) {
@@ -148,10 +141,8 @@ export function AddProviderDialog({
 	});
 
 	const createProjectProvider = useCreateProjectProvider();
-	const createOrgProvider = useCreateOrganizationProvider();
 
-	const isLoading =
-		createProjectProvider.isPending || createOrgProvider.isPending;
+	const isLoading = createProjectProvider.isPending;
 
 	const builtInProviders: ComboboxOption[] = useMemo(
 		() =>
@@ -232,27 +223,15 @@ export function AddProviderDialog({
 			endpoint_overrides: cleanedOverrides,
 		};
 
-		if (level === "project" && projectId) {
-			createProjectProvider.mutate(
-				{ projectId, provider: values.provider, data: formData },
-				{
-					onSuccess: () => {
-						onOpenChange(false);
-						onSuccess?.();
-					},
+		createProjectProvider.mutate(
+			{ projectId, provider: values.provider, data: formData },
+			{
+				onSuccess: () => {
+					onOpenChange(false);
+					onSuccess?.();
 				},
-			);
-		} else if (level === "organization" && organizationId) {
-			createOrgProvider.mutate(
-				{ organizationId, provider: values.provider, data: formData },
-				{
-					onSuccess: () => {
-						onOpenChange(false);
-						onSuccess?.();
-					},
-				},
-			);
-		}
+			},
+		);
 	};
 
 	return (
@@ -270,9 +249,7 @@ export function AddProviderDialog({
 						<div>
 							<DialogTitle>Add Provider</DialogTitle>
 							<DialogDescription>
-								{level === "project"
-									? "Add a provider to this project"
-									: "Add a provider to this organization"}
+								Add a provider to this project
 							</DialogDescription>
 						</div>
 					</div>

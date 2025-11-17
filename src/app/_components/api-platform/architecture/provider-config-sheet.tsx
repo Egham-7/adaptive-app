@@ -58,11 +58,8 @@ export function ProviderConfigSheet({
 	existingConfig,
 	onHistoryClick,
 }: ProviderConfigSheetProps) {
-	const isOrgLevel = existingConfig?.source === "organization";
-	const isProjectLevel = existingConfig?.source === "project";
-
 	const [uiState, setUiState] = useState({
-		showConfigForm: !!existingConfig && !isOrgLevel,
+		showConfigForm: !!existingConfig,
 		showApiKey: false,
 		showDeleteConfirm: false,
 	});
@@ -71,12 +68,12 @@ export function ProviderConfigSheet({
 		if (open) {
 			setUiState((prev) => ({
 				...prev,
-				showConfigForm: !!existingConfig && !isOrgLevel,
+				showConfigForm: !!existingConfig,
 				showApiKey: false,
 				showDeleteConfirm: false,
 			}));
 		}
-	}, [open, existingConfig, isOrgLevel]);
+	}, [open, existingConfig]);
 
 	const metadata = !isCustom
 		? PROVIDER_METADATA[providerName as ProviderName]
@@ -88,7 +85,7 @@ export function ProviderConfigSheet({
 		providerName,
 		isCustom,
 		projectId,
-		existingConfig: isOrgLevel ? undefined : existingConfig,
+		existingConfig,
 		onSuccess: () => {
 			onOpenChange(false);
 		},
@@ -133,7 +130,7 @@ export function ProviderConfigSheet({
 		onOpenChange,
 	]);
 
-	const handleConfigure = useCallback(() => {
+	const _handleConfigure = useCallback(() => {
 		setUiState((prev) => ({ ...prev, showConfigForm: true }));
 	}, []);
 
@@ -171,28 +168,7 @@ export function ProviderConfigSheet({
 						)}
 					</div>
 				</SheetHeader>
-
-				{isOrgLevel && (
-					<div className="mx-6 mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
-						<div className="flex items-start gap-3">
-							<div className="mt-0.5 rounded-full bg-primary/10 p-1">
-								<Info className="h-4 w-4 text-primary" />
-							</div>
-							<div className="flex-1">
-								<h4 className="font-semibold text-primary text-sm">
-									Configured at Organization Level
-								</h4>
-								<p className="mt-1 text-muted-foreground text-xs">
-									This provider is configured for your entire organization. You
-									can create a project-specific configuration below to override
-									the organization settings for this project only.
-								</p>
-							</div>
-						</div>
-					</div>
-				)}
-
-				{isProjectLevel && (
+				{existingConfig && (
 					<div className="px-6 pt-4">
 						{!uiState.showDeleteConfirm ? (
 							<Button
@@ -242,30 +218,6 @@ export function ProviderConfigSheet({
 					</div>
 				)}
 
-				{!uiState.showConfigForm && !isProjectLevel && (
-					<div className="mt-6 space-y-6 px-6">
-						<div>
-							<h4 className="mb-2 font-medium text-sm">About this provider</h4>
-							<p className="text-muted-foreground text-sm">
-								{metadata?.description ??
-									"Custom LLM provider for your specific needs."}
-							</p>
-						</div>
-
-						<div className="rounded-lg bg-muted/50 p-4">
-							<h4 className="mb-2 font-medium text-sm">Configuration</h4>
-							<p className="mb-4 text-muted-foreground text-sm">
-								{isOrgLevel
-									? "Create a project-specific configuration to override organization settings."
-									: "Configure API credentials and settings to enable this provider."}
-							</p>
-							<Button onClick={handleConfigure} className="w-full">
-								{isOrgLevel ? "Create Project Override" : "Configure Provider"}
-							</Button>
-						</div>
-					</div>
-				)}
-
 				{uiState.showConfigForm && (
 					<Form {...form}>
 						<TooltipProvider>
@@ -280,12 +232,7 @@ export function ProviderConfigSheet({
 										<FormItem>
 											<FormLabel>
 												<div className="flex items-center gap-1.5">
-													<span>
-														API Key
-														{!isProjectLevel && (
-															<span className="ml-1 text-destructive">*</span>
-														)}
-													</span>
+													<span>API Key</span>
 													{!isCustom && (
 														<Tooltip>
 															<TooltipTrigger asChild>
@@ -306,11 +253,7 @@ export function ProviderConfigSheet({
 													<Input
 														{...field}
 														type={uiState.showApiKey ? "text" : "password"}
-														placeholder={
-															isProjectLevel
-																? "Enter new API key to update"
-																: "Enter your API key"
-														}
+														placeholder="Enter new API key to update"
 														autoComplete="off"
 													/>
 													<Button
@@ -334,11 +277,7 @@ export function ProviderConfigSheet({
 												</div>
 											</FormControl>
 											<FormDescription>
-												{isProjectLevel
-													? "Leave empty to keep existing API key"
-													: isOrgLevel
-														? "Provide a project-specific API key to override organization settings"
-														: "Your API key will be stored securely"}
+												Leave empty to keep existing API key
 											</FormDescription>
 											<FormMessage />
 										</FormItem>
@@ -490,9 +429,7 @@ export function ProviderConfigSheet({
 											? "Saving..."
 											: saveState === "success"
 												? "Saved!"
-												: isProjectLevel
-													? "Update"
-													: "Create Override"}
+												: "Update"}
 									</Button>
 								</div>
 							</form>

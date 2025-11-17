@@ -16,12 +16,6 @@ export type CacheBackendType = (typeof cacheBackendTypes)[number];
 export const fallbackModes = ["sequential", "race"] as const;
 export type FallbackMode = (typeof fallbackModes)[number];
 
-/**
- * Configuration source hierarchy
- */
-export const configSources = ["project", "organization"] as const;
-export type ConfigSource = (typeof configSources)[number];
-
 // ============================================================================
 // NESTED CONFIGURATION TYPES (for API requests - CREATE/UPDATE)
 // ============================================================================
@@ -154,7 +148,6 @@ export interface AdaptiveConfigApiResponse {
 	fallback_config?: FallbackConfigResponse;
 	// server_config excluded - YAML-only
 	enabled: boolean;
-	source?: ConfigSource;
 	created_at: string;
 	updated_at: string;
 	created_by: string;

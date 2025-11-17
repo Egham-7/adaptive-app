@@ -53,19 +53,14 @@ export function AdaptiveConfigSheet({
 	onHistoryClick,
 }: AdaptiveConfigSheetProps) {
 	console.log("Existing Config:", existingConfig);
-	const configSource = existingConfig?.source;
-	const isOrgLevel = configSource === "organization";
-	const isProjectLevel = configSource === "project";
-	const isConfigured = isOrgLevel || isProjectLevel;
+	const isConfigured = !!existingConfig;
 	const [showConfigForm, setShowConfigForm] = useState(isConfigured);
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-	const [isCreatingOverride, setIsCreatingOverride] = useState(false);
 
 	useEffect(() => {
 		if (open) {
 			setShowConfigForm(isConfigured);
 			setShowDeleteConfirm(false);
-			setIsCreatingOverride(false);
 		}
 	}, [open, isConfigured]);
 
@@ -73,7 +68,7 @@ export function AdaptiveConfigSheet({
 
 	const { form, onSubmit, isLoading, isSuccess } = useAdaptiveConfigForm({
 		projectId,
-		existingConfig: isCreatingOverride ? existingConfig : existingConfig,
+		existingConfig,
 		onSuccess: () => {
 			onOpenChange(false);
 			onSaveSuccess?.();
@@ -81,7 +76,7 @@ export function AdaptiveConfigSheet({
 	});
 
 	const handleDelete = async () => {
-		if (!existingConfig || !isProjectLevel) return;
+		if (!existingConfig) return;
 
 		try {
 			await deleteAdaptiveConfig.mutateAsync({
@@ -98,12 +93,7 @@ export function AdaptiveConfigSheet({
 		setShowConfigForm(true);
 	};
 
-	const handleCreateOverride = () => {
-		setIsCreatingOverride(true);
-		setShowConfigForm(true);
-	};
-
-	const isFormReadOnly = isOrgLevel && !isCreatingOverride;
+	const isFormReadOnly = false;
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -117,18 +107,10 @@ export function AdaptiveConfigSheet({
 							<div>
 								<div className="flex items-center gap-2">
 									<SheetTitle>Adaptive Proxy Configuration</SheetTitle>
-									{isOrgLevel && !isCreatingOverride && (
-										<Badge variant="secondary">Organization</Badge>
-									)}
-									{isProjectLevel && <Badge variant="default">Project</Badge>}
-									{isCreatingOverride && (
-										<Badge variant="outline">New Override</Badge>
-									)}
+									<Badge variant="default">Project</Badge>
 								</div>
 								<SheetDescription>
-									{isOrgLevel && !isCreatingOverride
-										? "Inherited from organization settings"
-										: "Intelligent routing and fallback settings"}
+									Intelligent routing and fallback settings
 								</SheetDescription>
 							</div>
 						</div>
@@ -145,26 +127,7 @@ export function AdaptiveConfigSheet({
 					</div>
 				</SheetHeader>
 
-				{isOrgLevel && !isCreatingOverride && (
-					<div className="px-6 pt-4">
-						<div className="rounded-lg border border-muted bg-muted/50 p-4">
-							<p className="mb-3 text-muted-foreground text-sm">
-								This configuration is inherited from your organization. Create a
-								project-level override to customize settings for this project.
-							</p>
-							<Button
-								onClick={handleCreateOverride}
-								variant="default"
-								size="sm"
-								className="w-full"
-							>
-								Create Project Override
-							</Button>
-						</div>
-					</div>
-				)}
-
-				{isProjectLevel && (
+				{isConfigured && (
 					<div className="px-6 pt-4">
 						{!showDeleteConfirm ? (
 							<Button
@@ -479,7 +442,7 @@ export function AdaptiveConfigSheet({
 											? "Saving..."
 											: isSuccess
 												? "Saved!"
-												: isConfigured && !isCreatingOverride
+												: isConfigured
 													? "Update Configuration"
 													: "Create Configuration"}
 									</Button>
