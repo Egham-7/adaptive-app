@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ApiKeysTour } from "@/components/tours";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/ui/copy-button";
 import {
 	Dialog,
 	DialogContent,
@@ -471,7 +472,15 @@ export default function ApiKeysPage() {
 										<TableRow key={apiKey.id} className="hover:bg-muted/50">
 											<TableCell>{apiKey.name}</TableCell>
 											<TableCell className="font-mono text-muted-foreground text-sm">
-												{apiKey.key_prefix}...
+												<div className="flex items-center gap-2">
+													<span>{"•".repeat(40)}</span>
+													{apiKey.key && (
+														<CopyButton
+															content={apiKey.key}
+															copyMessage="API key copied to clipboard"
+														/>
+													)}
+												</div>
 											</TableCell>
 											<TableCell className="text-muted-foreground text-sm">
 												{apiKey.budget_limit ? (

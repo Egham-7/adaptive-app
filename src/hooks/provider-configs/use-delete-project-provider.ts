@@ -36,11 +36,24 @@ export const useDeleteProjectProvider = (
 		},
 		onSuccess: async (_data, variables) => {
 			toast.success("Provider configuration deleted successfully!");
-			await Promise.all([
+			const invalidations = [
 				utils.providerConfigs.listProjectProviders.invalidate(),
 				utils.projects.getById.invalidate({ id: variables.projectId }),
 				utils.projects.getByOrganization.invalidate(),
-			]);
+				utils.providerConfigs.getProjectHistory.invalidate({
+					projectId: variables.projectId,
+				}),
+			];
+
+			if (variables.configId) {
+				invalidations.push(
+					utils.providerConfigs.getProviderHistory.invalidate({
+						configId: variables.configId,
+					}),
+				);
+			}
+
+			await Promise.all(invalidations);
 			options?.onSuccess?.();
 		},
 		onError: (error, variables, context) => {

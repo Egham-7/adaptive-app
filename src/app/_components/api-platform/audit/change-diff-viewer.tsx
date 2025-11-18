@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ChangeDiffViewerProps } from "@/types/audit-log";
-import { formatValue, parseChanges } from "@/types/audit-log";
+import { parseChanges } from "@/types/audit-log";
 
 /**
  * ChangeDiffViewer - Displays changes in either structured or JSON format
@@ -87,11 +87,7 @@ function ChangeItem({
 }) {
 	const { field, oldValue, newValue, changeType } = change;
 
-	// Format field name (convert snake_case to readable format)
-	const formattedField = field
-		.split("_")
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-		.join(" ");
+	const formattedField = formatLabel(field);
 
 	return (
 		<div className="space-y-2 rounded-lg border p-3">
@@ -108,9 +104,9 @@ function ChangeItem({
 					>
 						Added
 					</Badge>
-					<code className="flex-1 break-all rounded bg-muted px-2 py-1 text-sm">
-						{formatValue(newValue)}
-					</code>
+					<div className="flex-1">
+						<ValueDisplay value={newValue} />
+					</div>
 				</div>
 			)}
 
@@ -122,9 +118,9 @@ function ChangeItem({
 					>
 						Removed
 					</Badge>
-					<code className="flex-1 break-all rounded bg-muted px-2 py-1 text-sm line-through opacity-70">
-						{formatValue(oldValue)}
-					</code>
+					<div className="flex-1">
+						<ValueDisplay value={oldValue} muted />
+					</div>
 				</div>
 			)}
 
@@ -137,9 +133,9 @@ function ChangeItem({
 						>
 							Old
 						</Badge>
-						<code className="flex-1 break-all rounded bg-muted px-2 py-1 text-sm opacity-70">
-							{formatValue(oldValue)}
-						</code>
+						<div className="flex-1">
+							<ValueDisplay value={oldValue} muted />
+						</div>
 					</div>
 					<div className="flex items-center justify-center">
 						<ArrowRight className="h-4 w-4 text-muted-foreground" />
@@ -151,9 +147,9 @@ function ChangeItem({
 						>
 							New
 						</Badge>
-						<code className="flex-1 break-all rounded bg-muted px-2 py-1 text-sm">
-							{formatValue(newValue)}
-						</code>
+						<div className="flex-1">
+							<ValueDisplay value={newValue} />
+						</div>
 					</div>
 				</div>
 			)}
@@ -189,6 +185,146 @@ function ChangeTypeBadge({ type }: { type: "added" | "modified" | "removed" }) {
 			{label}
 		</Badge>
 	);
+}
+
+function ValueDisplay({
+	value,
+	muted = false,
+}: {
+	value: unknown;
+	muted?: boolean;
+}) {
+	const fadedClass = muted ? "opacity-70" : "";
+
+	if (value === null || value === undefined) {
+		return (
+			<span className={`text-muted-foreground text-xs italic ${fadedClass}`}>
+				{value === null ? "null" : "empty"}
+			</span>
+		);
+	}
+
+	if (typeof value === "string" || typeof value === "number") {
+		return (
+			<code
+				className={`block break-all rounded bg-muted px-2 py-1 text-sm ${fadedClass}`}
+			>
+				{String(value)}
+			</code>
+		);
+	}
+
+	if (typeof value === "boolean") {
+		return (
+			<Badge
+				variant="outline"
+				className={`px-2 py-1 text-xs ${fadedClass} ${
+					value
+						? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400"
+						: "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400"
+				}`}
+			>
+				{value ? "Enabled" : "Disabled"}
+			</Badge>
+		);
+	}
+
+	if (Array.isArray(value)) {
+		if (value.length === 0) {
+			return (
+				<span className={`text-muted-foreground text-xs italic ${fadedClass}`}>
+					No values
+				</span>
+			);
+		}
+
+		const allPrimitive = value.every(isPrimitive);
+
+		if (allPrimitive) {
+			return (
+				<div className={`flex flex-wrap gap-1 ${fadedClass}`}>
+					{value.map((item, index) => (
+						<Badge
+							key={`${item}-${index}`}
+							variant="outline"
+							className="text-xs"
+						>
+							{String(item)}
+						</Badge>
+					))}
+				</div>
+			);
+		}
+
+		return (
+			<div className="space-y-2">
+				{value.map((item, index) => (
+					<div
+						key={index}
+						className={`space-y-1 rounded border border-dashed bg-muted/40 p-2 text-xs ${fadedClass}`}
+					>
+						<div className="font-medium text-muted-foreground">
+							Item {index + 1}
+						</div>
+						<ValueDisplay value={item} muted={muted} />
+					</div>
+				))}
+			</div>
+		);
+	}
+
+	if (typeof value === "object") {
+		const entries = Object.entries(value as Record<string, unknown>);
+
+		if (entries.length === 0) {
+			return (
+				<span className={`text-muted-foreground text-xs italic ${fadedClass}`}>
+					No fields
+				</span>
+			);
+		}
+
+		return (
+			<div
+				className={`space-y-2 rounded border border-dashed bg-muted/40 p-3 text-xs ${fadedClass}`}
+			>
+				{entries.map(([key, val]) => (
+					<div key={key} className="space-y-1">
+						<div className="font-medium text-muted-foreground">
+							{formatLabel(key)}
+						</div>
+						<ValueDisplay value={val} muted={muted} />
+					</div>
+				))}
+			</div>
+		);
+	}
+
+	return (
+		<code
+			className={`block break-all rounded bg-muted px-2 py-1 text-sm ${fadedClass}`}
+		>
+			{String(value)}
+		</code>
+	);
+}
+
+function isPrimitive(value: unknown): boolean {
+	return (
+		value === null ||
+		value === undefined ||
+		typeof value === "string" ||
+		typeof value === "number" ||
+		typeof value === "boolean"
+	);
+}
+
+function formatLabel(raw: string): string {
+	return raw
+		.replace(/[_-]/g, " ")
+		.split(" ")
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ");
 }
 
 /**

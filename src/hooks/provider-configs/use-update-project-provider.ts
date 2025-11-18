@@ -55,6 +55,12 @@ export const useUpdateProjectProvider = (
 				utils.providerConfigs.listProjectProviders.invalidate(),
 				utils.projects.getById.invalidate({ id: variables.projectId }),
 				utils.projects.getByOrganization.invalidate(),
+				utils.providerConfigs.getProviderHistory.invalidate({
+					configId: data.id,
+				}),
+				utils.providerConfigs.getProjectHistory.invalidate({
+					projectId: variables.projectId,
+				}),
 			]);
 			options?.onSuccess?.(data);
 		},

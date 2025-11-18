@@ -5,7 +5,6 @@ export const apiKeyResponseSchema = z.object({
 	id: z.number(),
 	name: z.string(),
 	key: z.string().optional(),
-	key_prefix: z.string(),
 	organization_id: z.string().optional(),
 	user_id: z.string().optional(),
 	project_id: z.number().nullable().optional(),
@@ -232,12 +231,9 @@ export type APIKeyVerifyInput = RouterInputs["api_keys"]["verify"];
 export type APIKeyStatus = APIKeyListItem["is_active"];
 
 /**
- * The core API key data without metadata like created_at, updated_at.
+ * API key data for forms (without server-generated fields).
  */
-export type APIKeyCore = Pick<
-	APIKeyListItem,
-	"id" | "name" | "is_active" | "key_prefix"
->;
+export type APIKeyCore = Pick<APIKeyListItem, "id" | "name" | "is_active">;
 
 /**
  * API key data for forms (without server-generated fields).
