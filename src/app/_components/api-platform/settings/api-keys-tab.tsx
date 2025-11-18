@@ -71,7 +71,7 @@ export const ApiKeysTab: React.FC<ApiKeysTabProps> = ({ organizationId }) => {
 		}
 	};
 
-	const maskApiKey = (key: string) => {
+	const maskApiKey = (_key: string) => {
 		return "••••••••••••••••••••••••••••••••";
 	};
 
