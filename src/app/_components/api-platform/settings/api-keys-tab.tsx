@@ -1,6 +1,6 @@
 "use client";
 
-import { Key, MoreVertical, Trash2 } from "lucide-react";
+import { Copy, Key, MoreVertical, Trash2 } from "lucide-react";
 import type React from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +74,11 @@ export const ApiKeysTab: React.FC<ApiKeysTabProps> = ({ organizationId }) => {
 	const maskApiKey = (key: string) => {
 		if (key.length <= 8) return "••••••••";
 		return `${key.slice(0, 4)}••••••••${key.slice(-4)}`;
+	};
+
+	const handleCopyKey = (key: string) => {
+		navigator.clipboard.writeText(key);
+		toast.success("API key copied to clipboard");
 	};
 
 	if (isLoading) {
@@ -153,9 +158,20 @@ export const ApiKeysTab: React.FC<ApiKeysTabProps> = ({ organizationId }) => {
 										<Badge variant="outline">{apiKey.projectName}</Badge>
 									</TableCell>
 									<TableCell>
-										<code className="rounded bg-muted px-2 py-1 font-mono text-xs">
-											{maskApiKey(apiKey.key || "")}
-										</code>
+										<div className="flex items-center gap-2">
+											<code className="rounded bg-muted px-2 py-1 font-mono text-xs">
+												{maskApiKey(apiKey.key || "")}
+											</code>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={() => handleCopyKey(apiKey.key || "")}
+												className="h-6 w-6 p-0"
+												title="Copy API key"
+											>
+												<Copy className="h-3 w-3" />
+											</Button>
+										</div>
 									</TableCell>
 									<TableCell>
 										<Badge
