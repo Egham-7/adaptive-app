@@ -1,6 +1,77 @@
 import { z } from "zod";
 
 // ============================================================================
+// Usage Filters
+// ============================================================================
+
+export const usageFiltersSchema = z.object({
+	provider: z.string().optional(),
+	endpoint: z.string().optional(),
+	model: z.string().optional(),
+	status: z.enum(["success", "client_error", "server_error"]).optional(),
+});
+
+export type UsageFilters = z.infer<typeof usageFiltersSchema>;
+
+// ============================================================================
+// Project Analytics Types
+// ============================================================================
+
+export type ProjectUsageAnalytics = {
+	totalSpend: number;
+	totalTokens: number;
+	totalRequests: number;
+	totalApiCalls: number;
+	errorRate: number;
+	errorCount: number;
+	requestTypeBreakdown: Array<{ type: string; count: number; cost: number }>;
+	dailyTrends: Array<{
+		date: Date;
+		spend: number;
+		requests: number;
+		tokens: number;
+		errorCount: number;
+	}>;
+	providerPerformance: Array<{
+		provider: string;
+		requests: number;
+		cost: number;
+		costShare: number;
+		successRate: number;
+		avgLatencyMs: number | null;
+		topModel?: string;
+	}>;
+	recentRequests: Array<{
+		id: number;
+		apiKeyId: number | null;
+		endpoint: string;
+		statusCode: number;
+		cost: number;
+		provider: string;
+		model: string;
+		promptTokens: number;
+		completionTokens: number;
+		cachedTokens: number;
+		latencyMs?: number;
+		finishReason: string;
+		timestamp: Date;
+	}>;
+};
+
+export const EMPTY_PROJECT_USAGE_ANALYTICS: ProjectUsageAnalytics = {
+	totalSpend: 0,
+	totalTokens: 0,
+	totalRequests: 0,
+	totalApiCalls: 0,
+	errorRate: 0,
+	errorCount: 0,
+	requestTypeBreakdown: [],
+	dailyTrends: [],
+	providerPerformance: [],
+	recentRequests: [],
+};
+
+// ============================================================================
 // adaptive-proxy usage API types
 // ============================================================================
 

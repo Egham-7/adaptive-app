@@ -1,8 +1,4 @@
-import type {
-	RecordUsageRequest,
-	UsageRecord,
-	UsageStats,
-} from "@/types/usage";
+import type { UsageRecord, UsageStats } from "@/types/usage";
 import { BaseApiClient } from "../base-client";
 
 /**
@@ -11,23 +7,7 @@ import { BaseApiClient } from "../base-client";
  */
 export class UsageClient extends BaseApiClient {
 	constructor(token: string) {
-		super({ basePath: "/v1/usage", token });
-	}
-
-	/**
-	 * Record API usage
-	 */
-	async recordUsage(data: RecordUsageRequest): Promise<UsageRecord> {
-		try {
-			return await this.post<UsageRecord, RecordUsageRequest>("/", {
-				body: data,
-			});
-		} catch (error) {
-			if (error instanceof Error) {
-				throw new Error(error.message || "Failed to record usage");
-			}
-			throw new Error("Failed to record usage");
-		}
+		super({ basePath: "/admin/usage", token });
 	}
 
 	/**
@@ -41,7 +21,7 @@ export class UsageClient extends BaseApiClient {
 		},
 	): Promise<UsageRecord[]> {
 		try {
-			return await this.get<UsageRecord[]>(`/${apiKeyId}`, { params });
+			return await this.get<UsageRecord[]>(`/api-key/${apiKeyId}`, { params });
 		} catch (error) {
 			if (error instanceof Error) {
 				throw new Error(error.message || "Failed to get usage records");
@@ -53,7 +33,7 @@ export class UsageClient extends BaseApiClient {
 	/**
 	 * Get usage statistics for an API key
 	 */
-	async getUsageStats(
+	async getUsageStatsByAPIKey(
 		apiKeyId: number,
 		params?: {
 			startDate?: string;
@@ -61,12 +41,103 @@ export class UsageClient extends BaseApiClient {
 		},
 	): Promise<UsageStats> {
 		try {
-			return await this.get<UsageStats>(`/${apiKeyId}/stats`, { params });
+			return await this.get<UsageStats>(`/api-key/${apiKeyId}/stats`, {
+				params,
+			});
 		} catch (error) {
 			if (error instanceof Error) {
 				throw new Error(error.message || "Failed to get usage stats");
 			}
 			throw new Error("Failed to get usage stats");
+		}
+	}
+
+	/**
+	 * Get usage records by organization ID (admin endpoint)
+	 */
+	async getUsageByOrganization(
+		organizationId: string,
+		params?: {
+			limit?: number;
+			offset?: number;
+		},
+	): Promise<UsageRecord[]> {
+		try {
+			return await this.get<UsageRecord[]>(`/organization/${organizationId}`, {
+				params,
+			});
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(error.message || "Failed to get organization usage");
+			}
+			throw new Error("Failed to get organization usage");
+		}
+	}
+
+	/**
+	 * Get usage statistics by organization ID (admin endpoint)
+	 */
+	async getUsageStatsByOrganization(
+		organizationId: string,
+		params?: {
+			startDate?: string;
+			endDate?: string;
+		},
+	): Promise<UsageStats> {
+		try {
+			return await this.get<UsageStats>(
+				`/organization/${organizationId}/stats`,
+				{ params },
+			);
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(
+					error.message || "Failed to get organization usage stats",
+				);
+			}
+			throw new Error("Failed to get organization usage stats");
+		}
+	}
+
+	/**
+	 * Get usage records by project ID (admin endpoint)
+	 */
+	async getUsageByProject(
+		projectId: number,
+		params?: {
+			limit?: number;
+			offset?: number;
+		},
+	): Promise<UsageRecord[]> {
+		try {
+			return await this.get<UsageRecord[]>(`/project/${projectId}`, { params });
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(error.message || "Failed to get project usage");
+			}
+			throw new Error("Failed to get project usage");
+		}
+	}
+
+	/**
+	 * Get usage statistics by project ID (admin endpoint)
+	 */
+	async getUsageStatsByProject(
+		projectId: number,
+		params?: {
+			startDate?: string;
+			endDate?: string;
+		},
+	): Promise<UsageStats> {
+		try {
+			return await this.get<UsageStats>(`/project/${projectId}/stats`, {
+				params,
+			});
+		} catch (error) {
+			if (error instanceof Error) {
+				throw new Error(error.message || "Failed to get project usage stats");
+			}
+			throw new Error("Failed to get project usage stats");
 		}
 	}
 }
