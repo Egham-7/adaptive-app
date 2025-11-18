@@ -24,7 +24,6 @@ import {
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { QuickstartExamples } from "@/components/ui/quickstart-examples";
 import {
 	Select,
 	SelectContent,
@@ -622,18 +621,7 @@ export default function ApiKeysPage() {
 								</div>
 							</div>
 
-							<Separator />
-
-							{/* Quickstart Section */}
-							{newApiKey && (
-								<QuickstartExamples
-									apiKey={newApiKey}
-									title="🚀 Quick Start"
-									description="Test your new API key with these examples"
-								/>
-							)}
-
-							<div className="flex justify-end pt-2">
+							<div className="flex justify-end pt-4">
 								<Button
 									onClick={handleCloseApiKeyModal}
 									className="bg-primary hover:bg-primary/90"

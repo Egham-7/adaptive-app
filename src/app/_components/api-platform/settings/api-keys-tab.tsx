@@ -72,8 +72,7 @@ export const ApiKeysTab: React.FC<ApiKeysTabProps> = ({ organizationId }) => {
 	};
 
 	const maskApiKey = (key: string) => {
-		if (key.length <= 8) return "••••••••";
-		return `${key.slice(0, 4)}••••••••${key.slice(-4)}`;
+		return "••••••••••••••••••••••••••••••••";
 	};
 
 	const handleCopyKey = (key: string) => {
