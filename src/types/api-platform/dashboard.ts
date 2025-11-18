@@ -1,19 +1,12 @@
 import type { DateRange } from "react-day-picker";
-import type { RouterInputs, RouterOutputs } from "../index";
+import type { ProjectUsageAnalytics } from "@/types/usage";
 
 // ---- tRPC-derived Types ----
 
 /**
- * Project analytics data from the projectAnalytics router
+ * Project analytics data from the usage router
  */
-export type ProjectAnalytics =
-	RouterOutputs["projectAnalytics"]["getProjectAnalytics"];
-
-/**
- * User analytics data from the projectAnalytics router
- */
-export type UserAnalytics =
-	RouterOutputs["projectAnalytics"]["getUserAnalytics"];
+export type ProjectAnalytics = ProjectUsageAnalytics;
 
 /**
  * Daily usage trend data point
@@ -40,10 +33,9 @@ export type RequestTypeBreakdown =
 // ---- UI-specific Types ----
 
 /**
- * Provider type from tRPC schema
+ * Provider type from usage filters
  */
-export type ProviderType =
-	RouterInputs["projectAnalytics"]["getProjectAnalytics"]["provider"];
+export type ProviderType = string;
 
 /**
  * Supported provider types for filtering - includes "all" option
@@ -75,7 +67,7 @@ export interface MetricCardData {
 
 /**
  * Chart data point types for backwards compatibility
- * These derive from the tRPC response structure
+ * These derive from the usage analytics structure
  */
 export type DashboardData = ProjectAnalytics;
 export type Provider = ProviderType;

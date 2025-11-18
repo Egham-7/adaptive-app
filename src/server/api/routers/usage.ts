@@ -4,16 +4,8 @@ import { ApiKeysClient } from "@/lib/api/api-keys";
 import { UsageClient } from "@/lib/api/usage";
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import type { UsageLog } from "@/types/api-keys";
-import type { UsageByPeriod, UsageStats } from "@/types/usage";
-
-const usageFiltersSchema = z.object({
-	provider: z.string().optional(),
-	endpoint: z.string().optional(),
-	model: z.string().optional(),
-	status: z.enum(["success", "client_error", "server_error"]).optional(),
-});
-
-type UsageFilters = z.infer<typeof usageFiltersSchema>;
+import type { UsageByPeriod, UsageFilters, UsageStats } from "@/types/usage";
+import { usageFiltersSchema } from "@/types/usage";
 
 /**
  * Usage router - Proxies usage tracking to adaptive-proxy
@@ -79,7 +71,7 @@ export const usageRouter = createTRPCRouter({
 
 				const client = new UsageClient(token);
 				const { apiKeyId, filters, ...params } = input;
-				const baseStats = await client.getUsageStats(apiKeyId, params);
+				const baseStats = await client.getUsageStatsByAPIKey(apiKeyId, params);
 
 				if (!filters) {
 					return baseStats;
@@ -151,6 +143,151 @@ export const usageRouter = createTRPCRouter({
 						error instanceof Error
 							? error.message
 							: "Failed to get usage by period",
+					cause: error,
+				});
+			}
+		}),
+
+	/**
+	 * Get usage records by organization ID
+	 */
+	getUsageByOrganization: protectedProcedure
+		.input(
+			z.object({
+				organizationId: z.string(),
+				limit: z.number().optional(),
+				offset: z.number().optional(),
+				filters: usageFiltersSchema.optional(),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new UsageClient(token);
+				const { organizationId, filters, ...params } = input;
+				const records = await client.getUsageByOrganization(
+					organizationId,
+					params,
+				);
+				if (!filters) {
+					return records;
+				}
+				return filterUsageRecords(records, filters);
+			} catch (error) {
+				console.error("Failed to get organization usage records:", error);
+
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to get organization usage records",
+					cause: error,
+				});
+			}
+		}),
+
+	/**
+	 * Get usage statistics by organization ID
+	 */
+	getUsageStatsByOrganization: protectedProcedure
+		.input(
+			z.object({
+				organizationId: z.string(),
+				startDate: z.string().optional(),
+				endDate: z.string().optional(),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new UsageClient(token);
+				const { organizationId, ...params } = input;
+				return await client.getUsageStatsByOrganization(organizationId, params);
+			} catch (error) {
+				console.error("Failed to get organization usage stats:", error);
+
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to get organization usage stats",
+					cause: error,
+				});
+			}
+		}),
+
+	/**
+	 * Get usage records by project ID
+	 */
+	getUsageByProject: protectedProcedure
+		.input(
+			z.object({
+				projectId: z.number(),
+				limit: z.number().optional(),
+				offset: z.number().optional(),
+				filters: usageFiltersSchema.optional(),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new UsageClient(token);
+				const { projectId, filters, ...params } = input;
+				const records = await client.getUsageByProject(projectId, params);
+				if (!filters) {
+					return records;
+				}
+				return filterUsageRecords(records, filters);
+			} catch (error) {
+				console.error("Failed to get project usage records:", error);
+
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to get project usage records",
+					cause: error,
+				});
+			}
+		}),
+
+	/**
+	 * Get usage statistics by project ID
+	 */
+	getUsageStatsByProject: protectedProcedure
+		.input(
+			z.object({
+				projectId: z.number(),
+				startDate: z.string().optional(),
+				endDate: z.string().optional(),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			try {
+				const token = await ctx.clerkAuth.getToken();
+				if (!token) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+				const client = new UsageClient(token);
+				const { projectId, ...params } = input;
+				return await client.getUsageStatsByProject(projectId, params);
+			} catch (error) {
+				console.error("Failed to get project usage stats:", error);
+
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to get project usage stats",
 					cause: error,
 				});
 			}
