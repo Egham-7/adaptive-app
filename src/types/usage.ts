@@ -98,7 +98,7 @@ export interface UsageRecord {
 	user_agent?: string | null;
 	ip_address?: string | null;
 	error_message?: string | null;
-	created_at: string;
+	timestamp: string;
 }
 
 /**
