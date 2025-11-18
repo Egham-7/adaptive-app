@@ -1,10 +1,7 @@
 "use client";
 
 import { FaChartLine, FaCoins, FaServer } from "react-icons/fa";
-import type {
-	DailyTrendDataPoint,
-	ProjectAnalytics,
-} from "@/types/api-platform/dashboard";
+import type { ProjectAnalytics } from "@/types/api-platform/dashboard";
 import { MetricCardSkeleton } from "./loading-skeleton";
 import { VersatileMetricChart } from "./versatile-metric-chart";
 
@@ -26,15 +23,7 @@ export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
 
 	if (!data) return null;
 
-	const validDailyTrends = data.dailyTrends
-		.map((trend) => {
-			const date =
-				trend.date instanceof Date ? trend.date : new Date(trend.date);
-			return Number.isNaN(date.getTime()) ? null : { ...trend, date };
-		})
-		.filter((trend): trend is DailyTrendDataPoint => trend !== null);
-
-	const spendData = validDailyTrends.map((d) => ({
+	const spendData = data.dailyTrends.map((d) => ({
 		date: d.date.toISOString().slice(0, 10),
 		value: d.spend, // This is the actual customer spending
 	}));
@@ -59,7 +48,7 @@ export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
 			title: "Token Usage",
 			chartType: "bar" as const,
 			icon: <FaCoins className="h-5 w-5 text-chart-3" />,
-			data: validDailyTrends.map((d) => ({
+			data: data.dailyTrends.map((d) => ({
 				date: d.date.toISOString().slice(0, 10),
 				value: d.tokens,
 			})),
@@ -70,7 +59,7 @@ export function MetricsOverview({ data, loading }: MetricsOverviewProps) {
 			title: "Request Volume",
 			chartType: "area" as const,
 			icon: <FaServer className="h-5 w-5 text-chart-4" />,
-			data: validDailyTrends.map((d) => ({
+			data: data.dailyTrends.map((d) => ({
 				date: d.date.toISOString().slice(0, 10),
 				value: d.requests,
 			})),

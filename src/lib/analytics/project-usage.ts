@@ -48,8 +48,8 @@ export function buildProjectUsageAnalytics(
 		const completionTokens = entry.completion_tokens ?? 0;
 		const cachedTokens = entry.cached_tokens ?? 0;
 		const tokensUsed = entry.tokens_total ?? promptTokens + completionTokens;
-		const parsedTimestamp = entry.timestamp ? new Date(entry.timestamp) : null;
-		const trendKey = parsedTimestamp?.toISOString();
+		const timestamp = entry.timestamp ? new Date(entry.timestamp) : null;
+		const trendKey = timestamp?.toISOString();
 		if (trendKey) {
 			const current = aggregated.dailyTrendsMap.get(trendKey) ?? {
 				spend: 0,
@@ -78,7 +78,7 @@ export function buildProjectUsageAnalytics(
 			cachedTokens,
 			latencyMs: entry.latency_ms ?? undefined,
 			finishReason: entry.finish_reason ?? "unknown",
-			timestamp: parsedTimestamp ?? new Date(0),
+			timestamp: timestamp ?? new Date(0),
 		});
 
 		const providerKey = entry.provider ?? "unknown";
