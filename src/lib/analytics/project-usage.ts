@@ -48,18 +48,22 @@ export function buildProjectUsageAnalytics(
 		const completionTokens = entry.completion_tokens ?? 0;
 		const cachedTokens = entry.cached_tokens ?? 0;
 		const tokensUsed = entry.tokens_total ?? promptTokens + completionTokens;
-		const current = aggregated.dailyTrendsMap.get(entry.created_at) ?? {
-			spend: 0,
-			requests: 0,
-			tokens: 0,
-			errorCount: 0,
-		};
-		aggregated.dailyTrendsMap.set(entry.created_at, {
-			spend: current.spend + entry.cost,
-			requests: current.requests + 1,
-			tokens: current.tokens + tokensUsed,
-			errorCount: current.errorCount + (entry.status_code >= 400 ? 1 : 0),
-		});
+		const parsedTimestamp = entry.timestamp ? new Date(entry.timestamp) : null;
+		const trendKey = parsedTimestamp?.toISOString();
+		if (trendKey) {
+			const current = aggregated.dailyTrendsMap.get(trendKey) ?? {
+				spend: 0,
+				requests: 0,
+				tokens: 0,
+				errorCount: 0,
+			};
+			aggregated.dailyTrendsMap.set(trendKey, {
+				spend: current.spend + entry.cost,
+				requests: current.requests + 1,
+				tokens: current.tokens + tokensUsed,
+				errorCount: current.errorCount + (entry.status_code >= 400 ? 1 : 0),
+			});
+		}
 
 		aggregated.recentRequests.push({
 			id: entry.id,
@@ -74,7 +78,7 @@ export function buildProjectUsageAnalytics(
 			cachedTokens,
 			latencyMs: entry.latency_ms ?? undefined,
 			finishReason: entry.finish_reason ?? "unknown",
-			timestamp: new Date(entry.created_at),
+			timestamp: parsedTimestamp ?? new Date(0),
 		});
 
 		const providerKey = entry.provider ?? "unknown";
