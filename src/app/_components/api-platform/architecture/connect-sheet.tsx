@@ -1,6 +1,6 @@
 "use client";
 
-import { Key, Link as LinkIcon } from "lucide-react";
+import { Link as LinkIcon } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import {
 	Tooltip,
@@ -138,8 +138,6 @@ import {
 	CodeBlockGroup,
 } from "@/components/ui/code-block";
 import { CopyButton } from "@/components/ui/copy-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	Sheet,
 	SheetContent,
@@ -148,7 +146,7 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import { useCreateProjectApiKey } from "@/hooks/api_keys/use-create-project-api-key";
+import { useProjectApiKeys } from "@/hooks/api_keys/use-project-api-keys";
 import { cn } from "@/lib/shared/utils";
 
 interface QuickstartCodeSnippet {
@@ -233,24 +231,26 @@ chmod +x claude-code.sh
 		title: "Cline",
 		docsUrl: "https://docs.llmadaptive.uk/developer-tools/cline",
 		summary:
-			"Point the VS Code extension at Adaptive and leave the model blank.",
+			"Point the VS Code extension at Adaptive and set model to adaptive/auto for intelligent routing.",
 		icon: ClineIcon,
+		tip: "⚠️ Important: Set model to 'adaptive/auto' for intelligent routing across providers",
 		steps: [
 			{
 				title: "Install extension",
-				description: "Search for “cline” in VS Code and open the panel.",
+				description: "Search for 'cline' in VS Code and open the panel.",
 			},
 			{
-				title: "Enter connection info",
+				title: "Configure connection",
 				description:
-					"Provider: OpenAI Compatible · API Key: Adaptive key · Model: empty",
+					"Provider: OpenAI Compatible · API Key: Adaptive key · Model: adaptive/auto",
 				code: {
 					label: "settings.json",
 					language: "json",
 					content: `{
   "cline.provider": "openai-compatible",
   "cline.baseUrl": "https://api.llmadaptive.uk/v1",
-  "cline.apiKey": "your-adaptive-api-key"
+  "cline.apiKey": "your-adaptive-api-key",
+  "cline.model": "adaptive/auto"
 }`,
 				},
 			},
@@ -470,7 +470,12 @@ const INTEGRATION_QUICKSTARTS: DocQuickstart[] = [
 				title: "Install",
 				codeVariants: [
 					{ label: "pnpm", language: "bash", content: "pnpm add openai" },
+					{ label: "npm", language: "bash", content: "npm install openai" },
+					{ label: "yarn", language: "bash", content: "yarn add openai" },
+					{ label: "bun", language: "bash", content: "bun add openai" },
 					{ label: "pip", language: "bash", content: "pip install openai" },
+					{ label: "uv", language: "bash", content: "uv pip install openai" },
+					{ label: "poetry", language: "bash", content: "poetry add openai" },
 				],
 			},
 			{
@@ -546,6 +551,11 @@ response = client.chat.completions.create(
 						language: "bash",
 						content: "yarn add ai @ai-sdk/openai zod",
 					},
+					{
+						label: "bun",
+						language: "bash",
+						content: "bun add ai @ai-sdk/openai zod",
+					},
 				],
 			},
 			{
@@ -581,9 +591,34 @@ return streamText({ model, messages });`,
 						content: "pip install langchain langchain-openai",
 					},
 					{
+						label: "uv",
+						language: "bash",
+						content: "uv pip install langchain langchain-openai",
+					},
+					{
+						label: "poetry",
+						language: "bash",
+						content: "poetry add langchain langchain-openai",
+					},
+					{
 						label: "npm",
 						language: "bash",
 						content: "npm install langchain @langchain/openai",
+					},
+					{
+						label: "pnpm",
+						language: "bash",
+						content: "pnpm add langchain @langchain/openai",
+					},
+					{
+						label: "yarn",
+						language: "bash",
+						content: "yarn add langchain @langchain/openai",
+					},
+					{
+						label: "bun",
+						language: "bash",
+						content: "bun add langchain @langchain/openai",
 					},
 				],
 			},
@@ -614,19 +649,6 @@ const llm = new ChatOpenAI({
 });
 
 await llm.invoke("Explain RAG");`,
-					},
-					{
-						label: "cURL",
-						language: "bash",
-						content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -d '{
-    "model": "adaptive/auto",
-    "messages": [
-      {"role": "user", "content": "Explain RAG"}
-    ]
-  }'`,
 					},
 				],
 			},
@@ -659,19 +681,6 @@ await llm.invoke("Explain RAG");`,
     model="adaptive/auto"
 )
 workflow.add_node("agent", lambda state: {"messages": [model.invoke(state["messages"])]})`,
-					},
-					{
-						label: "cURL",
-						language: "bash",
-						content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -d '{
-    "model": "adaptive/auto",
-    "messages": [
-      {"role": "user", "content": "Hello from LangGraph!"}
-    ]
-  }'`,
 					},
 				],
 			},
@@ -706,19 +715,6 @@ workflow.add_node("agent", lambda state: {"messages": [model.invoke(state["messa
 )
 Settings.llm = llm`,
 					},
-					{
-						label: "cURL",
-						language: "bash",
-						content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -d '{
-    "model": "adaptive/auto",
-    "messages": [
-      {"role": "user", "content": "Hello from LlamaIndex!"}
-    ]
-  }'`,
-					},
 				],
 			},
 		],
@@ -749,19 +745,6 @@ Settings.llm = llm`,
     api_key="your-adaptive-api-key",
     base_url="https://api.llmadaptive.uk/v1"
 )`,
-					},
-					{
-						label: "cURL",
-						language: "bash",
-						content: `curl -X POST "https://api.llmadaptive.uk/v1/chat/completions" \\
-  -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -d '{
-    "model": "adaptive/auto",
-    "messages": [
-      {"role": "user", "content": "Hello from CrewAI!"}
-    ]
-  }'`,
 					},
 				],
 			},
@@ -839,33 +822,23 @@ interface ConnectSheetProps {
 }
 
 export function ConnectSheet({ projectId }: ConnectSheetProps) {
-	const [apiKeyName, setApiKeyName] = useState("");
-	const [createdApiKey, setCreatedApiKey] = useState<string | null>(null);
-	const [showCreateForm, setShowCreateForm] = useState(false);
-	const createApiKey = useCreateProjectApiKey();
+	// Query existing API keys for this project
+	const { data: apiKeys } = useProjectApiKeys(projectId.toString());
 
-	const handleCreateApiKey = async () => {
-		if (!apiKeyName.trim()) {
-			return;
-		}
+	// Get the first active API key or most recently created one
+	const defaultApiKey = useMemo(() => {
+		if (!apiKeys || apiKeys.length === 0) return null;
 
-		createApiKey.mutate(
-			{
-				projectId,
-				name: apiKeyName,
-				expires_at: null,
-			},
-			{
-				onSuccess: (data) => {
-					if (data.key) {
-						setCreatedApiKey(data.key);
-						setShowCreateForm(false);
-						setApiKeyName("");
-					}
-				},
-			},
-		);
-	};
+		// Prefer active keys, then sort by creation date (most recent first)
+		const sortedKeys = [...apiKeys]
+			.filter((key) => key.is_active)
+			.sort(
+				(a, b) =>
+					new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+			);
+
+		return sortedKeys[0] || apiKeys[0];
+	}, [apiKeys]);
 
 	return (
 		<Sheet>
@@ -889,66 +862,6 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 				</SheetHeader>
 
 				<div className="max-w-full space-y-4 px-6 pb-6">
-					{/* API Key Creation Section */}
-					<div
-						id="create-api-key-form"
-						className="space-y-3 rounded-lg border bg-muted/30 p-4"
-					>
-						{!showCreateForm && !createdApiKey && (
-							<Button
-								onClick={() => setShowCreateForm(true)}
-								variant="outline"
-								size="sm"
-								className="w-full"
-							>
-								<Key className="mr-2 h-4 w-4" />
-								Create API Key (Optional)
-							</Button>
-						)}
-
-						{showCreateForm && (
-							<div className="space-y-3">
-								<div className="space-y-2">
-									<Label htmlFor="api-key-name">API Key Name</Label>
-									<Input
-										id="api-key-name"
-										placeholder="e.g., My Integration Key"
-										value={apiKeyName}
-										onChange={(e) => setApiKeyName(e.target.value)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter") {
-												handleCreateApiKey();
-											}
-										}}
-									/>
-								</div>
-								<div className="flex gap-2">
-									<Button
-										onClick={handleCreateApiKey}
-										disabled={!apiKeyName.trim() || createApiKey.isPending}
-										size="sm"
-										className="flex-1"
-									>
-										{createApiKey.isPending ? "Creating..." : "Create Key"}
-									</Button>
-									<Button
-										onClick={() => setShowCreateForm(false)}
-										variant="outline"
-										size="sm"
-									>
-										Cancel
-									</Button>
-								</div>
-							</div>
-						)}
-
-						{createdApiKey && (
-							<p className="font-medium text-green-600 text-sm dark:text-green-400">
-								✓ API Key created! The examples below are now autofilled with
-								your key.
-							</p>
-						)}
-					</div>
 					<div id="dev-tools-section">
 						<DocsQuickstartSection
 							title="Developer Tools"
@@ -956,6 +869,7 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 							cards={DEVELOPER_TOOL_QUICKSTARTS}
 							defaultOpen={true}
 							showLanguageToggle={false}
+							apiKey={defaultApiKey?.key || "your-adaptive-api-key"}
 						/>
 					</div>
 					<div id="integration-section">
@@ -964,6 +878,7 @@ export function ConnectSheet({ projectId }: ConnectSheetProps) {
 							description="Follow the official integration quickstarts pulled directly from the docs."
 							cards={INTEGRATION_QUICKSTARTS}
 							defaultOpen={false}
+							apiKey={defaultApiKey?.key || "your-adaptive-api-key"}
 						/>
 					</div>
 				</div>
@@ -978,6 +893,7 @@ interface DocsQuickstartSectionProps {
 	cards: DocQuickstart[];
 	defaultOpen?: boolean;
 	showLanguageToggle?: boolean;
+	apiKey: string;
 }
 
 function DocsQuickstartSection({
@@ -986,10 +902,18 @@ function DocsQuickstartSection({
 	cards,
 	defaultOpen = false,
 	showLanguageToggle = true,
+	apiKey,
 }: DocsQuickstartSectionProps) {
 	const [selectedId, setSelectedId] = useState(() => cards[0]?.id ?? "");
 	const [selectedLanguage, setSelectedLanguage] =
 		useState<string>("javascript");
+
+	// Helper function to replace API key placeholders
+	const autofillApiKey = (content: string) => {
+		return content
+			.replace(/your-adaptive-api-key/g, apiKey)
+			.replace(/YOUR_API_KEY/g, apiKey);
+	};
 
 	const selectedCard = useMemo(() => {
 		if (cards.length === 0) return null;
@@ -1185,13 +1109,13 @@ function DocsQuickstartSection({
 																{codeToShow.language}
 															</Badge>
 															<CopyButton
-																content={codeToShow.content}
+																content={autofillApiKey(codeToShow.content)}
 																copyMessage="Snippet copied!"
 															/>
 														</div>
 													</CodeBlockGroup>
 													<CodeBlockCode
-														code={codeToShow.content}
+														code={autofillApiKey(codeToShow.content)}
 														language={codeToShow.language}
 													/>
 												</CodeBlock>
@@ -1220,13 +1144,13 @@ function DocsQuickstartSection({
 																{sample.language}
 															</Badge>
 															<CopyButton
-																content={sample.content}
+																content={autofillApiKey(sample.content)}
 																copyMessage="Snippet copied!"
 															/>
 														</div>
 													</CodeBlockGroup>
 													<CodeBlockCode
-														code={sample.content}
+														code={autofillApiKey(sample.content)}
 														language={sample.language}
 													/>
 												</CodeBlock>
