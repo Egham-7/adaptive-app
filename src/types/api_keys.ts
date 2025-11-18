@@ -80,10 +80,7 @@ export type APIKeyStatus = APIKeyListItem["is_active"];
 /**
  * The core API key data without metadata like created_at, updated_at.
  */
-export type APIKeyCore = Pick<
-	APIKeyListItem,
-	"id" | "name" | "is_active" | "key_prefix"
->;
+export type APIKeyCore = Pick<APIKeyListItem, "id" | "name" | "is_active">;
 
 /**
  * API key data for forms (without server-generated fields).

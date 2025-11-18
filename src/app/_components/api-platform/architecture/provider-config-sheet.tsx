@@ -117,6 +117,7 @@ export function ProviderConfigSheet({
 			await deleteProjectProvider.mutateAsync({
 				projectId,
 				provider: providerName,
+				configId: existingConfig?.id,
 			});
 			onOpenChange(false);
 		} catch (error) {

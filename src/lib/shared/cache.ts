@@ -144,6 +144,10 @@ export const invalidateProviderConfigCache = (
 	return invalidatePatterns(patterns);
 };
 
+export const invalidateProviderHistoryCache = (configId: number | string) => {
+	return invalidatePatterns([`provider-config-history:${configId}*`]);
+};
+
 export const invalidateOrganizationProviderCache = (
 	organizationId: string,
 	providerId?: string,
@@ -163,6 +167,10 @@ export const invalidateProjectAdaptiveConfigCache = (
 	projectId: number | string,
 ) => {
 	return invalidatePatterns([`adaptive-config:project:${projectId}*`]);
+};
+
+export const invalidateProjectHistoryCache = (projectId: number | string) => {
+	return invalidatePatterns([`project-history:${projectId}*`]);
 };
 
 export const invalidateOrganizationAdaptiveConfigCache = (
