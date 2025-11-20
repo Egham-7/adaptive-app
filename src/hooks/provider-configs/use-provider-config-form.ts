@@ -116,10 +116,15 @@ export function useProviderConfigForm({
 	const onSubmit = async (data: FormData) => {
 		const apiData: UpdateProviderApiRequest = {};
 
-		// Only send API key if it has changed from the existing value
-		const trimmedApiKey = data.apiKey?.trim();
-		if (trimmedApiKey && trimmedApiKey !== existingConfig?.api_key) {
-			apiData.api_key = trimmedApiKey;
+		if (data.apiKey !== undefined) {
+			const trimmedApiKey = data.apiKey.trim();
+			if (existingConfig) {
+				if (trimmedApiKey !== existingConfig.api_key) {
+					apiData.api_key = trimmedApiKey;
+				}
+			} else if (trimmedApiKey !== "") {
+				apiData.api_key = trimmedApiKey;
+			}
 		}
 
 		// Always send base_url if it's defined (including empty string to clear it)
