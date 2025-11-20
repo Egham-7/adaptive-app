@@ -24,6 +24,23 @@ type ProviderStats = {
 export type { ProjectUsageAnalytics };
 export { EMPTY_PROJECT_USAGE_ANALYTICS };
 
+const formatDayKey = (date: Date) => {
+	const month = String(date.getMonth() + 1).padStart(2, "0");
+	const day = String(date.getDate()).padStart(2, "0");
+	return `${date.getFullYear()}-${month}-${day}`;
+};
+
+const dateFromDayKey = (key: string) => {
+	const [yearStr = "", monthStr = "", dayStr = ""] = key.split("-");
+	const year = Number(yearStr);
+	const month = Number(monthStr);
+	const day = Number(dayStr);
+	if ([year, month, day].some((part) => Number.isNaN(part))) {
+		return new Date(key);
+	}
+	return new Date(year, month - 1, day);
+};
+
 export function buildProjectUsageAnalytics(
 	stats: UsageStats | null | undefined,
 	usage: UsageRecord[] | null | undefined,
@@ -49,7 +66,7 @@ export function buildProjectUsageAnalytics(
 		const cachedTokens = entry.cached_tokens ?? 0;
 		const tokensUsed = entry.tokens_total ?? promptTokens + completionTokens;
 		const timestamp = entry.timestamp ? new Date(entry.timestamp) : null;
-		const trendKey = timestamp?.toISOString();
+		const trendKey = timestamp ? formatDayKey(timestamp) : null;
 		if (trendKey) {
 			const current = aggregated.dailyTrendsMap.get(trendKey) ?? {
 				spend: 0,
@@ -125,7 +142,7 @@ export function buildProjectUsageAnalytics(
 
 	const dailyTrends = Array.from(aggregated.dailyTrendsMap.entries())
 		.map(([period, data]) => ({
-			date: new Date(period),
+			date: dateFromDayKey(period),
 			spend: data.spend,
 			requests: data.requests,
 			tokens: data.tokens,
