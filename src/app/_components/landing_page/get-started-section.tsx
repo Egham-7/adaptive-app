@@ -19,11 +19,11 @@ export default function GetStartedSection() {
 						className="text-center"
 					>
 						<h2 className="font-bold text-3xl tracking-tight sm:text-4xl lg:text-5xl">
-							See Adaptive in Action
+							See <span className="bg-gradient-to-r from-[#a3e635] via-[#34d399] to-[#10b981] bg-clip-text text-transparent">Aurora</span> in Action
 						</h2>
 						<p className="mx-auto mt-6 max-w-3xl text-balance text-base text-muted-foreground leading-relaxed sm:text-lg">
 							Watch how teams configure their routing architecture visually, add
-							their benchmarks, and let Adaptive auto-optimize for cost and
+							their benchmarks, and let Aurora auto-optimize for cost and
 							quality in under two minutes.
 						</p>
 					</motion.div>
@@ -47,7 +47,7 @@ export default function GetStartedSection() {
 						className="mt-12 space-y-6 text-center"
 					>
 						<p className="text-base text-muted-foreground sm:text-lg">
-							Ready to stop manually switching models?
+							Ready to experience the <span className="bg-gradient-to-r from-[#a3e635] via-[#34d399] to-[#10b981] bg-clip-text text-transparent font-medium">Aurora</span> Effect?
 						</p>
 
 						<div className="flex justify-center">

@@ -71,15 +71,14 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 
 	if (isLoading) {
 		return (
-			<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{[...Array(3)].map((_, i) => (
-					<Card key={i} className="animate-pulse">
-						<CardHeader>
-							<div className="h-6 w-3/4 rounded bg-muted" />
-							<div className="h-4 w-full rounded bg-muted" />
-						</CardHeader>
-					</Card>
-				))}
+			<div className="flex min-h-[60vh] items-center justify-center">
+				<div className="flex flex-col items-center gap-4">
+					<div className="relative">
+						<div className="h-12 w-12 rounded-full border-2 border-white/10" />
+						<div className="absolute inset-0 h-12 w-12 animate-spin rounded-full border-2 border-transparent border-t-emerald-500" />
+					</div>
+					<p className="text-white/50 text-sm">Loading projects...</p>
+				</div>
 			</div>
 		);
 	}

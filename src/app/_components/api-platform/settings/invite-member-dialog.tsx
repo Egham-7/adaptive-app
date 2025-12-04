@@ -3,7 +3,6 @@
 import { Plus } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -22,6 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { IosButton } from "@/components/ui/ios-button";
 import { useCreateOrganizationInvitation } from "@/hooks/organizations/use-create-organization-invitation";
 
 interface InviteMemberDialogProps {
@@ -67,23 +67,23 @@ export const InviteMemberDialog: React.FC<InviteMemberDialogProps> = ({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button disabled={isAtLimit}>
-					<Plus className="mr-2 h-4 w-4" />
+				<IosButton variant="bordered" disabled={isAtLimit}>
+					<Plus className="h-4 w-4" />
 					{isAtLimit ? "Member Limit Reached (5/5)" : "Invite Member"}
-				</Button>
+				</IosButton>
 			</DialogTrigger>
-			<DialogContent>
+			<DialogContent className="bg-[#0a0a0a] border border-white/10 backdrop-blur-xl">
 				<form onSubmit={handleSubmit}>
 					<DialogHeader>
-						<DialogTitle>Invite Team Member</DialogTitle>
-						<DialogDescription>
+						<DialogTitle className="text-white">Invite Team Member</DialogTitle>
+						<DialogDescription className="text-white/50">
 							Send an invitation to join your organization. You can have up to 5
 							members (including admins and pending invitations).
 						</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-4 py-4">
 						<div className="space-y-2">
-							<Label htmlFor="email">Email Address</Label>
+							<Label htmlFor="email" className="text-white/70">Email Address</Label>
 							<Input
 								id="email"
 								type="email"
@@ -91,40 +91,41 @@ export const InviteMemberDialog: React.FC<InviteMemberDialogProps> = ({
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								required
+								className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#34d399]/50 focus:ring-[#34d399]/20"
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label htmlFor="role">Role</Label>
+							<Label htmlFor="role" className="text-white/70">Role</Label>
 							<Select
 								value={role}
 								onValueChange={(value) =>
 									setRole(value as "org:admin" | "org:member")
 								}
 							>
-								<SelectTrigger id="role">
+								<SelectTrigger id="role" className="bg-white/5 border-white/10 text-white">
 									<SelectValue placeholder="Select a role" />
 								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="org:member">Member</SelectItem>
-									<SelectItem value="org:admin">Admin</SelectItem>
+								<SelectContent className="bg-[#0a0a0a] border-white/10">
+									<SelectItem value="org:member" className="text-white/70 focus:text-white focus:bg-white/10">Member</SelectItem>
+									<SelectItem value="org:admin" className="text-white/70 focus:text-white focus:bg-white/10">Admin</SelectItem>
 								</SelectContent>
 							</Select>
-							<p className="text-muted-foreground text-xs">
+							<p className="text-white/40 text-xs">
 								Admins can manage organization settings and members
 							</p>
 						</div>
 					</div>
-					<DialogFooter>
-						<Button
+					<DialogFooter className="gap-2">
+						<IosButton
 							type="button"
-							variant="outline"
+							variant="bordered"
 							onClick={() => setOpen(false)}
 						>
 							Cancel
-						</Button>
-						<Button type="submit" disabled={createInvitation.isPending}>
+						</IosButton>
+						<IosButton type="submit" variant="bordered" disabled={createInvitation.isPending}>
 							{createInvitation.isPending ? "Sending..." : "Send Invitation"}
-						</Button>
+						</IosButton>
 					</DialogFooter>
 				</form>
 			</DialogContent>

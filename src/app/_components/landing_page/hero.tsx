@@ -1,12 +1,18 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
 	AnimatedGroup,
 	type AnimatedGroupProps,
 } from "@/components/ui/animated-group";
-import { Button } from "@/components/ui/button";
+import { AuroraBackground } from "@/components/ui/aurora-background";
+import { IosButton } from "@/components/ui/ios-button";
+import AnimatedGenerateButton from "@/components/ui/animated-generate-button";
 import { TextEffect } from "@/components/ui/text-effect";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 
 const transitionVariants = {
 	item: {
@@ -30,81 +36,30 @@ const transitionVariants = {
 
 export default function HeroSection() {
 	return (
-		<main className="overflow-hidden">
-			<div
-				aria-hidden
-				className="absolute inset-0 isolate hidden opacity-65 contain-strict lg:block"
-			>
-				<div className="-translate-y-87.5 -rotate-45 absolute top-0 left-0 h-320 w-140 rounded-full bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,hsla(0,0%,85%,.08)_0,hsla(0,0%,55%,.02)_50%,hsla(0,0%,45%,0)_80%)]" />
-				<div className="-rotate-45 absolute top-0 left-0 h-320 w-60 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.06)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)] [translate:5%_-50%]" />
-				<div className="-translate-y-87.5 -rotate-45 absolute top-0 left-0 h-320 w-60 bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.04)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)]" />
-			</div>
-			<section>
+		<AuroraBackground>
+			<section className="relative w-full">
 				<div className="relative pt-24 md:pt-36">
-					<AnimatedGroup
-						variants={{
-							container: {
-								visible: {
-									transition: {
-										delayChildren: 1,
-									},
-								},
-							},
-							item: {
-								hidden: {
-									opacity: 0,
-									y: 20,
-								},
-								visible: {
-									opacity: 1,
-									y: 0,
-									transition: {
-										type: "spring",
-										bounce: 0.3,
-										duration: 2,
-									},
-								},
-							},
-						}}
-						className="mask-b-from-35% mask-b-to-90% -z-20 absolute inset-0 top-56 lg:top-32"
-					>
-						<Image
-							src="https://ik.imagekit.io/lrigu76hy/tailark/night-background.jpg?updatedAt=1745733451120"
-							alt="background"
-							className="hidden size-full dark:block"
-							width={3276}
-							height={4095}
-						/>
-					</AnimatedGroup>
-
-					<div
-						aria-hidden
-						className="-z-10 absolute inset-0 size-full [background:radial-gradient(125%_125%_at_50%_100%,transparent_0%,var(--color-background)_75%)]"
-					/>
-
 					<div className="mx-auto max-w-7xl px-6">
-						<div className="text-center sm:mx-auto lg:mt-0 lg:mr-auto">
+						<motion.div
+							initial={{ opacity: 0.0, y: 40 }}
+							whileInView={{ opacity: 1, y: 0 }}
+							transition={{
+								delay: 0.3,
+								duration: 0.8,
+								ease: "easeInOut",
+							}}
+							className="text-center sm:mx-auto lg:mt-0 lg:mr-auto"
+						>
 							<AnimatedGroup variants={transitionVariants}>
 								<Link
 									href="/sign-in?redirect_url=/api-platform/orgs"
-									className="group mx-auto flex w-fit items-center gap-4 rounded-full border bg-muted p-1 pl-4 shadow-md shadow-zinc-950/5 transition-colors duration-300 hover:bg-background dark:border-t-white/5 dark:shadow-zinc-950 dark:hover:border-t-border"
+									className="group mx-auto flex w-fit items-center gap-3 rounded-full border-2 border-[#34d399] bg-white/10 backdrop-blur-md px-4 py-2 transition-all duration-300 hover:bg-[rgba(52,211,153,0.15)] hover:border-[#a3e635]"
 								>
-									<span className="text-foreground text-sm">
+									<span className="text-white text-sm font-semibold">
 										Now routing GPT-5, Claude 4.5 Sonnet, Gemini 2.5 Pro, and
 										GLM 4.6
 									</span>
-									<span className="block h-4 w-0.5 border-l bg-white dark:border-background dark:bg-zinc-700" />
-
-									<div className="size-6 overflow-hidden rounded-full bg-background duration-500 group-hover:bg-muted">
-										<div className="-translate-x-1/2 flex w-12 duration-500 ease-in-out group-hover:translate-x-0">
-											<span className="flex size-6">
-												<ArrowRight className="m-auto size-3" />
-											</span>
-											<span className="flex size-6">
-												<ArrowRight className="m-auto size-3" />
-											</span>
-										</div>
-									</div>
+									<ArrowRight className="size-4 text-[#34d399]" />
 								</Link>
 							</AnimatedGroup>
 
@@ -112,7 +67,7 @@ export default function HeroSection() {
 								preset="fade-in-blur"
 								speedSegment={0.3}
 								as="h1"
-								className="mx-auto mt-8 max-w-4xl text-balance text-5xl max-md:font-semibold md:text-7xl lg:mt-16 xl:text-[5.25rem]"
+								className="mx-auto mt-8 max-w-4xl text-balance text-5xl max-md:font-semibold md:text-7xl lg:mt-16 xl:text-[5.25rem] text-white"
 							>
 								Keep every request on the best AI model automatically
 							</TextEffect>
@@ -122,7 +77,7 @@ export default function HeroSection() {
 								speedSegment={0.3}
 								delay={0.5}
 								as="p"
-								className="mx-auto mt-8 max-w-2xl text-balance text-lg"
+								className="mx-auto mt-8 max-w-2xl text-balance text-lg text-white"
 							>
 								Most teams pin traffic to a single model because the routing
 								work is painful. Adaptive benchmarks every provider against your
@@ -147,71 +102,35 @@ export default function HeroSection() {
 								}}
 								className="mt-12 flex flex-col items-center justify-center gap-2 md:flex-row"
 							>
-								<div
-									key={1}
-									className="rounded-[calc(var(--radius-xl)+0.125rem)] border bg-foreground/10 p-0.5"
-								>
-									<Button
-										asChild
-										size="lg"
-										className="rounded-xl px-5 text-base"
-									>
-										<Link href="/api-platform/orgs">
-											<span className="text-nowrap">
-												Start Auto-Optimizing Free
-											</span>
-										</Link>
-									</Button>
-								</div>
-								<Button
-									key={2}
-									asChild
-									size="lg"
-									variant="ghost"
-									className="h-10.5 rounded-xl px-5"
-								>
+								<Link key={1} href="/api-platform/orgs">
+									<AnimatedGenerateButton
+										labelIdle="Start Auto-Optimizing Free"
+										labelActive="Loading..."
+									/>
+								</Link>
+								<IosButton key={2} asChild variant="default">
 									<Link href="/support?subject=Adaptive%20Routing%20Consultation&message=Hi%20Adaptive%20team%2C%20we%20need%20help%20configuring%20multi-model%20routing%20with%20cost%20and%20quality%20bias%20controls.%20Please%20reach%20out%20to%20schedule%20a%20call.%20Thank%20you!">
 										<span className="text-nowrap">Talk to an expert</span>
 									</Link>
-								</Button>
+								</IosButton>
 							</AnimatedGroup>
-						</div>
+						</motion.div>
 					</div>
 
-					<AnimatedGroup
-						variants={{
-							container: {
-								visible: {
-									transition: {
-										staggerChildren: 0.05,
-										delayChildren: 0.75,
-									},
-								},
-							},
-							...transitionVariants,
-						}}
+					<ContainerScroll
+						titleComponent={<></>}
 					>
-						<div className="mask-b-from-55% -mr-56 relative mt-8 overflow-hidden px-2 sm:mt-12 sm:mr-0 md:mt-20">
-							<div className="relative inset-shadow-2xs mx-auto max-w-6xl overflow-hidden rounded-2xl border bg-background p-4 shadow-lg shadow-zinc-950/15 ring-1 ring-background dark:inset-shadow-white/20">
-								<Image
-									className="relative hidden aspect-15/8 rounded-2xl bg-background dark:block"
-									src="/hero-dark.png"
-									alt="app screen"
-									width={2700}
-									height={1440}
-								/>
-								<Image
-									className="relative z-2 aspect-15/8 rounded-2xl border border-border/25 dark:hidden"
-									src="/hero.png"
-									alt="app screen"
-									width={2700}
-									height={1440}
-								/>
-							</div>
-						</div>
-					</AnimatedGroup>
+						<Image
+							className="relative aspect-15/8 rounded-2xl bg-background object-cover h-full w-full"
+							src="/hero-dark.png"
+							alt="app screen"
+							width={2700}
+							height={1440}
+							draggable={false}
+						/>
+					</ContainerScroll>
 				</div>
 			</section>
-		</main>
+		</AuroraBackground>
 	);
 }

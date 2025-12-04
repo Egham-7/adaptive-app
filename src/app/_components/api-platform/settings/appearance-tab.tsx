@@ -1,6 +1,6 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Monitor, Moon, Palette, Sun, Check } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
 import {
@@ -10,8 +10,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/shared/utils";
 
 type Theme = "light" | "dark" | "system";
 
@@ -45,70 +44,90 @@ export const AppearanceTab: React.FC = () => {
 		}
 	};
 
+	const themeOptions = [
+		{
+			value: "light" as Theme,
+			label: "Light",
+			description: "Light mode theme",
+			icon: Sun,
+		},
+		{
+			value: "dark" as Theme,
+			label: "Dark",
+			description: "Dark mode theme",
+			icon: Moon,
+		},
+		{
+			value: "system" as Theme,
+			label: "System",
+			description: "Use system preference",
+			icon: Monitor,
+		},
+	];
+
 	return (
 		<div className="space-y-6">
-			<Card>
+			<Card className="border-white/10 bg-black/40 backdrop-blur-xl">
 				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Moon className="h-5 w-5" />
+					<CardTitle className="flex items-center gap-2 text-white">
+						<Palette className="h-5 w-5 text-emerald-400" />
 						Appearance
 					</CardTitle>
-					<CardDescription>
+					<CardDescription className="text-white/60">
 						Customize how the interface looks for you
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
 					<div className="space-y-4">
-						<Label>Theme</Label>
-						<RadioGroup value={theme} onValueChange={handleThemeChange}>
-							<div className="flex items-center space-x-2 rounded-lg border p-4 hover:bg-accent">
-								<RadioGroupItem value="light" id="light" />
-								<Label
-									htmlFor="light"
-									className="flex flex-1 cursor-pointer items-center gap-3"
-								>
-									<Sun className="h-5 w-5" />
-									<div>
-										<div className="font-medium">Light</div>
-										<div className="text-muted-foreground text-sm">
-											Light mode theme
+						<label className="text-sm font-medium text-white/80">Theme</label>
+						<div className="grid gap-3">
+							{themeOptions.map((option) => {
+								const Icon = option.icon;
+								const isSelected = theme === option.value;
+								return (
+									<button
+										key={option.value}
+										type="button"
+										onClick={() => handleThemeChange(option.value)}
+										className={cn(
+											"flex items-center gap-4 rounded-xl border p-4 text-left transition-all duration-200",
+											isSelected
+												? "border-emerald-500/50 bg-emerald-500/10"
+												: "border-white/10 bg-black/20 hover:border-white/20 hover:bg-white/5"
+										)}
+									>
+										<div
+											className={cn(
+												"flex h-10 w-10 items-center justify-center rounded-lg",
+												isSelected
+													? "bg-emerald-500/20 text-emerald-400"
+													: "bg-white/10 text-white/60"
+											)}
+										>
+											<Icon className="h-5 w-5" />
 										</div>
-									</div>
-								</Label>
-							</div>
-
-							<div className="flex items-center space-x-2 rounded-lg border p-4 hover:bg-accent">
-								<RadioGroupItem value="dark" id="dark" />
-								<Label
-									htmlFor="dark"
-									className="flex flex-1 cursor-pointer items-center gap-3"
-								>
-									<Moon className="h-5 w-5" />
-									<div>
-										<div className="font-medium">Dark</div>
-										<div className="text-muted-foreground text-sm">
-											Dark mode theme
+										<div className="flex-1">
+											<div
+												className={cn(
+													"font-medium",
+													isSelected ? "text-emerald-400" : "text-white"
+												)}
+											>
+												{option.label}
+											</div>
+											<div className="text-sm text-white/50">
+												{option.description}
+											</div>
 										</div>
-									</div>
-								</Label>
-							</div>
-
-							<div className="flex items-center space-x-2 rounded-lg border p-4 hover:bg-accent">
-								<RadioGroupItem value="system" id="system" />
-								<Label
-									htmlFor="system"
-									className="flex flex-1 cursor-pointer items-center gap-3"
-								>
-									<Monitor className="h-5 w-5" />
-									<div>
-										<div className="font-medium">System</div>
-										<div className="text-muted-foreground text-sm">
-											Use system preference
-										</div>
-									</div>
-								</Label>
-							</div>
-						</RadioGroup>
+										{isSelected && (
+											<div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500">
+												<Check className="h-4 w-4 text-black" />
+											</div>
+										)}
+									</button>
+								);
+							})}
+						</div>
 					</div>
 				</CardContent>
 			</Card>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useOrganization, useOrganizationList } from "@clerk/nextjs";
-import { Building2, ChevronDown, Plus } from "lucide-react";
+import { Sparkles, ChevronDown, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CreateOrganizationDialog } from "@/components/create-organization-dialog";
@@ -60,44 +60,44 @@ export function OrganizationSwitcher() {
 				<SidebarMenuItem>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<SidebarMenuButton className="w-fit px-1.5">
-								<div className="flex aspect-square size-5 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-									<Building2 className="size-3" />
+							<SidebarMenuButton className="w-fit px-1.5 hover:bg-white/5">
+								<div className="flex aspect-square size-5 items-center justify-center rounded-md bg-gradient-to-br from-emerald-500 to-lime-400">
+									<Sparkles className="size-3 text-black" />
 								</div>
-								<span className="truncate font-medium">{activeOrg.name}</span>
-								<ChevronDown className="opacity-50" />
+								<span className="truncate font-medium text-white">{activeOrg.name}</span>
+								<ChevronDown className="text-white/50" />
 							</SidebarMenuButton>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent
-							className="w-64 rounded-lg"
+							className="w-64 rounded-xl border-white/10 bg-black/95 backdrop-blur-xl"
 							align="start"
 							side="bottom"
 							sideOffset={4}
 						>
-							<DropdownMenuLabel className="text-muted-foreground text-xs">
+							<DropdownMenuLabel className="text-white/50 text-xs">
 								Organizations
 							</DropdownMenuLabel>
 							{userMemberships.data?.map((membership) => (
 								<DropdownMenuItem
 									key={membership.organization.id}
 									onClick={() => handleOrgSwitch(membership.organization.slug)}
-									className="gap-2 p-2"
+									className="gap-2 p-2 text-white hover:bg-white/10 focus:bg-white/10"
 								>
-									<div className="flex size-6 items-center justify-center rounded-xs border">
-										<Building2 className="size-4 shrink-0" />
+									<div className="flex size-6 items-center justify-center rounded-md bg-gradient-to-br from-emerald-500 to-lime-400">
+										<Sparkles className="size-3 text-black" />
 									</div>
 									{membership.organization.name}
 								</DropdownMenuItem>
 							))}
-							<DropdownMenuSeparator />
+							<DropdownMenuSeparator className="bg-white/10" />
 							<DropdownMenuItem
-								className="gap-2 p-2"
+								className="gap-2 p-2 text-white hover:bg-white/10 focus:bg-white/10"
 								onClick={() => setShowCreateDialog(true)}
 							>
-								<div className="flex size-6 items-center justify-center rounded-md border bg-background">
-									<Plus className="size-4" />
+								<div className="flex size-6 items-center justify-center rounded-md border border-white/20 bg-white/5">
+									<Plus className="size-4 text-white/70" />
 								</div>
-								<div className="font-medium text-muted-foreground">
+								<div className="font-medium text-white/60">
 									Add organization
 								</div>
 							</DropdownMenuItem>

@@ -54,7 +54,7 @@ export default function FooterSection() {
 								className="mr-0 flex items-center justify-center"
 							/>
 						</Link>
-						<p className="mx-auto mt-4 max-w-xs text-center text-muted-foreground text-sm lg:mx-0 lg:text-left">
+						<p className="mx-auto mt-4 max-w-xs text-center text-white text-sm lg:mx-0 lg:text-left">
 							Optimize performance and cut costs with Adaptive's AI-driven
 							infrastructure for all your AI workloads.
 						</p>
@@ -66,7 +66,7 @@ export default function FooterSection() {
 					>
 						{links.map((link) => (
 							<div key={link.group} className="space-y-4">
-								<h3 className="font-semibold text-foreground text-sm">
+								<h3 className="font-semibold text-white text-sm">
 									{link.group}
 								</h3>
 								<ul className="space-y-3">
@@ -74,7 +74,7 @@ export default function FooterSection() {
 										<li key={item.title}>
 											<Link
 												href={item.href}
-												className="text-muted-foreground text-sm transition-colors hover:text-primary"
+												className="text-[#34d399] text-sm transition-colors hover:text-[#a3e635]"
 											>
 												{item.title}
 											</Link>
@@ -88,8 +88,8 @@ export default function FooterSection() {
 
 				<div className="mt-12 border-t pt-8">
 					<div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-						<p className="text-center text-muted-foreground text-sm md:text-left">
-							© {new Date().getFullYear()} Botir Khaltaev, Kendrick Lwin,
+						<p className="text-center text-white text-sm md:text-left">
+							© {new Date().getFullYear()} Botir Khaltaev, Abdelaziz Brahmi,
 							Mohamed El Amine Atoui. All rights reserved
 						</p>
 
@@ -99,7 +99,7 @@ export default function FooterSection() {
 								target="_blank"
 								rel="noopener noreferrer"
 								aria-label="Follow us on X (formerly Twitter)"
-								className="text-muted-foreground transition-colors hover:text-primary"
+								className="text-white transition-colors hover:text-[#a3e635]"
 							>
 								<svg
 									className="size-5"
@@ -121,7 +121,7 @@ export default function FooterSection() {
 								target="_blank"
 								rel="noopener noreferrer"
 								aria-label="Connect with us on LinkedIn"
-								className="text-muted-foreground transition-colors hover:text-primary"
+								className="text-white transition-colors hover:text-[#a3e635]"
 							>
 								<svg
 									className="size-5"
@@ -143,7 +143,7 @@ export default function FooterSection() {
 								target="_blank"
 								rel="noopener noreferrer"
 								aria-label="View our code on GitHub"
-								className="text-muted-foreground transition-colors hover:text-primary"
+								className="text-white transition-colors hover:text-[#a3e635]"
 							>
 								<svg
 									className="size-5"

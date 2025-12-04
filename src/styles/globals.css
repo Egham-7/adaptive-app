@@ -5,7 +5,7 @@
 
 @theme {
 	--font-sans:
-		"League Spartan", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+		-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji",
 		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
@@ -55,7 +55,7 @@
 	--color-adaptive-pine: var(--adaptive-pine);
 	--color-adaptive-gold-dust: var(--adaptive-gold-dust);
 	--color-adaptive-burnt-gold: var(--adaptive-burnt-gold);
-	--font-sans: League Spartan;
+	--font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	--font-mono: Andale Mono;
 	--font-serif: Athelas;
 	--radius: 0.75rem;
@@ -89,142 +89,143 @@
 :root {
 	--radius: 0.75rem;
 
-	/* Light Theme Colors */
-	--background: #f7efe4;
-	--foreground: #202020;
-	--card: #ffffff;
-	--card-foreground: #202020;
-	--popover: #ffffff;
-	--popover-foreground: #202020;
+	/* Aurora CSS Variables for Tailwind colors */
+	--black: #000000;
+	--white: #ffffff;
+	--transparent: transparent;
+	--emerald-400: #34d399;
+	--emerald-500: #10b981;
+	--green-400: #4ade80;
+	--green-500: #22c55e;
+	--lime-300: #bef264;
+	--lime-400: #a3e635;
 
-	--primary: #253957;
-	--primary-foreground: #ffffff;
-	--secondary: #d0a579;
-	--secondary-foreground: #202020;
-	--muted: #e7e8e9;
-	--muted-foreground: #646464;
-	--accent: #e7e8e9;
-	--accent-foreground: #646464;
-	--destructive: #b21900;
+	/* Aurora Dark Theme - Emerald Green with Yellow-Lime Gradient */
+	--background: #0a0f1a;
+	--foreground: #ffffff;
+	--card: #064e3b;
+	--card-foreground: #ffffff;
+	--popover: #047857;
+	--popover-foreground: #ffffff;
+
+	--primary: #a3e635;
+	--primary-foreground: #0a0f1a;
+	--secondary: #10b981;
+	--secondary-foreground: #0a0f1a;
+	--muted: #064e3b;
+	--muted-foreground: #86efac;
+	--accent: #047857;
+	--accent-foreground: #a3e635;
+	--destructive: #dc2626;
 	--destructive-foreground: #ffffff;
-	--border: #e5d4c2;
-	--input: #e5d4c2;
-	--ring: #253957;
+	--border: #059669;
+	--input: #064e3b;
+	--ring: #a3e635;
 
-	--success: oklch(0.5513 0.1376 141.3766);
-	--success-foreground: oklch(1 0 0);
-	--warning: oklch(0.6275 0.1294 85.3177);
-	--warning-foreground: oklch(0.2435 0 0);
+	--success: #22c55e;
+	--success-foreground: #ffffff;
+	--warning: #eab308;
+	--warning-foreground: #0a0f0a;
 
-	--chart-1: #253957;
-	--chart-2: #d0a579;
-	--chart-3: #b21900;
-	--chart-4: #e7e8e9;
-	--chart-5: #646464;
+	--chart-1: #a3e635;
+	--chart-2: #34d399;
+	--chart-3: #34d399;
+	--chart-4: #34d399;
+	--chart-5: #064e3b;
 
-	--sidebar: oklch(0.9881 0 0);
-	--sidebar-foreground: oklch(0.2645 0 0);
-	--sidebar-primary: #253957;
-	--sidebar-primary-foreground: #ffffff;
-	--sidebar-accent: #e7e8e9;
-	--sidebar-accent-foreground: #202020;
-	--sidebar-border: #e5d4c2;
-	--sidebar-ring: #253957;
+	--sidebar: #064e3b;
+	--sidebar-foreground: #ffffff;
+	--sidebar-primary: #a3e635;
+	--sidebar-primary-foreground: #0a0f1a;
+	--sidebar-accent: #047857;
+	--sidebar-accent-foreground: #a3e635;
+	--sidebar-border: #059669;
+	--sidebar-ring: #a3e635;
 
-	--font-sans: League Spartan;
+	--font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	--font-serif: Athelas;
 	--font-mono: Andale Mono;
 	--shadow-color: #000000;
-	--shadow-opacity: 0.2;
-	--shadow-blur: 10px;
-	--shadow-spread: 2px;
-	--shadow-offset-x: 2px;
-	--shadow-offset-y: 2px;
+	--shadow-opacity: 0.1;
+	--shadow-blur: 8px;
+	--shadow-spread: 0px;
+	--shadow-offset-x: 0px;
+	--shadow-offset-y: 1px;
 	--letter-spacing: 0.05em;
 	--spacing: 0.25rem;
-	--shadow-2xs: 2px 2px 10px 2px hsl(0 0% 0% / 0.1);
-	--shadow-xs: 2px 2px 10px 2px hsl(0 0% 0% / 0.1);
-	--shadow-sm:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 1px 2px 1px hsl(0 0% 0% / 0.2);
-	--shadow:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 1px 2px 1px hsl(0 0% 0% / 0.2);
-	--shadow-md:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 2px 4px 1px hsl(0 0% 0% / 0.2);
-	--shadow-lg:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 4px 6px 1px hsl(0 0% 0% / 0.2);
-	--shadow-xl:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 8px 10px 1px hsl(0 0% 0% / 0.2);
-	--shadow-2xl: 2px 2px 10px 2px hsl(0 0% 0% / 0.5);
+	--shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+	--shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.1);
+	--shadow-sm: 0px 2px 4px -1px rgba(0, 0, 0, 0.1);
+	--shadow: 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+	--shadow-md: 0px 6px 8px -2px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+	--shadow-xl: 0px 20px 25px -5px rgba(0, 0, 0, 0.1);
+	--shadow-2xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
 	--tracking-normal: 0.05em;
 }
 
 .dark {
-	/* Dark Theme Colors */
-	--background: #111111;
-	--foreground: #eeeeee;
-	--card: #0b2142;
-	--card-foreground: #eeeeee;
-	--popover: #0b2142;
-	--popover-foreground: #eeeeee;
+	/* Aurora Dark Theme - Emerald Green with Yellow-Lime Gradient */
+	--background: #0a0f1a;
+	--foreground: #ffffff;
+	--card: #064e3b;
+	--card-foreground: #ffffff;
+	--popover: #047857;
+	--popover-foreground: #ffffff;
 
-	--primary: #f7efe4;
-	--primary-foreground: #0b2142;
-	--secondary: #af7846;
-	--secondary-foreground: #eeeeee;
-	--muted: #222222;
-	--muted-foreground: #e5d4c2;
-	--accent: #04142b;
-	--accent-foreground: #f7efe4;
-	--destructive: #b21900;
+	--primary: #a3e635;
+	--primary-foreground: #0a0f1a;
+	--secondary: #10b981;
+	--secondary-foreground: #0a0f1a;
+	--muted: #064e3b;
+	--muted-foreground: #86efac;
+	--accent: #047857;
+	--accent-foreground: #a3e635;
+	--destructive: #dc2626;
 	--destructive-foreground: #ffffff;
-	--border: #040c16;
-	--input: #484848;
-	--ring: #e5d4c2;
+	--border: #059669;
+	--input: #064e3b;
+	--ring: #a3e635;
 
-	--success: oklch(0.4412 0.1372 142.5009);
-	--success-foreground: oklch(1 0 0);
-	--warning: oklch(0.7275 0.1294 85.3177);
-	--warning-foreground: oklch(0.1776 0 0);
+	--success: #22c55e;
+	--success-foreground: #ffffff;
+	--warning: #eab308;
+	--warning-foreground: #0a0f0a;
 
-	--chart-1: #f7efe4;
-	--chart-2: #af7846;
-	--chart-3: #b21900;
-	--chart-4: #04142b;
-	--chart-5: #e5d4c2;
+	--chart-1: #a3e635;
+	--chart-2: #34d399;
+	--chart-3: #34d399;
+	--chart-4: #34d399;
+	--chart-5: #064e3b;
 
-	--sidebar: #0b2142;
-	--sidebar-foreground: #eeeeee;
-	--sidebar-primary: #f7efe4;
-	--sidebar-primary-foreground: #111111;
-	--sidebar-accent: #04142b;
-	--sidebar-accent-foreground: #f7efe4;
-	--sidebar-border: #040c16;
-	--sidebar-ring: #e5d4c2;
+	--sidebar: #064e3b;
+	--sidebar-foreground: #ffffff;
+	--sidebar-primary: #a3e635;
+	--sidebar-primary-foreground: #0a0f1a;
+	--sidebar-accent: #047857;
+	--sidebar-accent-foreground: #a3e635;
+	--sidebar-border: #059669;
+	--sidebar-ring: #a3e635;
 
-	--font-sans: League Spartan;
+	--font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	--font-serif: Athelas;
 	--font-mono: Andale Mono;
 	--shadow-color: #000000;
-	--shadow-opacity: 0.2;
-	--shadow-blur: 10px;
-	--shadow-spread: 2px;
-	--shadow-offset-x: 2px;
-	--shadow-offset-y: 2px;
+	--shadow-opacity: 0.1;
+	--shadow-blur: 8px;
+	--shadow-spread: 0px;
+	--shadow-offset-x: 0px;
+	--shadow-offset-y: 1px;
 	--letter-spacing: 0.05em;
 	--spacing: 0.25rem;
-	--shadow-2xs: 2px 2px 10px 2px hsl(0 0% 0% / 0.1);
-	--shadow-xs: 2px 2px 10px 2px hsl(0 0% 0% / 0.1);
-	--shadow-sm:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 1px 2px 1px hsl(0 0% 0% / 0.2);
-	--shadow:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 1px 2px 1px hsl(0 0% 0% / 0.2);
-	--shadow-md:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 2px 4px 1px hsl(0 0% 0% / 0.2);
-	--shadow-lg:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 4px 6px 1px hsl(0 0% 0% / 0.2);
-	--shadow-xl:
-		2px 2px 10px 2px hsl(0 0% 0% / 0.2), 2px 8px 10px 1px hsl(0 0% 0% / 0.2);
-	--shadow-2xl: 2px 2px 10px 2px hsl(0 0% 0% / 0.5);
+	--shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+	--shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.1);
+	--shadow-sm: 0px 2px 4px -1px rgba(0, 0, 0, 0.1);
+	--shadow: 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+	--shadow-md: 0px 6px 8px -2px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
+	--shadow-xl: 0px 20px 25px -5px rgba(0, 0, 0, 0.1);
+	--shadow-2xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 /* Adaptive Brand Color Utilities */
@@ -432,6 +433,258 @@
 	body {
 		@apply bg-background text-foreground;
 		letter-spacing: var(--tracking-normal);
-		font-family: "League Spartan", ui-sans-serif, system-ui, sans-serif;
+		font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	}
+
+}
+
+/* Aurora Background Animation */
+@keyframes aurora {
+	from {
+		background-position: 50% 50%, 50% 50%;
+	}
+	to {
+		background-position: 350% 50%, 350% 50%;
+	}
+}
+
+@keyframes aurora-flow {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes shine {
+	0% {
+		transform: translateX(-100%);
+	}
+	50% {
+		transform: translateX(100%);
+	}
+	100% {
+		transform: translateX(100%);
+	}
+}
+
+.animate-aurora {
+	animation: aurora 60s linear infinite;
+}
+
+.animate-aurora-flow {
+	animation: aurora-flow 30s linear infinite;
+}
+
+.animate-shine {
+	animation: shine 2s ease-in-out infinite;
+}
+
+/* Gradient Button Styles - 21st.dev implementation with emerald aurora theme */
+@property --pos-x {
+	syntax: "<percentage>";
+	initial-value: 11.14%;
+	inherits: false;
+}
+
+@property --pos-y {
+	syntax: "<percentage>";
+	initial-value: 140%;
+	inherits: false;
+}
+
+@property --spread-x {
+	syntax: "<percentage>";
+	initial-value: 150%;
+	inherits: false;
+}
+
+@property --spread-y {
+	syntax: "<percentage>";
+	initial-value: 180.06%;
+	inherits: false;
+}
+
+@property --color-1 {
+	syntax: "<color>";
+	initial-value: #065f46;
+	inherits: false;
+}
+
+@property --color-2 {
+	syntax: "<color>";
+	initial-value: #059669;
+	inherits: false;
+}
+
+@property --color-3 {
+	syntax: "<color>";
+	initial-value: #10b981;
+	inherits: false;
+}
+
+@property --color-4 {
+	syntax: "<color>";
+	initial-value: #34d399;
+	inherits: false;
+}
+
+@property --color-5 {
+	syntax: "<color>";
+	initial-value: #6ee7b7;
+	inherits: false;
+}
+
+@property --border-angle {
+	syntax: "<angle>";
+	initial-value: 20deg;
+	inherits: true;
+}
+
+@property --border-color-1 {
+	syntax: "<color>";
+	initial-value: rgba(52, 211, 153, 0.3);
+	inherits: true;
+}
+
+@property --border-color-2 {
+	syntax: "<color>";
+	initial-value: rgba(110, 231, 183, 0.85);
+	inherits: true;
+}
+
+@property --stop-1 {
+	syntax: "<percentage>";
+	initial-value: 37.35%;
+	inherits: false;
+}
+
+@property --stop-2 {
+	syntax: "<percentage>";
+	initial-value: 61.36%;
+	inherits: false;
+}
+
+@property --stop-3 {
+	syntax: "<percentage>";
+	initial-value: 78.42%;
+	inherits: false;
+}
+
+@property --stop-4 {
+	syntax: "<percentage>";
+	initial-value: 89.52%;
+	inherits: false;
+}
+
+@property --stop-5 {
+	syntax: "<percentage>";
+	initial-value: 100%;
+	inherits: false;
+}
+
+.gradient-button {
+	position: relative;
+	cursor: pointer;
+	appearance: none;
+	background: radial-gradient(
+		var(--spread-x) var(--spread-y) at var(--pos-x) var(--pos-y),
+		var(--color-1) var(--stop-1),
+		var(--color-2) var(--stop-2),
+		var(--color-3) var(--stop-3),
+		var(--color-4) var(--stop-4),
+		var(--color-5) var(--stop-5)
+	);
+	border: none;
+	transition:
+		--pos-x 0.5s,
+		--pos-y 0.5s,
+		--spread-x 0.5s,
+		--spread-y 0.5s,
+		--color-1 0.5s,
+		--color-2 0.5s,
+		--color-3 0.5s,
+		--color-4 0.5s,
+		--color-5 0.5s,
+		--border-angle 0.5s,
+		--border-color-1 0.5s,
+		--border-color-2 0.5s,
+		--stop-1 0.5s,
+		--stop-2 0.5s,
+		--stop-3 0.5s,
+		--stop-4 0.5s,
+		--stop-5 0.5s;
+}
+
+.gradient-button::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	padding: 1px;
+	background: linear-gradient(
+		var(--border-angle),
+		var(--border-color-1),
+		var(--border-color-2)
+	);
+	mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+	mask-composite: exclude;
+	pointer-events: none;
+}
+
+.gradient-button:hover {
+	--pos-x: 0%;
+	--pos-y: 91.51%;
+	--spread-x: 120.24%;
+	--spread-y: 103.18%;
+	--color-1: #34d399;
+	--color-2: #6ee7b7;
+	--color-3: #a7f3d0;
+	--color-4: #d1fae5;
+	--color-5: #065f46;
+	--border-angle: 190deg;
+	--border-color-1: rgba(110, 231, 183, 0.2);
+	--border-color-2: rgba(110, 231, 183, 0.8);
+	--stop-1: 0%;
+	--stop-2: 8.8%;
+	--stop-3: 21.44%;
+	--stop-4: 71.34%;
+	--stop-5: 85.76%;
+}
+
+.gradient-button:active {
+	transform: scale(0.98);
+}
+
+.gradient-button-variant {
+	--color-1: #065f46;
+	--color-2: #059669;
+	--color-3: #10b981;
+	--color-4: #34d399;
+	--border-angle: 200deg;
+	--border-color-1: rgba(52, 211, 153, 0.6);
+	--border-color-2: rgba(52, 211, 153, 0.15);
+	border: 2px solid #34d399;
+}
+
+.gradient-button-variant:hover {
+	--pos-x: 0%;
+	--pos-y: 95.51%;
+	--spread-x: 110.24%;
+	--spread-y: 110.2%;
+	--color-1: #065f46;
+	--color-2: #34d399;
+	--color-3: #10b981;
+	--color-4: #059669;
+	--color-5: #047857;
+	--stop-1: 0%;
+	--stop-2: 10%;
+	--stop-3: 35.44%;
+	--stop-4: 71.34%;
+	--stop-5: 90.76%;
+	--border-angle: 210deg;
+	--border-color-1: rgba(52, 211, 153, 0.3);
+	--border-color-2: rgba(110, 231, 183, 0.8);
+	border-color: #6ee7b7;
 }

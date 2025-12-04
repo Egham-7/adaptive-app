@@ -60,10 +60,10 @@ const textSizeMap = {
 
 const brandConfig = {
   adaptive: {
-    lightSrc: "/logos/adaptive-light.png",
-    darkSrc: "/logos/adaptive-dark.png",
-    alt: "Adaptive Logo",
-    text: "Adaptive",
+    lightSrc: "/logos/aurora_logo.png",
+    darkSrc: "/logos/aurora_logo.png",
+    alt: "Aurora AI Logo",
+    text: "Aurora AI",
   },
   cursor: {
     lightSrc: "/logos/cursor-light.png",

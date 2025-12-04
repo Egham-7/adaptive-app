@@ -36,8 +36,9 @@ export default function RootLayout({
 					<PostHogProvider>
 						<ThemeProvider
 							attribute="class"
-							defaultTheme="system"
-							enableSystem
+							defaultTheme="dark"
+							enableSystem={false}
+							forcedTheme="dark"
 							disableTransitionOnChange
 						>
 							<TRPCReactProvider>

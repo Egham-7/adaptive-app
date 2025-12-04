@@ -19,13 +19,13 @@ export default function ContentSection() {
 	return (
 		<section id="solution" className="py-16 md:py-32">
 			<div className="mx-auto max-w-5xl space-y-8 px-6 md:space-y-16">
-				<h2 className="relative z-10 max-w-4xl font-bold text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-					Give your engineering team a self-optimizing model stack
+				<h2 className="relative z-10 max-w-4xl font-bold text-3xl leading-tight tracking-tight sm:text-4xl lg:text-5xl text-white">
+					Give your engineering team a <span className="text-[#a3e635]">self-optimizing</span> model stack
 				</h2>
 
 				<div className="grid gap-6 md:grid-cols-2 md:gap-12 lg:gap-24">
 					<div className="relative space-y-4">
-						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
+						<p className="text-base text-white leading-relaxed sm:text-lg">
 							New foundation models launch every week. Without Adaptive, that
 							means spinning up evals, rewriting routing logic, and hoping the
 							rollout sticks, so most teams pick one provider and leave it
@@ -33,18 +33,18 @@ export default function ContentSection() {
 							rebuilding anything.
 						</p>
 
-						<p className="text-base text-muted-foreground leading-relaxed sm:text-lg">
+						<p className="text-base text-white leading-relaxed sm:text-lg">
 							Sketch your routing architecture on a visual canvas, load in your
 							benchmarks, and let Adaptive run continuous tests across every
 							provider. Routing shifts automatically to whichever model wins on
 							quality, latency, and cost.
 						</p>
 
-						<div className="mt-6 rounded-lg border bg-muted/30 p-4 md:p-6">
-							<h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
+						<div className="mt-6 rounded-lg border-2 border-[#34d399] bg-transparent p-4 md:p-6">
+							<h3 className="mb-3 font-semibold text-base text-[#a3e635] sm:text-lg">
 								How Adaptive decides where to send traffic
 							</h3>
-							<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
+							<p className="text-white text-sm leading-relaxed sm:text-base">
 								Every request runs through your benchmark matrix. Adaptive
 								scores each provider on accuracy, latency, and spend, then
 								updates routing in minutes when the leaderboard changes. Your
@@ -54,14 +54,14 @@ export default function ContentSection() {
 
 						<div className="grid gap-4 pt-6">
 							{/* Developer Benefits */}
-							<div className="rounded-lg border bg-primary/5 p-4 dark:bg-primary/10">
+							<div className="rounded-lg border-2 border-[#34d399] bg-transparent p-4 hover:bg-[rgba(52,211,153,0.1)] hover:border-[#a3e635] transition-all">
 								<div className="mb-2 flex items-center gap-2">
-									<Zap className="size-5 flex-shrink-0 text-primary" />
-									<h3 className="font-semibold text-foreground text-sm sm:text-base">
+									<Zap className="size-5 flex-shrink-0 text-[#a3e635]" />
+									<h3 className="font-semibold text-white text-sm sm:text-base">
 										Built for developers
 									</h3>
 								</div>
-								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
+								<p className="text-white text-sm leading-relaxed sm:text-base">
 									Drop-in OpenAI-compatible API keys, visual architecture
 									instead of YAML, and benchmarks sourced from your own prompts.
 									Publish a route in minutes and Adaptive keeps refining it
@@ -70,14 +70,14 @@ export default function ContentSection() {
 							</div>
 
 							{/* CTO Benefits */}
-							<div className="rounded-lg border bg-secondary/30 p-4 dark:bg-secondary/20">
+							<div className="rounded-lg border-2 border-[#34d399] bg-transparent p-4 hover:bg-[rgba(52,211,153,0.1)] hover:border-[#a3e635] transition-all">
 								<div className="mb-2 flex items-center gap-2">
-									<Cpu className="size-5 flex-shrink-0 text-secondary-foreground" />
-									<h3 className="font-semibold text-foreground text-sm sm:text-base">
+									<Cpu className="size-5 flex-shrink-0 text-[#a3e635]" />
+									<h3 className="font-semibold text-white text-sm sm:text-base">
 										Trusted by platform leaders
 									</h3>
 								</div>
-								<p className="text-muted-foreground text-sm leading-relaxed sm:text-base">
+								<p className="text-white text-sm leading-relaxed sm:text-base">
 									Cut AI spend by 60 to 90 percent while meeting the reliability
 									thresholds you set. No single-vendor risk, no lag between a
 									model upgrade and production traffic, and audit trails for

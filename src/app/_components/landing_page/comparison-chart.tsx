@@ -51,6 +51,10 @@ const chartConfig = {
 		label: "Anthropic",
 		color: "var(--chart-3)",
 	},
+	gemini: {
+		label: "Gemini",
+		color: "var(--chart-4)",
+	},
 	"google-ai-studio": {
 		label: "Google AI Studio",
 		color: "var(--chart-4)",
@@ -124,14 +128,14 @@ export default function ComparisonChart() {
 			className="w-full"
 		>
 			<Card
-				className="w-full overflow-hidden p-6 shadow-xl"
+				className="w-full overflow-hidden p-6 shadow-xl bg-[#0a0f1a]/70 border-2 border-[#34d399] backdrop-blur-sm"
 				aria-labelledby={chartTitleId}
 			>
 				<motion.h4
 					initial={{ opacity: 0, x: -20 }}
 					animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
 					transition={{ delay: 0.2, duration: 0.6 }}
-					className="mb-4 font-semibold text-foreground text-xl"
+					className="mb-4 font-semibold text-white text-xl"
 					id={chartTitleId}
 				>
 					Cost per Million Tokens Comparison

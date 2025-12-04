@@ -3,7 +3,7 @@
 import { useOrganizationList } from "@clerk/nextjs";
 import type { OrganizationResource } from "@clerk/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, Trash2 } from "lucide-react";
+import { Sparkles, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -21,15 +21,6 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { CopyButton } from "@/components/ui/copy-button";
 import {
 	Form,
 	FormControl,
@@ -41,6 +32,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CopyButton } from "@/components/ui/copy-button";
+import { IosButton } from "@/components/ui/ios-button";
 import { useDeleteOrganization } from "@/hooks/organizations/use-delete-organization";
 import { useOrgTracking } from "@/hooks/posthog/use-org-tracking";
 
@@ -152,41 +145,45 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 
 	return (
 		<div className="space-y-6">
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Building2 className="h-5 w-5" />
-						Organization Profile
-					</CardTitle>
-					<CardDescription>
-						Manage your organization's basic information
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-6">
+			{/* Organization Profile Card */}
+			<div className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-6">
+				<div className="flex items-center gap-3 mb-6">
+					<div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-lime-400">
+						<Sparkles className="h-5 w-5 text-black" />
+					</div>
+					<div>
+						<h3 className="font-medium text-white">Organization Profile</h3>
+						<p className="text-sm text-white/40">
+							Manage your organization's basic information
+						</p>
+					</div>
+				</div>
+
+				<div className="space-y-6">
 					<div className="flex items-center gap-4">
-						<Avatar className="h-20 w-20">
+						<Avatar className="h-20 w-20 border-2 border-white/10">
 							<AvatarImage src={organization?.imageUrl} />
-							<AvatarFallback className="text-lg">
+							<AvatarFallback className="text-lg bg-white/5 text-white">
 								{organization?.name?.[0]?.toUpperCase()}
 							</AvatarFallback>
 						</Avatar>
 						<div className="space-y-3">
 							<div className="space-y-1">
-								<h3 className="font-semibold text-xl">
+								<h3 className="font-semibold text-xl text-white">
 									{organization?.name || "Organization"}
 								</h3>
-								<p className="text-muted-foreground text-sm">
+								<p className="text-white/40 text-sm">
 									{organization?.membersCount} member
 									{organization?.membersCount !== 1 ? "s" : ""}
 								</p>
 							</div>
 							{organization?.id ? (
 								<div className="space-y-1">
-									<p className="text-muted-foreground text-xs uppercase tracking-wide">
+									<p className="text-white/40 text-xs uppercase tracking-wide">
 										Organization ID
 									</p>
-									<div className="flex items-center gap-3 rounded-lg border bg-muted px-3 py-1.5">
-										<span className="font-mono text-muted-foreground text-xs">
+									<div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5">
+										<span className="font-mono text-white/60 text-xs">
 											{organization.id}
 										</span>
 										<CopyButton content={organization.id} />
@@ -206,11 +203,15 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 								name="name"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Full Name</FormLabel>
+										<FormLabel className="text-white/70">Full Name</FormLabel>
 										<FormControl>
-											<Input placeholder="Enter organization name" {...field} />
+											<Input 
+												placeholder="Enter organization name" 
+												className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#34d399]/50 focus:ring-[#34d399]/20"
+												{...field} 
+											/>
 										</FormControl>
-										<FormDescription>
+										<FormDescription className="text-white/40">
 											This is the display name for your organization
 										</FormDescription>
 										<FormMessage />
@@ -223,11 +224,15 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 								name="slug"
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>Display Name (slug)</FormLabel>
+										<FormLabel className="text-white/70">Display Name (slug)</FormLabel>
 										<FormControl>
-											<Input placeholder="organization-slug" {...field} />
+											<Input 
+												placeholder="organization-slug" 
+												className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#34d399]/50 focus:ring-[#34d399]/20"
+												{...field} 
+											/>
 										</FormControl>
-										<FormDescription>
+										<FormDescription className="text-white/40">
 											Used in URLs and for identification
 										</FormDescription>
 										<FormMessage />
@@ -236,32 +241,39 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 							/>
 
 							<div className="flex justify-end">
-								<Button type="submit" disabled={form.formState.isSubmitting}>
+								<IosButton 
+									type="submit" 
+									variant="bordered"
+									disabled={form.formState.isSubmitting}
+								>
 									{form.formState.isSubmitting ? "Saving..." : "Save Changes"}
-								</Button>
+								</IosButton>
 							</div>
 						</form>
 					</Form>
-				</CardContent>
-			</Card>
+				</div>
+			</div>
 
-			<Card className="border-destructive">
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2 text-destructive">
-						<Trash2 className="h-5 w-5" />
-						Delete Organization
-					</CardTitle>
-					<CardDescription>
-						Permanently delete this organization and all associated data. This
-						action cannot be undone.
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<div className="rounded-lg bg-destructive/10 p-4">
-						<p className="text-sm">
-							<strong>Warning:</strong> Deleting this organization will:
+			{/* Delete Organization Card */}
+			<div className="rounded-2xl border border-red-500/30 bg-red-500/5 backdrop-blur-xl p-6">
+				<div className="flex items-center gap-3 mb-6">
+					<div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10 border border-red-500/30">
+						<Trash2 className="h-5 w-5 text-red-400" />
+					</div>
+					<div>
+						<h3 className="font-medium text-red-400">Delete Organization</h3>
+						<p className="text-sm text-white/40">
+							Permanently delete this organization and all associated data
 						</p>
-						<ul className="mt-2 ml-6 list-disc space-y-1 text-sm">
+					</div>
+				</div>
+
+				<div className="space-y-4">
+					<div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4">
+						<p className="text-sm text-white/70">
+							<strong className="text-red-400">Warning:</strong> Deleting this organization will:
+						</p>
+						<ul className="mt-2 ml-6 list-disc space-y-1 text-sm text-white/50">
 							<li>Remove all projects and API keys</li>
 							<li>Delete all usage data and logs</li>
 							<li>Remove all team members</li>
@@ -270,15 +282,16 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 					</div>
 
 					<div className="flex justify-end">
-						<Button
-							variant="destructive"
+						<IosButton
+							variant="bordered"
+							className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500"
 							onClick={() => setShowDeleteDialog(true)}
 						>
 							Delete Organization
-						</Button>
+						</IosButton>
 					</div>
-				</CardContent>
-			</Card>
+				</div>
+			</div>
 
 			<AlertDialog
 				open={showDeleteDialog}
@@ -287,18 +300,18 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 					if (!open) setConfirmText("");
 				}}
 			>
-				<AlertDialogContent>
+				<AlertDialogContent className="bg-[#0a0a0a] border border-white/10 backdrop-blur-xl">
 					<AlertDialogHeader>
-						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-						<AlertDialogDescription className="space-y-4">
+						<AlertDialogTitle className="text-white">Are you absolutely sure?</AlertDialogTitle>
+						<AlertDialogDescription className="space-y-4 text-white/60">
 							<p>
 								This action cannot be undone. This will permanently delete the{" "}
-								<strong>{organization?.name}</strong> organization and remove
+								<strong className="text-white">{organization?.name}</strong> organization and remove
 								all associated data.
 							</p>
 							<div className="space-y-2">
-								<Label htmlFor="confirm">
-									Type <strong>{organization?.name}</strong> to confirm:
+								<Label htmlFor="confirm" className="text-white/70">
+									Type <strong className="text-white">{organization?.name}</strong> to confirm:
 								</Label>
 								<Input
 									id="confirm"
@@ -315,18 +328,22 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ organization }) => {
 										}
 									}}
 									placeholder={organization?.name}
+									className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
 								/>
 							</div>
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
-						<AlertDialogCancel onClick={() => setConfirmText("")}>
+						<AlertDialogCancel 
+							onClick={() => setConfirmText("")}
+							className="bg-white/5 border-white/10 text-white hover:bg-white/10"
+						>
 							Cancel
 						</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={handleDelete}
 							disabled={confirmText !== organization?.name || isPending}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							className="bg-red-500 text-white hover:bg-red-600 disabled:opacity-50"
 						>
 							{isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>

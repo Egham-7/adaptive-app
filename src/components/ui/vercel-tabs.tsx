@@ -18,10 +18,27 @@ interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
 const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
   ({ className, tabs, activeTab, onTabChange, ...props }, ref) => {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-    const [activeIndex, setActiveIndex] = useState(0)
+    const getActiveIndex = () => {
+      if (activeTab) {
+        const index = tabs.findIndex(tab => tab.id === activeTab)
+        return index >= 0 ? index : 0
+      }
+      return 0
+    }
+    const [activeIndex, setActiveIndex] = useState(getActiveIndex)
     const [hoverStyle, setHoverStyle] = useState({})
     const [activeStyle, setActiveStyle] = useState({ left: "0px", width: "0px" })
     const tabRefs = useRef<(HTMLDivElement | null)[]>([])
+
+    // Sync activeIndex with activeTab prop
+    useEffect(() => {
+      if (activeTab) {
+        const index = tabs.findIndex(tab => tab.id === activeTab)
+        if (index >= 0 && index !== activeIndex) {
+          setActiveIndex(index)
+        }
+      }
+    }, [activeTab, tabs, activeIndex])
 
     useEffect(() => {
       if (hoveredIndex !== null) {
@@ -69,7 +86,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
         <div className="relative">
           {/* Hover Highlight */}
           <div
-            className="absolute h-[30px] transition-all duration-300 ease-out bg-[#0e0f1114] dark:bg-[#ffffff1a] rounded-[6px] flex items-center"
+            className="absolute h-[30px] transition-all duration-300 ease-out bg-[#ffffff1a] rounded-[6px] flex items-center"
             style={{
               ...hoverStyle,
               opacity: hoveredIndex !== null ? 1 : 0,
@@ -78,7 +95,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
 
           {/* Active Indicator */}
           <div
-            className="absolute bottom-[-6px] h-[2px] bg-[#0e0f11] dark:bg-white transition-all duration-300 ease-out"
+            className="absolute bottom-[-6px] h-[2px] bg-white transition-all duration-300 ease-out"
             style={activeStyle}
           />
 
@@ -91,8 +108,8 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
                 className={cn(
                   "px-3 py-2 cursor-pointer transition-colors duration-300 h-[30px]",
                   index === activeIndex 
-                    ? "text-[#0e0e10] dark:text-white" 
-                    : "text-[#0e0f1199] dark:text-[#ffffff99]"
+                    ? "text-white" 
+                    : "text-[#ffffff99]"
                 )}
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}

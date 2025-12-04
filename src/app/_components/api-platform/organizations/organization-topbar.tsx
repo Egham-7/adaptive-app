@@ -1,10 +1,10 @@
 "use client";
 
 import { useOrganization } from "@clerk/nextjs";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { OrganizationSwitcher } from "@/components/organization-switcher";
-import { SocialLogo } from "@/components/ui/social-logo";
 import { Tabs } from "@/components/ui/vercel-tabs";
 import { UserProfileMenu } from "@/components/user-profile-menu";
 
@@ -47,14 +47,20 @@ export function OrganizationTopbar() {
 	};
 
 	return (
-		<div className="border-b bg-background">
+		<div className="border-b border-white/10 bg-black">
 			<div className="px-6 py-4">
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-2">
 						<Link href={`/api-platform/orgs/${orgSlug}`}>
-							<SocialLogo width={60} height={20} className="shrink-0" />
+							<Image 
+								src="/logos/aurora_logo.png" 
+								alt="Aurora" 
+								width={28} 
+								height={28} 
+								className="shrink-0" 
+							/>
 						</Link>
-						<span className="shrink-0 text-muted-foreground">/</span>
+						<span className="shrink-0 text-white/40">/</span>
 						<div className="shrink-0">
 							<OrganizationSwitcher />
 						</div>
