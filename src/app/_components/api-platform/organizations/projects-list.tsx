@@ -71,7 +71,7 @@ export function ProjectsList({ organizationId }: { organizationId: string }) {
 
 	if (isLoading) {
 		return (
-			<div className="flex min-h-[60vh] items-center justify-center">
+			<div className="flex min-h-[80vh] items-center justify-center">
 				<div className="flex flex-col items-center gap-4">
 					<div className="relative">
 						<div className="h-12 w-12 rounded-full border-2 border-white/10" />

@@ -128,8 +128,8 @@ export function OrganizationListView() {
 								className={cn(
 									"group cursor-pointer rounded-2xl border backdrop-blur-xl p-6 transition-all duration-300",
 									isActive
-										? "border-white/30 bg-white/5"
-										: "border-white/10 bg-black/40 hover:border-white/20 hover:bg-black/50"
+										? "border-[#34d399]/40 bg-black/50"
+										: "border-white/10 bg-black/40 hover:border-[#34d399]/30 hover:bg-black/50"
 								)}
 							>
 									<div className="flex items-center gap-3 mb-4">

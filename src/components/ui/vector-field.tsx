@@ -29,14 +29,16 @@ const generateVectors = (count: number) => {
 		const interactive = Math.random() > 0.4;
 
 		const messages = [
-			"OpeAI Gpt-5.1",
 			"Claude Opus 4.5",
-			"Gemini Pro 3",
+			"Claude Sonnet 4.5",
+			"Gemini 3 Pro",
+			"GPT-5",
+			"GPT-5 Mini",
+			"GPT-5 Nano",
+			"GLM-4.6",
 			"Qwen 7B",
-			"Gemma 3.5",
 			"LLaMA 3",
 			"Mistral",
-			"PaLM 3",
 			"DeepSeek",
 			"Grok",
 		];
@@ -46,7 +48,7 @@ const generateVectors = (count: number) => {
 			position: [x, y, z] as [number, number, number],
 			interactive,
 			message: interactive
-				? messages[Math.floor(Math.random() * messages.length)]
+				? (messages[Math.floor(Math.random() * messages.length)] ?? "")
 				: "",
 		});
 	}

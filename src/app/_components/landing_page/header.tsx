@@ -16,7 +16,7 @@ const menuItems: MenuItem[] = [
 	{ name: "Overview", href: "/", icon: Home },
 	{ name: "Features", href: "/#features", icon: Sparkles },
 	{ name: "Updates", href: "/#solution", icon: Bell },
-	{ name: "Pricing", href: "/#pricing", icon: CreditCard },
+	{ name: "Pricing", href: "/pricing", icon: CreditCard },
 	{ name: "Documentation", href: "https://docs.llmadaptive.uk/", icon: BookOpen },
 	{ name: "About", href: "/#about", icon: Info },
 ] as MenuItem[];
@@ -26,12 +26,31 @@ const iconMenuItems: IconMenuItem[] = [];
 export default function Header() {
 	const pathname = usePathname();
 	const [isScrolled, setIsScrolled] = React.useState(false);
-	const [activeSection, setActiveSection] = React.useState("/");
+	const [activeSection, setActiveSection] = React.useState<string | null>(null);
 
+	// Determine if we're on a standalone page (not homepage with hash sections)
+	const isStandalonePage = pathname !== "/" && !pathname.startsWith("/#");
+
+	// Handle scroll for isScrolled state on all pages
 	React.useEffect(() => {
 		const handleScroll = () => {
 			setIsScrolled(window.scrollY > SCROLL_THRESHOLD);
+		};
+		
+		handleScroll();
+		window.addEventListener("scroll", handleScroll);
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, []);
 
+	// Handle active section based on page/scroll
+	React.useEffect(() => {
+		// If on a standalone page like /pricing, set activeSection to match pathname
+		if (isStandalonePage) {
+			setActiveSection(pathname);
+			return;
+		}
+
+		const handleScroll = () => {
 			// Detect active section based on scroll position
 			const sections = ["features", "solution", "pricing", "about"];
 			const scrollPosition = window.scrollY + window.innerHeight / 3; // Use 1/3 of viewport as offset
@@ -82,7 +101,7 @@ export default function Header() {
 			clearTimeout(timer);
 			window.removeEventListener("scroll", handleScroll);
 		};
-	}, []);
+	}, [isStandalonePage, pathname]);
 
 	// Handle nav click - immediately set active section for instant feedback
 	const handleNavClick = (href: string) => {

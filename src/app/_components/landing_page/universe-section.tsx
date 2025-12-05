@@ -120,6 +120,9 @@ export default function UniverseSection() {
 					</ScrollProgressBuild>
 				</div>
 			</div>
+
+			{/* Bottom separator line - gradient fade */}
+			<div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent z-20" />
 		</section>
 	);
 }
